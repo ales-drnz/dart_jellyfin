@@ -1,0 +1,43 @@
+# Docker stack for the dart_jellyfin integration test suite.
+#
+# Bring up:    docker compose --env-file .env.test up -d
+# Tear down:   docker compose down       (keeps volumes ~30s next start)
+#              docker compose down -v    (wipes volumes ~5min next start)
+#
+# The bootstrap script (test/integration/bootstrap.dart) drives the
+# first-run wizard, creates the admin user, and seeds a minimal
+# library, so contributors don't need to click through the Jellyfin
+# Web UI themselves.
+
+name: dart-jellyfin-test
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:${JELLYFIN_IMAGE_TAG:-10.11.9}
+    container_name: dart-jellyfin-test
+    ports:
+      # Map host:container. Container always listens on 8096 inside.
+      - "127.0.0.1:${JELLYFIN_HOST_PORT:-18096}:8096"
+    volumes:
+      # Server state: config + DB + transcoded chunks. Survives
+      # `docker compose down`; wiped only by `down -v`. The host
+      # paths live under test/integration/volumes/ and are
+      # gitignored.
+      - ./volumes/jellyfin/config:/config
+      - ./volumes/jellyfin/cache:/cache
+      # Read-only media library. Populated by the bootstrap script
+      # (downloaded royalty-free seed files).
+      - ./seed/jellyfin:/media:ro
+    environment:
+      # Tell Jellyfin the URL it should advertise. Without this it
+      # uses the container's internal name which clients can't reach.
+      - JELLYFIN_PublishedServerUrl=http://127.0.0.1:${JELLYFIN_HOST_PORT:-18096}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -fs http://localhost:8096/health || exit 1"
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 30s
