@@ -14,6 +14,7 @@ import '../jellyfin_exception.dart';
 class JellyfinTrickplayApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinTrickplayApi(this._http);
 
   /// Build a tile image URL.

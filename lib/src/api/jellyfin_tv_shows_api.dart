@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinTvShowsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinTvShowsApi(this._http);
 
   /// `/Shows/{seriesId}/Episodes` — episodes of a series, optionally

@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinConfigurationApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinConfigurationApi(this._http);
 
   /// `GET /System/Configuration` — full server configuration as a

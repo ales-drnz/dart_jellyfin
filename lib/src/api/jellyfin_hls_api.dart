@@ -14,6 +14,7 @@ import '../jellyfin_exception.dart';
 class JellyfinHlsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinHlsApi(this._http);
 
   // ─── Audio ────────────────────────────────────────────────────────

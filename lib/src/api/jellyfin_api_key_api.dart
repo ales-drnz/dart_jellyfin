@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinApiKeyApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinApiKeyApi(this._http);
 
   /// `GET /Auth/Keys` — list active API keys.

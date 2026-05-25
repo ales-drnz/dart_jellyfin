@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinPluginsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPluginsApi(this._http);
 
   /// `GET /Plugins` — every installed plugin.

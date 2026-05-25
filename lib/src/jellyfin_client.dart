@@ -71,63 +71,175 @@ import 'jellyfin_credentials.dart';
 class JellyfinClient {
   final JellyfinConnection _http;
 
+  /// `/System` operations — info, ping, restart, shutdown.
   late final JellyfinSystemApi system;
+
+  /// `/Users` operations — login, list, manage.
   late final JellyfinUserApi user;
+
+  /// `/QuickConnect` operations — passwordless device pairing.
   late final JellyfinQuickConnectApi quickConnect;
+
+  /// `/Library` operations — top-level library browsing and refresh.
   late final JellyfinLibraryApi library;
+
+  /// `/Items` operations — query, fetch, and mutate library items.
   late final JellyfinItemsApi items;
+
+  /// `/Playlists` operations — create, edit, and play playlists.
   late final JellyfinPlaylistsApi playlists;
+
+  /// `/Search` operations — global hint search.
   late final JellyfinSearchApi search;
+
+  /// `/Audio` streaming endpoints.
   late final JellyfinAudioApi audio;
+
+  /// `/Videos` streaming endpoints.
   late final JellyfinVideosApi videos;
+
+  /// HLS adaptive-streaming endpoints.
   late final JellyfinHlsApi hls;
+
+  /// `/MediaInfo` operations — playback info, bitrate testing.
   late final JellyfinMediaInfoApi mediaInfo;
+
+  /// `/Trickplay` operations — scrubbing thumbnails.
   late final JellyfinTrickplayApi trickplay;
+
+  /// `/Subtitles` operations — fetch and configure subtitle tracks.
   late final JellyfinSubtitlesApi subtitles;
+
+  /// `/Images` operations — poster, backdrop, and chapter artwork.
   late final JellyfinImagesApi images;
+
+  /// Playback reporting — start, progress, stopped events.
   late final JellyfinPlaybackApi playback;
+
+  /// `/Sessions` operations — list and control active sessions.
   late final JellyfinSessionsApi sessions;
+
+  /// `/UserData` operations — favourites, play state, ratings.
   late final JellyfinUserDataApi userData;
+
+  /// `/InstantMix` operations — generate on-the-fly mixes.
   late final JellyfinInstantMixApi instantMix;
+
+  /// `/LiveTv` operations — channels, recordings, EPG.
   late final JellyfinLiveTvApi liveTv;
+
+  /// `/SyncPlay` operations — group playback coordination.
   late final JellyfinSyncPlayApi syncPlay;
+
+  /// `/Shows` operations — TV-show specific browsing helpers.
   late final JellyfinTvShowsApi tvShows;
+
+  /// `/Movies` operations — movie-specific browsing helpers.
   late final JellyfinMoviesApi movies;
+
+  /// `/Suggestions` operations — recommendations for a user.
   late final JellyfinSuggestionsApi suggestions;
+
+  /// `/MediaSegments` operations — intro/credit markers.
   late final JellyfinMediaSegmentsApi mediaSegments;
+
+  /// `/Items/Filters` operations — facet/filter queries.
   late final JellyfinFilterApi filter;
+
+  /// `/Artists` operations — list and fetch music artists.
   late final JellyfinArtistsApi artists;
+
+  /// `/DisplayPreferences` operations — per-user UI state.
   late final JellyfinDisplayPreferencesApi displayPreferences;
+
+  /// `/Lyrics` operations — fetch and upload synchronized lyrics.
   late final JellyfinLyricsApi lyrics;
+
+  /// `/Channels` operations — virtual channels (plugins).
   late final JellyfinChannelsApi channels;
+
+  /// `/Collections` operations — manage user-defined collections.
   late final JellyfinCollectionApi collection;
+
+  /// `/UserViews` operations — per-user library shortcuts.
   late final JellyfinUserViewsApi userViews;
+
+  /// `/Persons` operations — list and fetch people.
   late final JellyfinPersonsApi persons;
+
+  /// `/Studios` operations — list and fetch studios.
   late final JellyfinStudiosApi studios;
+
+  /// `/Genres` operations — list and fetch genres.
   late final JellyfinGenresApi genres;
+
+  /// `/MusicGenres` operations — list and fetch music genres.
   late final JellyfinMusicGenresApi musicGenres;
+
+  /// `/Years` operations — list and fetch year groupings.
   late final JellyfinYearsApi years;
+
+  /// `/Localization` operations — cultures, countries, options.
   late final JellyfinLocalizationApi localization;
+
+  /// `/Items/RemoteSearch` operations — metadata provider lookup.
   late final JellyfinItemLookupApi itemLookup;
+
+  /// `/Library/VirtualFolders` operations — manage library roots.
   late final JellyfinLibraryStructureApi libraryStructure;
+
+  /// `/Plugins` operations — list, configure, uninstall plugins.
   late final JellyfinPluginsApi plugins;
+
+  /// `/Packages` operations — repository catalog and install.
   late final JellyfinPackagesApi packages;
+
+  /// `/ScheduledTasks` operations — server background jobs.
   late final JellyfinScheduledTasksApi scheduledTasks;
+
+  /// `/System/Configuration` operations — server settings.
   late final JellyfinConfigurationApi configuration;
+
+  /// `/Environment` operations — filesystem and network probe.
   late final JellyfinEnvironmentApi environment;
+
+  /// `/Startup` operations — first-run wizard endpoints.
   late final JellyfinStartupApi startup;
+
+  /// `/Branding` operations — login splash, custom CSS.
   late final JellyfinBrandingApi branding;
+
+  /// `/Auth/Keys` operations — long-lived API key management.
   late final JellyfinApiKeyApi apiKey;
+
+  /// `/Backup` operations — server backup and restore.
   late final JellyfinBackupApi backup;
+
+  /// `/Dashboard` operations — admin dashboard data.
   late final JellyfinDashboardApi dashboard;
+
+  /// `/System/ActivityLog` operations — audit log entries.
   late final JellyfinActivityLogApi activityLog;
+
+  /// `/ClientLog` operations — client-side log submission.
   late final JellyfinClientLogApi clientLog;
+
+  /// TMDB integration endpoints.
   late final JellyfinTmdbApi tmdb;
+
+  /// `/RemoteImages` operations — fetch images from metadata providers.
   late final JellyfinRemoteImageApi remoteImage;
+
+  /// `/Devices` operations — list and manage registered devices.
   late final JellyfinDevicesApi devices;
+
+  /// `/Trailers` operations — list trailer items.
   late final JellyfinTrailersApi trailers;
+
+  /// `/Notifications` operations — server notification feed.
   late final JellyfinNotificationsApi notifications;
 
+  /// Creates a client bound to [credentials] and (optionally) a server URL.
   JellyfinClient({
     required JellyfinCredentials credentials,
     String? baseUrl,
@@ -199,10 +311,19 @@ class JellyfinClient {
     trailers = JellyfinTrailersApi(_http);
   }
 
+  /// Client identity sent on every request.
   JellyfinCredentials get credentials => _http.credentials;
+
+  /// Active server root URL, or `null` before [connect] is called.
   String? get baseUrl => _http.baseUrl;
+
+  /// Active access token, or `null` if no session is established.
   String? get token => _http.token;
+
+  /// Authenticated user id, or `null` if no session is established.
   String? get userId => _http.userId;
+
+  /// `true` when a base URL, token, and user id are all set.
   bool get isAuthenticated => _http.isAuthenticated;
 
   /// Point the client at a Jellyfin server (overrides the constructor
@@ -269,6 +390,7 @@ class JellyfinClient {
 
   // ─── Lightweight method aliases ────────────────────────────────────
 
+  /// Shorthand for a `GET` [request].
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -280,6 +402,7 @@ class JellyfinClient {
         extraHeaders: extraHeaders,
       );
 
+  /// Shorthand for a `POST` [request].
   Future<Response<T>> post<T>(
     String path, {
     Object? data,
@@ -294,6 +417,7 @@ class JellyfinClient {
         extraHeaders: extraHeaders,
       );
 
+  /// Shorthand for a `DELETE` [request].
   Future<Response<T>> delete<T>(
     String path, {
     Map<String, dynamic>? queryParameters,

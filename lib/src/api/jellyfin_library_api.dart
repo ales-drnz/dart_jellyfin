@@ -11,6 +11,7 @@ import '../jellyfin_models.dart';
 class JellyfinLibraryApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinLibraryApi(this._http);
 
   /// The libraries visible to the current user.
@@ -53,6 +54,7 @@ class JellyfinLibraryApi {
           fields: fields,
           userId: userId);
 
+  /// `GET /Albums/{itemId}/Similar` — albums the server considers related.
   Future<JellyfinQueryResult<JellyfinItem>> similarAlbums({
     required String itemId,
     int? limit,
@@ -60,6 +62,7 @@ class JellyfinLibraryApi {
   }) =>
       _similar('/Albums/$itemId/Similar', limit: limit, fields: fields);
 
+  /// `GET /Artists/{itemId}/Similar` — related artists.
   Future<JellyfinQueryResult<JellyfinItem>> similarArtists({
     required String itemId,
     int? limit,
@@ -67,6 +70,7 @@ class JellyfinLibraryApi {
   }) =>
       _similar('/Artists/$itemId/Similar', limit: limit, fields: fields);
 
+  /// `GET /Movies/{itemId}/Similar` — related movies.
   Future<JellyfinQueryResult<JellyfinItem>> similarMovies({
     required String itemId,
     int? limit,
@@ -74,6 +78,7 @@ class JellyfinLibraryApi {
   }) =>
       _similar('/Movies/$itemId/Similar', limit: limit, fields: fields);
 
+  /// `GET /Shows/{itemId}/Similar` — related TV series.
   Future<JellyfinQueryResult<JellyfinItem>> similarShows({
     required String itemId,
     int? limit,
@@ -81,6 +86,7 @@ class JellyfinLibraryApi {
   }) =>
       _similar('/Shows/$itemId/Similar', limit: limit, fields: fields);
 
+  /// `GET /Trailers/{itemId}/Similar` — related trailers.
   Future<JellyfinQueryResult<JellyfinItem>> similarTrailers({
     required String itemId,
     int? limit,
@@ -225,6 +231,7 @@ class JellyfinLibraryApi {
   /// of movie file events. Admin-only.
   Future<void> notifyMoviesAdded(List<Map<String, dynamic>> updatesInfo) =>
       _notify('/Library/Movies/Added', updatesInfo);
+  /// `POST /Library/Movies/Updated` — counterpart of [notifyMoviesAdded].
   Future<void> notifyMoviesUpdated(List<Map<String, dynamic>> updatesInfo) =>
       _notify('/Library/Movies/Updated', updatesInfo);
 
@@ -232,6 +239,7 @@ class JellyfinLibraryApi {
   /// of series file events. Admin-only.
   Future<void> notifySeriesAdded(List<Map<String, dynamic>> updatesInfo) =>
       _notify('/Library/Series/Added', updatesInfo);
+  /// `POST /Library/Series/Updated` — counterpart of [notifySeriesAdded].
   Future<void> notifySeriesUpdated(List<Map<String, dynamic>> updatesInfo) =>
       _notify('/Library/Series/Updated', updatesInfo);
 

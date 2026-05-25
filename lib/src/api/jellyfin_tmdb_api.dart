@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinTmdbApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinTmdbApi(this._http);
 
   /// `GET /Tmdb/ClientConfiguration` — TMDB metadata-provider

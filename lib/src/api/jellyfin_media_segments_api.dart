@@ -13,6 +13,7 @@ import '../jellyfin_models.dart';
 class JellyfinMediaSegmentsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinMediaSegmentsApi(this._http);
 
   /// `/MediaSegments/{itemId}` — every segment registered on this item.

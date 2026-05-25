@@ -20,6 +20,7 @@ import '../jellyfin_exception.dart';
 class JellyfinVideosApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinVideosApi(this._http);
 
   /// `GET /Videos/{itemId}/stream(.{container})` — direct (or progressive

@@ -15,17 +15,24 @@ import '../jellyfin_exception.dart';
 /// busting. Width/height are server-side resize hints — the response is
 /// pre-sized JPEG, no client-side scaling needed.
 class JellyfinImagesApi {
-  /// Image type names accepted by `/Items/{id}/Images/{imageType}`.
+  /// Front cover / poster — the most common image type.
   static const String typePrimary = 'Primary';
+  /// Clear-art / character art overlay.
   static const String typeArt = 'Art';
+  /// Wide background / fanart used behind detail pages.
   static const String typeBackdrop = 'Backdrop';
+  /// Horizontal text-laden banner.
   static const String typeBanner = 'Banner';
+  /// Transparent logo used over the backdrop.
   static const String typeLogo = 'Logo';
+  /// Small thumbnail used for menus / lists.
   static const String typeThumb = 'Thumb';
+  /// Physical-disc artwork.
   static const String typeDisc = 'Disc';
 
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinImagesApi(this._http);
 
   /// Build a deterministic image URL.

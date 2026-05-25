@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinStartupApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinStartupApi(this._http);
 
   /// `GET /Startup/Configuration` — the wizard's current state

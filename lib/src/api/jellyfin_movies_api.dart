@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinMoviesApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinMoviesApi(this._http);
 
   /// `/Movies/Recommendations` — server-curated rows of movie picks.

@@ -22,6 +22,7 @@ import 'jellyfin_credentials.dart';
 /// header with the same payload (sans the leading `MediaBrowser`).
 /// We send both for maximum compatibility.
 abstract final class JellyfinAuthHeader {
+  /// Modern `Authorization: MediaBrowser …` payload, with optional `Token`.
   static String build(JellyfinCredentials c, {String? token}) {
     final tokenPart = token != null ? ', Token="$token"' : '';
     return 'MediaBrowser '

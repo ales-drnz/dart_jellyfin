@@ -17,6 +17,7 @@ import '../jellyfin_models.dart';
 class JellyfinArtistsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinArtistsApi(this._http);
 
   /// `/Artists` — every artist (album artists, featured artists,

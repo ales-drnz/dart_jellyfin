@@ -10,6 +10,7 @@ import '../jellyfin_connection.dart';
 class JellyfinBrandingApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinBrandingApi(this._http);
 
   /// `GET /Branding/Configuration` — branding options the admin

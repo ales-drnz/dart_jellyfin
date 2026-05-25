@@ -18,6 +18,7 @@ import '../jellyfin_models.dart';
 class JellyfinQuickConnectApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinQuickConnectApi(this._http);
 
   /// Whether the server allows Quick Connect.

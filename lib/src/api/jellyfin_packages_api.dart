@@ -14,6 +14,7 @@ import '../jellyfin_connection.dart';
 class JellyfinPackagesApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPackagesApi(this._http);
 
   /// `GET /Packages` — list every package the server can install.

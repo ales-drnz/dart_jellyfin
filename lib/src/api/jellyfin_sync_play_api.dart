@@ -18,6 +18,7 @@ import '../jellyfin_connection.dart';
 class JellyfinSyncPlayApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinSyncPlayApi(this._http);
 
   // ─── Discovery ─────────────────────────────────────────────────────

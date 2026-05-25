@@ -16,6 +16,7 @@ import '../jellyfin_models.dart';
 class JellyfinAudioApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinAudioApi(this._http);
 
   /// `GET /Audio/{itemId}/universal` — the recommended streaming

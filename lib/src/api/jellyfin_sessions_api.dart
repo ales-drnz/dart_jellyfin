@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinSessionsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinSessionsApi(this._http);
 
   // ─── Listing ───────────────────────────────────────────────────────
@@ -259,28 +260,48 @@ class JellyfinSessionsApi {
 
 /// String constants for `sendPlaystateCommand(command: …)`.
 abstract final class JellyfinPlaystateCommand {
+  /// Stop playback.
   static const stop = 'Stop';
+  /// Pause playback.
   static const pause = 'Pause';
+  /// Resume from pause.
   static const unpause = 'Unpause';
+  /// Skip to the next track in the queue.
   static const nextTrack = 'NextTrack';
+  /// Jump back to the previous track.
   static const previousTrack = 'PreviousTrack';
+  /// Seek to `seekPositionTicks`.
   static const seek = 'Seek';
+  /// Rewind a small fixed amount.
   static const rewind = 'Rewind';
+  /// Fast-forward a small fixed amount.
   static const fastForward = 'FastForward';
+  /// Toggle between play and pause.
   static const playPause = 'PlayPause';
 }
 
 /// String constants for `sendCommand(command: …)`.
 abstract final class JellyfinGeneralCommand {
+  /// Increase volume one notch.
   static const volumeUp = 'VolumeUp';
+  /// Decrease volume one notch.
   static const volumeDown = 'VolumeDown';
+  /// Mute audio.
   static const mute = 'Mute';
+  /// Unmute audio.
   static const unmute = 'Unmute';
+  /// Toggle the mute state.
   static const toggleMute = 'ToggleMute';
+  /// Set absolute volume — requires a `Volume` argument via [JellyfinSessionsApi.sendFullCommand].
   static const setVolume = 'SetVolume';
+  /// Switch audio track — requires an `Index` argument.
   static const setAudioStreamIndex = 'SetAudioStreamIndex';
+  /// Switch subtitle track — requires an `Index` argument.
   static const setSubtitleStreamIndex = 'SetSubtitleStreamIndex';
+  /// Toggle fullscreen mode on the remote client.
   static const toggleFullscreen = 'ToggleFullscreen';
+  /// Toggle the on-screen-display / overlay menu.
   static const toggleOsdMenu = 'ToggleOsdMenu';
+  /// Show an item's detail page — requires `ItemId`/`ItemType`/`ItemName` arguments.
   static const displayContent = 'DisplayContent';
 }

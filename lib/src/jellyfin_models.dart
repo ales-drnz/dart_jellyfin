@@ -15,17 +15,29 @@ library;
 // QueryResult — the standard `{Items, TotalRecordCount, StartIndex}` envelope
 // ---------------------------------------------------------------------------
 
+/// Paged `{Items, TotalRecordCount, StartIndex}` envelope returned by most
+/// Jellyfin list endpoints.
 class JellyfinQueryResult<T> {
+  /// Parsed page of items.
   final List<T> items;
+
+  /// Total matches across all pages on the server (not the size of [items]).
   final int totalRecordCount;
+
+  /// Offset of this page within the full result set, when the server reports it.
   final int? startIndex;
 
+  /// Builds an envelope from already-parsed components.
   const JellyfinQueryResult({
     required this.items,
     required this.totalRecordCount,
     this.startIndex,
   });
 
+  /// Decodes the envelope, mapping each entry under [itemsKey] through [parser].
+  ///
+  /// [itemsKey] defaults to `'Items'`; pass a different key for endpoints that
+  /// nest the list elsewhere (e.g. `'SearchHints'`).
   factory JellyfinQueryResult.fromJson(
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>) parser, {
@@ -49,14 +61,27 @@ class JellyfinQueryResult<T> {
 // System info
 // ---------------------------------------------------------------------------
 
+/// Subset of `/System/Info` describing the remote server build.
 class JellyfinSystemInfo {
+  /// Stable server-side id.
   final String? id;
+
+  /// Operator-configured display name.
   final String? serverName;
+
+  /// Server build version (e.g. `'10.9.11'`).
   final String? version;
+
+  /// Product brand string (typically `'Jellyfin Server'`).
   final String? productName;
+
+  /// Host operating system identifier.
   final String? operatingSystem;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a system-info DTO from already-parsed components.
   const JellyfinSystemInfo({
     required this.raw,
     this.id,
@@ -66,6 +91,7 @@ class JellyfinSystemInfo {
     this.operatingSystem,
   });
 
+  /// Decodes the flat `/System/Info` payload.
   factory JellyfinSystemInfo.fromJson(Map<String, dynamic> json) =>
       JellyfinSystemInfo(
         id: _str(json['Id']),
@@ -81,18 +107,39 @@ class JellyfinSystemInfo {
 // Users & authentication
 // ---------------------------------------------------------------------------
 
+/// One Jellyfin user account.
 class JellyfinUser {
+  /// Stable server-side user id (GUID).
   final String id;
+
+  /// Display name shown in the login screen and headers.
   final String name;
+
+  /// Id of the server this user belongs to.
   final String? serverId;
+
+  /// Image tag for the user's avatar; combine with `/Users/{id}/Images/Primary`.
   final String? primaryImageTag;
+
+  /// `true` when any password (incl. easy pin) is set.
   final bool hasPassword;
+
+  /// `true` when a full password is configured.
   final bool hasConfiguredPassword;
+
+  /// `true` when a numeric easy-password is configured.
   final bool hasConfiguredEasyPassword;
+
+  /// Last successful login timestamp, in UTC.
   final DateTime? lastLoginDate;
+
+  /// Last activity timestamp, in UTC.
   final DateTime? lastActivityDate;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a user DTO from already-parsed components.
   const JellyfinUser({
     required this.id,
     required this.name,
@@ -106,6 +153,7 @@ class JellyfinUser {
     this.lastActivityDate,
   });
 
+  /// Decodes a `/Users/{id}` (or `/Users/Me`) payload.
   factory JellyfinUser.fromJson(Map<String, dynamic> json) => JellyfinUser(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
@@ -123,11 +171,19 @@ class JellyfinUser {
 
 /// Result of `POST /Users/AuthenticateByName` (and Quick Connect).
 class JellyfinAuthResult {
+  /// Authenticated user record.
   final JellyfinUser user;
+
+  /// Bearer token to set in the `X-Emby-Token` / `Authorization` header.
   final String accessToken;
+
+  /// Id of the server that issued the token.
   final String serverId;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds an auth result from already-parsed components.
   const JellyfinAuthResult({
     required this.user,
     required this.accessToken,
@@ -135,6 +191,8 @@ class JellyfinAuthResult {
     required this.raw,
   });
 
+  /// Decodes the envelope `{User, AccessToken, ServerId}`. A missing `User`
+  /// is tolerated and replaced with a blank [JellyfinUser].
   factory JellyfinAuthResult.fromJson(Map<String, dynamic> json) {
     final userJson = json['User'];
     return JellyfinAuthResult(
@@ -157,15 +215,31 @@ class JellyfinAuthResult {
 
 /// Result of `POST /QuickConnect/Initiate` and `GET /QuickConnect/Connect`.
 class JellyfinQuickConnectState {
+  /// `true` once the user has approved the pairing on another device.
   final bool authenticated;
+
+  /// Opaque secret used to poll `/QuickConnect/Connect`.
   final String secret;
+
+  /// Short human-readable code displayed to the user for approval.
   final String code;
+
+  /// Initiating device id, as supplied by this client.
   final String? deviceId;
+
+  /// Initiating device display name.
   final String? deviceName;
+
+  /// Initiating application name.
   final String? appName;
+
+  /// Initiating application version.
   final String? appVersion;
+
+  /// Timestamp when the pairing request was created, in UTC.
   final DateTime? dateAdded;
 
+  /// Builds a quick-connect state from already-parsed components.
   const JellyfinQuickConnectState({
     required this.authenticated,
     required this.secret,
@@ -177,6 +251,7 @@ class JellyfinQuickConnectState {
     this.dateAdded,
   });
 
+  /// Decodes a flat quick-connect state payload.
   factory JellyfinQuickConnectState.fromJson(Map<String, dynamic> json) =>
       JellyfinQuickConnectState(
         authenticated: json['Authenticated'] == true,
@@ -200,13 +275,25 @@ class JellyfinQuickConnectState {
 /// `'movies' | 'tvshows' | 'music' | 'musicvideos' | 'photos' | 'books' |
 ///  'livetv' | 'homevideos' | 'boxsets' | 'playlists' | 'folders' | null`.
 class JellyfinView {
+  /// Stable server-side library id.
   final String id;
+
+  /// Library display name.
   final String name;
+
+  /// Library kind (`'music'`, `'movies'`, …); see class doc for full set.
   final String? collectionType;
+
+  /// Image tag for the library's `Primary` poster.
   final String? primaryImageTag;
+
+  /// Id of the server this library lives on.
   final String? serverId;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a view from already-parsed components.
   const JellyfinView({
     required this.id,
     required this.name,
@@ -216,6 +303,7 @@ class JellyfinView {
     this.serverId,
   });
 
+  /// Decodes a `/UserViews` entry, flattening `ImageTags.Primary` for convenience.
   factory JellyfinView.fromJson(Map<String, dynamic> json) {
     final tags = json['ImageTags'];
     return JellyfinView(
@@ -228,9 +316,16 @@ class JellyfinView {
     );
   }
 
+  /// `true` when this view holds music.
   bool get isMusic => collectionType == 'music';
+
+  /// `true` when this view holds movies.
   bool get isMovies => collectionType == 'movies';
+
+  /// `true` when this view holds TV shows.
   bool get isTvShows => collectionType == 'tvshows';
+
+  /// `true` when this view holds photos.
   bool get isPhotos => collectionType == 'photos';
 }
 
@@ -241,25 +336,64 @@ class JellyfinView {
 /// Item kinds we recognise (a subset of the OpenAPI `BaseItemKind` enum).
 /// Strings match the wire values used in `Type` and `IncludeItemTypes`.
 abstract final class JellyfinItemKind {
+  /// A single audio track.
   static const audio = 'Audio';
+
+  /// An audiobook track or container.
   static const audioBook = 'AudioBook';
+
+  /// A music album.
   static const musicAlbum = 'MusicAlbum';
+
+  /// A music artist.
   static const musicArtist = 'MusicArtist';
+
+  /// A music genre.
   static const musicGenre = 'MusicGenre';
+
+  /// A music video.
   static const musicVideo = 'MusicVideo';
+
+  /// A user-created playlist.
   static const playlist = 'Playlist';
+
+  /// A movie.
   static const movie = 'Movie';
+
+  /// A TV series.
   static const series = 'Series';
+
+  /// A TV season.
   static const season = 'Season';
+
+  /// A single TV episode.
   static const episode = 'Episode';
+
+  /// A photo.
   static const photo = 'Photo';
+
+  /// A photo album.
   static const photoAlbum = 'PhotoAlbum';
+
+  /// A generic folder.
   static const folder = 'Folder';
+
+  /// A top-level library folder.
   static const collectionFolder = 'CollectionFolder';
+
+  /// A per-user view (library facade).
   static const userView = 'UserView';
+
+  /// A generic (non-music) genre.
   static const genre = 'Genre';
+
+  /// A person (actor, director, …).
   static const person = 'Person';
+
+  /// A studio.
   static const studio = 'Studio';
+
+  /// A book.
   static const book = 'Book';
 }
 
@@ -267,66 +401,133 @@ abstract final class JellyfinItemKind {
 /// here we lift only what music apps use today. Anything else lives in
 /// [JellyfinItem.raw].
 class JellyfinItem {
+  /// Stable server-side item id.
   final String id;
+
+  /// Display name.
   final String name;
+
+  /// `BaseItemKind` string; see [JellyfinItemKind] for the recognised values.
   final String? type;
+
+  /// `'Audio' | 'Video' | 'Photo' | 'Book' | 'Unknown'`.
   final String? mediaType;
+
+  /// Library kind for collection-folder items; otherwise null.
   final String? collectionType;
+
+  /// Server-computed sort key (often differs from [name] for "The …" handling).
   final String? sortName;
+
+  /// Original-language title, when known.
   final String? originalTitle;
+
+  /// Plot or description blurb.
   final String? overview;
 
-  // Hierarchy
+  /// Parent folder/album/season id.
   final String? parentId;
+
+  /// Id of the owning series, for episodes.
   final String? seriesId;
+
+  /// Owning series name, for episodes.
   final String? seriesName;
+
+  /// Id of the owning season, for episodes.
   final String? seasonId;
+
+  /// Owning season name, for episodes.
   final String? seasonName;
+
+  /// Id of the owning album, for tracks.
   final String? albumId;
+
+  /// Album title, for tracks.
   final String? album;
+
+  /// Primary album artist string, for tracks.
   final String? albumArtist;
+
+  /// All album-artist names, for tracks with multiple credits.
   final List<String> albumArtists;
+
+  /// All track-level artist names.
   final List<String> artists;
+
+  /// Artist references with ids, when the server returns them.
   final List<JellyfinArtistRef> artistItems;
 
-  // Index / ordering
+  /// Track number / episode number / generic index within the parent.
   final int? indexNumber;
+
+  /// Disc number / season number / generic parent index.
   final int? parentIndexNumber;
+
+  /// Release year.
   final int? productionYear;
+
+  /// Original release date, in UTC.
   final DateTime? premiereDate;
+
+  /// When the item was first ingested by the server, in UTC.
   final DateTime? dateCreated;
 
-  // Duration / media
   /// `RunTimeTicks`, where 1 ms = 10_000 ticks.
   final int? runTimeTicks;
+
+  /// File container (e.g. `'mp4'`, `'flac'`).
   final String? container;
+
+  /// Available media sources (file variants the server can serve).
   final List<JellyfinMediaSource> mediaSources;
+
+  /// Top-level media streams (audio/video/subtitle/lyrics).
   final List<JellyfinMediaStream> mediaStreams;
+
+  /// `true` when this item is a folder (album, series, season, library, …).
   final bool isFolder;
+
+  /// Child count for folder-like items.
   final int? childCount;
+
+  /// `true` when the server has lyrics for this audio item.
   final bool hasLyrics;
 
-  // Genres / tags
+  /// Genre names.
   final List<String> genres;
+
+  /// User-applied tags.
   final List<String> tags;
 
-  // Images
+  /// Map of image kind (`'Primary'`, `'Backdrop'`, …) to image tag for cache busting.
   final Map<String, String> imageTags;
+
+  /// Image tags for each available backdrop, in display order.
   final List<String> backdropImageTags;
+
+  /// Image tag for the owning album's primary art, for tracks.
   final String? albumPrimaryImageTag;
+
+  /// Map of image kind to blurhash for low-quality previews.
   final Map<String, String> imageBlurHashes;
+
+  /// Aspect ratio of the primary image (width/height).
   final double? primaryImageAspectRatio;
 
-  // Per-user data
+  /// Per-user state (play count, favorite, resume position, …).
   final JellyfinUserData? userData;
 
-  // Sound / video specs
+  /// Video/photo width in pixels.
   final int? width;
+
+  /// Video/photo height in pixels.
   final int? height;
 
-  // Raw
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds an item from already-parsed components.
   const JellyfinItem({
     required this.id,
     required this.name,
@@ -372,6 +573,8 @@ class JellyfinItem {
     this.height,
   });
 
+  /// Decodes a `BaseItemDto` payload, lifting the subset of fields used by music
+  /// apps and stashing the rest in [raw].
   factory JellyfinItem.fromJson(Map<String, dynamic> json) {
     return JellyfinItem(
       id: _str(json['Id']) ?? '',
@@ -437,36 +640,76 @@ class JellyfinItem {
   int? get durationMs =>
       runTimeTicks == null ? null : (runTimeTicks! / 10000).round();
 
+  /// Shorthand for `userData?.isFavorite ?? false`.
   bool get isFavorite => userData?.isFavorite ?? false;
+
+  /// `true` when this item plays as audio.
   bool get isAudio => mediaType == 'Audio' || type == JellyfinItemKind.audio;
 }
 
+/// Lightweight artist reference (`{Id, Name}`) used inside [JellyfinItem.artistItems].
 class JellyfinArtistRef {
+  /// Artist id.
   final String id;
+
+  /// Artist display name.
   final String name;
+
+  /// Builds an artist reference from already-parsed components.
   const JellyfinArtistRef({required this.id, required this.name});
+
+  /// Decodes a `{Id, Name}` artist reference.
   factory JellyfinArtistRef.fromJson(Map<String, dynamic> json) => JellyfinArtistRef(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
       );
 }
 
+/// One playable variant of a [JellyfinItem] (`MediaSourceInfo`).
 class JellyfinMediaSource {
+  /// Media source id; pass back to `/PlaybackInfo` and reporting endpoints.
   final String id;
+
+  /// Server-local file path, when exposed by the server.
   final String? path;
+
+  /// File container (e.g. `'mp4'`, `'mkv'`, `'flac'`).
   final String? container;
+
+  /// Overall bitrate in bits per second.
   final int? bitrate;
+
+  /// File size in bytes.
   final int? size;
+
+  /// Duration in ticks (10_000 per millisecond).
   final int? runTimeTicks;
+
+  /// `true` when the client may stream the file as-is.
   final bool supportsDirectPlay;
+
+  /// `true` when the server can re-mux without re-encoding.
   final bool supportsDirectStream;
+
+  /// `true` when the server is willing to transcode this source.
   final bool supportsTranscoding;
+
+  /// Relative URL (HLS/DASH) for the transcoded stream, when applicable.
   final String? transcodingUrl;
+
+  /// Transport protocol of the transcoded stream (`'hls'`, `'http'`, …).
   final String? transcodingSubProtocol;
+
+  /// Container the transcoded stream is wrapped in.
   final String? transcodingContainer;
+
+  /// Per-source media streams (audio/video/subtitle).
   final List<JellyfinMediaStream> mediaStreams;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a media source from already-parsed components.
   const JellyfinMediaSource({
     required this.id,
     required this.supportsDirectPlay,
@@ -484,6 +727,7 @@ class JellyfinMediaSource {
     this.transcodingContainer,
   });
 
+  /// Decodes a `MediaSourceInfo` payload.
   factory JellyfinMediaSource.fromJson(Map<String, dynamic> json) =>
       JellyfinMediaSource(
         id: _str(json['Id']) ?? '',
@@ -507,19 +751,42 @@ class JellyfinMediaSource {
       );
 }
 
+/// One audio/video/subtitle/lyrics stream inside a [JellyfinMediaSource].
 class JellyfinMediaStream {
+  /// Zero-based stream index within the source.
   final int? index;
-  final String? type; // Audio | Video | Subtitle | Lyrics | EmbeddedImage
+
+  /// `Audio | Video | Subtitle | Lyrics | EmbeddedImage`.
+  final String? type;
+
+  /// Codec name (`'h264'`, `'flac'`, `'opus'`, …).
   final String? codec;
+
+  /// BCP-47 / ISO 639 language tag.
   final String? language;
+
+  /// Channel count, for audio streams.
   final int? channels;
+
+  /// Sample rate in Hz, for audio streams.
   final int? sampleRate;
+
+  /// Stream bitrate in bits per second.
   final int? bitRate;
+
+  /// Bit depth, for audio/video streams.
   final int? bitDepth;
+
+  /// Server-side stream title.
   final String? title;
+
+  /// `true` when the server marks this stream as the default for its type.
   final bool isDefault;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a media stream from already-parsed components.
   const JellyfinMediaStream({
     required this.raw,
     this.index,
@@ -534,6 +801,7 @@ class JellyfinMediaStream {
     this.isDefault = false,
   });
 
+  /// Decodes a `MediaStream` payload.
   factory JellyfinMediaStream.fromJson(Map<String, dynamic> json) =>
       JellyfinMediaStream(
         index: _int(json['Index']),
@@ -549,21 +817,43 @@ class JellyfinMediaStream {
         raw: json,
       );
 
+  /// `true` when this stream carries audio.
   bool get isAudio => type == 'Audio';
+
+  /// `true` when this stream carries video.
   bool get isVideo => type == 'Video';
+
+  /// `true` when this stream carries subtitles.
   bool get isSubtitle => type == 'Subtitle';
+
+  /// `true` when this stream carries lyrics.
   bool get isLyrics => type == 'Lyrics';
 }
 
+/// Per-user state attached to a [JellyfinItem] (`UserItemDataDto`).
 class JellyfinUserData {
+  /// Resume position in ticks (10_000 per millisecond).
   final int? playbackPositionTicks;
+
+  /// Number of completed plays.
   final int playCount;
+
+  /// `true` when the user has favourited this item.
   final bool isFavorite;
+
+  /// Tri-state thumb rating: `true` like, `false` dislike, `null` unrated.
   final bool? likes;
+
+  /// Last time the user played this item, in UTC.
   final DateTime? lastPlayedDate;
+
+  /// `true` when the user has marked this item as fully played.
   final bool played;
+
+  /// Server-side key used by scrobbling integrations.
   final String? key;
 
+  /// Builds a user-data record from already-parsed components.
   const JellyfinUserData({
     required this.playCount,
     required this.isFavorite,
@@ -574,6 +864,7 @@ class JellyfinUserData {
     this.key,
   });
 
+  /// Decodes a `UserItemDataDto` payload.
   factory JellyfinUserData.fromJson(Map<String, dynamic> json) =>
       JellyfinUserData(
         playbackPositionTicks: _int(json['PlaybackPositionTicks']),
@@ -594,11 +885,16 @@ class JellyfinUserData {
 /// ticks (so divide by 10000 for milliseconds, or by 10_000_000 for
 /// seconds).
 class JellyfinLyricLine {
+  /// Start time in 100-ns ticks; `null` for unsynced lines.
   final int? startTicks;
+
+  /// Line text.
   final String text;
 
+  /// Builds a lyric line from already-parsed components.
   const JellyfinLyricLine({required this.text, this.startTicks});
 
+  /// Decodes a `{Start, Text}` lyrics entry.
   factory JellyfinLyricLine.fromJson(Map<String, dynamic> json) =>
       JellyfinLyricLine(
         startTicks: _int(json['Start']),
@@ -622,11 +918,16 @@ class JellyfinLyricLine {
 
 /// Payload of `GET /Audio/{id}/Lyrics`.
 class JellyfinLyrics {
+  /// Parsed lyric lines, in display order.
   final List<JellyfinLyricLine> lines;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a lyrics payload from already-parsed components.
   const JellyfinLyrics({required this.lines, required this.raw});
 
+  /// Decodes `{Lyrics: [...]}`. Tolerates missing or non-list `Lyrics`.
   factory JellyfinLyrics.fromJson(Map<String, dynamic> json) {
     final ly = json['Lyrics'];
     return JellyfinLyrics(
@@ -639,6 +940,7 @@ class JellyfinLyrics {
     );
   }
 
+  /// `true` when at least one line carries a timestamp.
   bool get isSynced => lines.any((l) => l.startTicks != null);
 
   /// Render as an LRC document, suitable for any synced-lyrics player.
@@ -652,20 +954,45 @@ class JellyfinLyrics {
 // Search hints
 // ---------------------------------------------------------------------------
 
+/// One match from `/Search/Hints` — a lightweight pointer into the library.
 class JellyfinSearchHint {
+  /// Id of the matched item.
   final String itemId;
+
+  /// Display name of the matched item.
   final String? name;
+
+  /// Substring of the query that triggered the match, when reported.
   final String? matchedTerm;
+
+  /// `BaseItemKind` of the matched item.
   final String? type;
+
+  /// `MediaType` of the matched item.
   final String? mediaType;
+
+  /// Album-artist string, for audio hits.
   final String? albumArtist;
+
+  /// All artist names, for audio hits.
   final List<String> artists;
+
+  /// Duration in ticks (10_000 per millisecond).
   final int? runTimeTicks;
+
+  /// Track/episode number within the parent, when applicable.
   final int? indexNumber;
+
+  /// Release year, when applicable.
   final int? productionYear;
+
+  /// Image tag for the `Primary` image.
   final String? primaryImageTag;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a search hint from already-parsed components.
   const JellyfinSearchHint({
     required this.itemId,
     required this.artists,
@@ -681,6 +1008,7 @@ class JellyfinSearchHint {
     this.primaryImageTag,
   });
 
+  /// Decodes a search-hint entry; accepts both `Id` and legacy `ItemId` keys.
   factory JellyfinSearchHint.fromJson(Map<String, dynamic> json) =>
       JellyfinSearchHint(
         itemId: _str(json['Id']) ?? _str(json['ItemId']) ?? '',
@@ -763,20 +1091,49 @@ Map<String, String> _stringMap(Object? v) {
 /// Use [JellyfinSessionsApi.play] etc. with [JellyfinSession.id] to
 /// cast or remote-control a target.
 class JellyfinSession {
+  /// Stable session id; pass to `/Sessions/{id}/...` endpoints.
   final String id;
+
+  /// Id of the user this session is signed in as.
   final String? userId;
+
+  /// Display name of the signed-in user.
   final String? userName;
+
+  /// Client application name (`'Jellyfin Web'`, `'Finova'`, …).
   final String? client;
+
+  /// Client-supplied device id.
   final String? deviceId;
+
+  /// Client-supplied device display name.
   final String? deviceName;
+
+  /// Client application version.
   final String? applicationVersion;
+
+  /// Client's reported remote IP/host.
   final String? remoteEndPoint;
+
+  /// Last activity timestamp from the client, in UTC.
   final DateTime? lastActivityDate;
+
+  /// Last playback check-in timestamp, in UTC.
   final DateTime? lastPlaybackCheckIn;
+
+  /// `true` when the server still considers the session live.
   final bool isActive;
+
+  /// `true` when the client accepts play/pause/seek commands.
   final bool supportsMediaControl;
+
+  /// `true` when the client accepts arbitrary remote-control commands.
   final bool supportsRemoteControl;
+
+  /// `MediaType` strings the client can play (`'Audio'`, `'Video'`, …).
   final List<String> playableMediaTypes;
+
+  /// `GeneralCommandType` names the client advertises support for.
   final List<String> supportedCommands;
 
   /// `NowPlayingItem` parsed as a [JellyfinItem]. Null when the session
@@ -788,8 +1145,10 @@ class JellyfinSession {
   /// `RepeatMode`, `PlaybackOrder`.
   final Map<String, dynamic>? playState;
 
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a session from already-parsed components.
   const JellyfinSession({
     required this.id,
     required this.isActive,
@@ -811,6 +1170,7 @@ class JellyfinSession {
     this.playState,
   });
 
+  /// Decodes a `/Sessions` entry, recursing into `NowPlayingItem` when present.
   factory JellyfinSession.fromJson(Map<String, dynamic> json) {
     final npi = json['NowPlayingItem'];
     return JellyfinSession(
@@ -855,11 +1215,19 @@ class JellyfinSession {
 /// [JellyfinMediaSource.supportsTranscoding] is `true`, plus a
 /// [JellyfinMediaSource.transcodingUrl] when transcoding is required.
 class JellyfinPlaybackInfo {
+  /// Media sources annotated with the server's per-source playback decision.
   final List<JellyfinMediaSource> mediaSources;
+
+  /// Token to thread through `/Playing/...` reporting and stop calls.
   final String? playSessionId;
+
+  /// Server-reported failure code, when playback can't be started.
   final String? errorCode;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a playback-info DTO from already-parsed components.
   const JellyfinPlaybackInfo({
     required this.mediaSources,
     required this.raw,
@@ -867,6 +1235,7 @@ class JellyfinPlaybackInfo {
     this.errorCode,
   });
 
+  /// Decodes the `PlaybackInfoResponse` envelope.
   factory JellyfinPlaybackInfo.fromJson(Map<String, dynamic> json) =>
       JellyfinPlaybackInfo(
         mediaSources: [
@@ -927,6 +1296,7 @@ class JellyfinDeviceProfile {
   /// into the outgoing JSON.
   final Map<String, dynamic> extra;
 
+  /// Builds a device profile from already-parsed components.
   const JellyfinDeviceProfile({
     this.name,
     this.maxStreamingBitrate,
@@ -940,6 +1310,8 @@ class JellyfinDeviceProfile {
     this.extra = const {},
   });
 
+  /// JSON body accepted by `/Items/{id}/PlaybackInfo` and friends. Empty
+  /// fields are omitted; [extra] is merged in at the top level.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       if (name != null) 'Name': name,
@@ -973,22 +1345,52 @@ class JellyfinDeviceProfile {
 /// Per-client UI state stored on the server: view type, sort, scroll
 /// direction, sidebar visibility, plus a free-form `customPrefs` map.
 class JellyfinDisplayPreferences {
+  /// Display-preferences id; usually the view/library id.
   final String? id;
+
+  /// Client identifier that owns these preferences.
   final String? client;
+
+  /// View layout (`'Poster'`, `'List'`, …).
   final String? viewType;
+
+  /// Sort key (`'SortName'`, `'DateCreated'`, …).
   final String? sortBy;
+
+  /// `'Ascending'` or `'Descending'`.
   final String? sortOrder;
+
+  /// Indexing key for grouped views.
   final String? indexBy;
+
+  /// `'Horizontal'` or `'Vertical'`.
   final String? scrollDirection;
+
+  /// Whether the client should reuse the saved indexing across sessions.
   final bool? rememberIndexing;
+
+  /// Whether the client should reuse the saved sort across sessions.
   final bool? rememberSorting;
+
+  /// Whether to draw the item backdrop behind the view.
   final bool? showBackdrop;
+
+  /// Whether to show the sidebar in this view.
   final bool? showSidebar;
+
+  /// Primary-image render height in pixels.
   final int? primaryImageHeight;
+
+  /// Primary-image render width in pixels.
   final int? primaryImageWidth;
+
+  /// Free-form per-client key/value preferences.
   final Map<String, String> customPrefs;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a display-preferences DTO from already-parsed components.
   const JellyfinDisplayPreferences({
     this.id,
     this.client,
@@ -1007,6 +1409,7 @@ class JellyfinDisplayPreferences {
     this.raw = const {},
   });
 
+  /// Decodes a `/DisplayPreferences/{id}` payload.
   factory JellyfinDisplayPreferences.fromJson(Map<String, dynamic> json) {
     final cp = json['CustomPrefs'];
     return JellyfinDisplayPreferences(
@@ -1061,11 +1464,16 @@ class JellyfinDisplayPreferences {
 
 /// `{Name, Id}` pair used in faceted filter responses.
 class JellyfinNameGuidPair {
+  /// Display name.
   final String? name;
+
+  /// Stable server-side id.
   final String? id;
 
+  /// Builds a name/id pair from already-parsed components.
   const JellyfinNameGuidPair({this.name, this.id});
 
+  /// Decodes a `{Name, Id}` entry.
   factory JellyfinNameGuidPair.fromJson(Map<String, dynamic> json) =>
       JellyfinNameGuidPair(
         name: _str(json['Name']),
@@ -1076,16 +1484,23 @@ class JellyfinNameGuidPair {
 /// Modern facet response from `/Items/Filters2` — genres carry ids so
 /// the client can filter back through `items.list(genreIds: …)`.
 class JellyfinQueryFilters {
+  /// Genres available in the queried scope, each with a filterable id.
   final List<JellyfinNameGuidPair> genres;
+
+  /// Tag strings available in the queried scope.
   final List<String> tags;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a filters facet from already-parsed components.
   const JellyfinQueryFilters({
     this.genres = const [],
     this.tags = const [],
     this.raw = const {},
   });
 
+  /// Decodes a `/Items/Filters2` response.
   factory JellyfinQueryFilters.fromJson(Map<String, dynamic> json) {
     final rawGenres = json['Genres'];
     return JellyfinQueryFilters(
@@ -1102,12 +1517,22 @@ class JellyfinQueryFilters {
 
 /// Legacy facet response from `/Items/Filters` — flat string arrays.
 class JellyfinQueryFiltersLegacy {
+  /// Genre names available in the queried scope.
   final List<String> genres;
+
+  /// Tag strings available in the queried scope.
   final List<String> tags;
+
+  /// Distinct official ratings (`'PG-13'`, `'TV-MA'`, …) in scope.
   final List<String> officialRatings;
+
+  /// Distinct release years in scope.
   final List<int> years;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a legacy filters facet from already-parsed components.
   const JellyfinQueryFiltersLegacy({
     this.genres = const [],
     this.tags = const [],
@@ -1116,6 +1541,7 @@ class JellyfinQueryFiltersLegacy {
     this.raw = const {},
   });
 
+  /// Decodes a `/Items/Filters` response.
   factory JellyfinQueryFiltersLegacy.fromJson(Map<String, dynamic> json) {
     final rawYears = json['Years'];
     return JellyfinQueryFiltersLegacy(
@@ -1140,14 +1566,24 @@ class JellyfinQueryFiltersLegacy {
 /// outro, a commercial, a preview, or an unknown segment. Times are
 /// expressed in Jellyfin ticks (10,000 per millisecond).
 class JellyfinMediaSegment {
+  /// Stable server-side segment id.
   final String? id;
+
+  /// Id of the item this segment belongs to.
   final String? itemId;
   /// `Unknown`, `Commercial`, `Preview`, `Recap`, `Outro`, `Intro`.
   final String? type;
+
+  /// Segment start in ticks (10_000 per millisecond).
   final int? startTicks;
+
+  /// Segment end in ticks (10_000 per millisecond).
   final int? endTicks;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a media segment from already-parsed components.
   const JellyfinMediaSegment({
     this.id,
     this.itemId,
@@ -1157,11 +1593,15 @@ class JellyfinMediaSegment {
     this.raw = const {},
   });
 
+  /// Segment start as a [Duration], or `null` when [startTicks] is absent.
   Duration? get start =>
       startTicks == null ? null : Duration(microseconds: startTicks! ~/ 10);
+
+  /// Segment end as a [Duration], or `null` when [endTicks] is absent.
   Duration? get end =>
       endTicks == null ? null : Duration(microseconds: endTicks! ~/ 10);
 
+  /// Decodes a `/MediaSegments/{itemId}` entry.
   factory JellyfinMediaSegment.fromJson(Map<String, dynamic> json) =>
       JellyfinMediaSegment(
         id: _str(json['Id']),
@@ -1175,11 +1615,22 @@ class JellyfinMediaSegment {
 
 /// Canonical [JellyfinMediaSegment.type] values.
 class JellyfinMediaSegmentType {
+  /// Unclassified segment.
   static const unknown = 'Unknown';
+
+  /// Commercial break.
   static const commercial = 'Commercial';
+
+  /// "Next on…" or upcoming-content preview.
   static const preview = 'Preview';
+
+  /// Recap of previous episodes.
   static const recap = 'Recap';
+
+  /// Closing/outro sequence.
   static const outro = 'Outro';
+
+  /// Opening/intro sequence.
   static const intro = 'Intro';
 }
 
@@ -1187,13 +1638,24 @@ class JellyfinMediaSegmentType {
 // Movie recommendations (`/Movies/Recommendations`)
 // ---------------------------------------------------------------------------
 
+/// One recommendation bucket from `/Movies/Recommendations`.
 class JellyfinMovieRecommendation {
+  /// Bucket id (e.g. the seed item or person id).
   final String? categoryId;
+
+  /// Name of the seed item used to build this bucket.
   final String? baselineItemName;
+
+  /// `'SimilarToRecentlyPlayed' | 'SimilarToLikedItem' | 'HasDirectorFromRecentlyPlayed' | 'HasActorFromRecentlyPlayed' | 'HasLikedDirector' | 'HasLikedActor'`.
   final String? recommendationType;
+
+  /// Recommended items in this bucket.
   final List<JellyfinItem> items;
+
+  /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
+  /// Builds a recommendation bucket from already-parsed components.
   const JellyfinMovieRecommendation({
     this.categoryId,
     this.baselineItemName,
@@ -1202,6 +1664,7 @@ class JellyfinMovieRecommendation {
     this.raw = const {},
   });
 
+  /// Decodes a recommendation entry, recursing into each `Items` element.
   factory JellyfinMovieRecommendation.fromJson(Map<String, dynamic> json) {
     final rawItems = json['Items'];
     return JellyfinMovieRecommendation(

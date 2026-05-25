@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinDashboardApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinDashboardApi(this._http);
 
   /// `GET /web/ConfigurationPage?name={name}` — fetch the HTML body

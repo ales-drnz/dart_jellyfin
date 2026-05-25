@@ -13,6 +13,7 @@ import '../jellyfin_connection.dart';
 class JellyfinClientLogApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinClientLogApi(this._http);
 
   /// `POST /ClientLog/Document` — upload a log document. [body] is

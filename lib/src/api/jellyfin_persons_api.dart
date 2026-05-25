@@ -13,6 +13,7 @@ import '../jellyfin_models.dart';
 class JellyfinPersonsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPersonsApi(this._http);
 
   /// `GET /Persons` — search people; filter by [personTypes]

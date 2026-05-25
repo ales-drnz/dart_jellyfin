@@ -13,6 +13,7 @@ import '../jellyfin_models.dart';
 class JellyfinStudiosApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinStudiosApi(this._http);
 
   /// `GET /Studios` — list studios, optionally scoped to a parent

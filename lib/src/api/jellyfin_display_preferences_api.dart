@@ -16,6 +16,7 @@ import '../jellyfin_models.dart';
 class JellyfinDisplayPreferencesApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinDisplayPreferencesApi(this._http);
 
   /// `GET /DisplayPreferences/{id}` — fetch one preference document.

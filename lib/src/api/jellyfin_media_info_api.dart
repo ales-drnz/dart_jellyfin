@@ -22,6 +22,7 @@ import '../jellyfin_models.dart';
 class JellyfinMediaInfoApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinMediaInfoApi(this._http);
 
   /// GET `/Items/{itemId}/PlaybackInfo`. Lightweight — server uses

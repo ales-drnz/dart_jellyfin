@@ -12,6 +12,7 @@ import '../jellyfin_connection.dart';
 class JellyfinEnvironmentApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinEnvironmentApi(this._http);
 
   /// `GET /Environment/DirectoryContents` — entries under [path].

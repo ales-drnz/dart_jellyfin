@@ -9,6 +9,7 @@ import '../jellyfin_models.dart';
 class JellyfinSystemApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinSystemApi(this._http);
 
   /// Authenticated server info (`GET /System/Info`).

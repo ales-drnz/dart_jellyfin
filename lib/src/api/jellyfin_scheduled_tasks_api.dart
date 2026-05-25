@@ -11,6 +11,7 @@ import '../jellyfin_connection.dart';
 class JellyfinScheduledTasksApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinScheduledTasksApi(this._http);
 
   /// `GET /ScheduledTasks` — list every task, with current state

@@ -15,6 +15,7 @@ import '../jellyfin_models.dart';
 class JellyfinChannelsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinChannelsApi(this._http);
 
   /// `GET /Channels` — every channel the server knows about.

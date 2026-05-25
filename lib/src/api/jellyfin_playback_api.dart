@@ -11,6 +11,7 @@ import '../jellyfin_connection.dart';
 class JellyfinPlaybackApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPlaybackApi(this._http);
 
   /// Report playback start.

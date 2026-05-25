@@ -11,6 +11,7 @@ import '../jellyfin_connection.dart';
 class JellyfinDevicesApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinDevicesApi(this._http);
 
   /// `GET /Devices` — list registered devices, optionally scoped to

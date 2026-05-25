@@ -13,6 +13,7 @@ import '../jellyfin_connection.dart';
 class JellyfinCollectionApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinCollectionApi(this._http);
 
   /// `POST /Collections` — create a new collection.

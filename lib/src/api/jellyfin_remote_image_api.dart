@@ -13,6 +13,7 @@ import '../jellyfin_connection.dart';
 class JellyfinRemoteImageApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinRemoteImageApi(this._http);
 
   /// `GET /Items/{itemId}/RemoteImages` — list candidate images

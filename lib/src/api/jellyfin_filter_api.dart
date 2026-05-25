@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinFilterApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinFilterApi(this._http);
 
   /// `/Items/Filters2` — modern facet payload (genres are

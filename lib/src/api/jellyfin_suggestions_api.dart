@@ -13,6 +13,7 @@ import '../jellyfin_models.dart';
 class JellyfinSuggestionsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinSuggestionsApi(this._http);
 
   /// `/Items/Suggestions` — homepage-style picks.

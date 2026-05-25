@@ -10,6 +10,7 @@ import '../jellyfin_connection.dart';
 class JellyfinBackupApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinBackupApi(this._http);
 
   /// `GET /Backup` — list backup files known to the server.

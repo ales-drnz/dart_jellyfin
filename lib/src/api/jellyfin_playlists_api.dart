@@ -11,6 +11,7 @@ import '../jellyfin_models.dart';
 class JellyfinPlaylistsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPlaylistsApi(this._http);
 
   /// Create a new playlist for the current user.
@@ -257,6 +258,8 @@ class JellyfinPlaylistsApi {
 /// without forming a circular import with [jellyfin_items_api.dart].
 /// Keeps both file dependency directions clean.
 abstract final class JellyfinItemsApiFieldsAdapter {
+  /// Default `fields` set used when fetching music items — matches the
+  /// list in [JellyfinItemsApi] without re-importing it.
   static const List<String> musicFields = [
     'Overview',
     'Genres',

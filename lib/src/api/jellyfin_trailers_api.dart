@@ -15,6 +15,7 @@ import '../jellyfin_models.dart';
 class JellyfinTrailersApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinTrailersApi(this._http);
 
   /// `GET /Trailers` — list trailers visible to the current user.

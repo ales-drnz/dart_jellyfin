@@ -11,6 +11,7 @@ import '../jellyfin_models.dart';
 class JellyfinUserApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinUserApi(this._http);
 
   /// Authenticate with username + password.

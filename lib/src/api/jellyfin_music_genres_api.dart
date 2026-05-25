@@ -15,6 +15,7 @@ import '../jellyfin_models.dart';
 class JellyfinMusicGenresApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinMusicGenresApi(this._http);
 
   /// `GET /MusicGenres` — music genres scoped to [parentId] and

@@ -13,6 +13,7 @@ import '../jellyfin_connection.dart';
 class JellyfinLocalizationApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinLocalizationApi(this._http);
 
   /// `GET /Localization/Countries` — every country the server knows

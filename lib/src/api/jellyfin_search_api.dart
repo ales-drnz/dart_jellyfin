@@ -9,8 +9,15 @@ import '../jellyfin_models.dart';
 class JellyfinSearchApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinSearchApi(this._http);
 
+  /// `GET /Search/Hints` — incremental, lightweight search.
+  ///
+  /// Returns ranked [JellyfinSearchHint]s rather than full items, so it's
+  /// safe to call on every keystroke. Pass [userId] to scope to a user's
+  /// libraries; the include/exclude flags control which content types
+  /// participate in the result.
   Future<JellyfinQueryResult<JellyfinSearchHint>> hints({
     required String query,
     String? userId,

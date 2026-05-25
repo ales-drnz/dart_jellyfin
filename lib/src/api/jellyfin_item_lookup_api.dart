@@ -19,6 +19,7 @@ import '../jellyfin_connection.dart';
 class JellyfinItemLookupApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinItemLookupApi(this._http);
 
   /// `GET /Items/{itemId}/ExternalIdInfos` — providers that can

@@ -34,6 +34,7 @@ class JellyfinNotificationsApi {
   Timer? _keepAlive;
   StreamSubscription<dynamic>? _socketSub;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinNotificationsApi(this._http);
 
   /// True while a socket is open.
@@ -210,12 +211,14 @@ class JellyfinNotification {
   /// a typed accessor.
   final Map<String, dynamic> raw;
 
+  /// Build a [JellyfinNotification] from its decomposed fields.
   const JellyfinNotification({
     required this.messageType,
     required this.data,
     required this.raw,
   });
 
+  /// Parse a Jellyfin websocket frame (`{MessageType, Data}`).
   factory JellyfinNotification.fromJson(Map<String, dynamic> json) =>
       JellyfinNotification(
         messageType: json['MessageType']?.toString() ?? 'Unknown',

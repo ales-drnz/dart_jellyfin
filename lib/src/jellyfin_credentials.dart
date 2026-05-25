@@ -20,6 +20,7 @@ class JellyfinCredentials {
   /// Application version (semver). Goes into `Version="…"`.
   final String version;
 
+  /// Creates a credentials bundle from the four header fields.
   const JellyfinCredentials({
     required this.client,
     required this.device,
@@ -27,6 +28,7 @@ class JellyfinCredentials {
     required this.version,
   });
 
+  /// Returns a copy with the given fields overridden.
   JellyfinCredentials copyWith({
     String? client,
     String? device,

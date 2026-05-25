@@ -12,12 +12,15 @@ import 'jellyfin_exception.dart';
 /// Internal HTTP transport shared by every sub-API. Not exported.
 class JellyfinConnection {
   final Dio _dio;
+
+  /// Client identity sent on every request via the auth header.
   final JellyfinCredentials credentials;
 
   String? _baseUrl;
   String? _token;
   String? _userId;
 
+  /// Creates a connection bound to [credentials] and an optional [baseUrl].
   JellyfinConnection({
     required this.credentials,
     String? baseUrl,
@@ -32,13 +35,21 @@ class JellyfinConnection {
     _applyAuthHeader();
   }
 
+  /// Server root URL without a trailing slash, or `null` if not connected.
   String? get baseUrl => _baseUrl;
+
+  /// Current access token, or `null` if no session is active.
   String? get token => _token;
+
+  /// Authenticated user id, or `null` if no session is active.
   // ignore: unnecessary_getters_setters
   String? get userId => _userId;
+
+  /// `true` when [baseUrl], [token], and [userId] are all set.
   bool get isAuthenticated =>
       _baseUrl != null && _token != null && _userId != null;
 
+  /// Sets the server root URL, stripping a trailing `/` if present.
   set baseUrl(String? value) {
     if (value == null) {
       _baseUrl = null;
@@ -48,11 +59,13 @@ class JellyfinConnection {
         value.endsWith('/') ? value.substring(0, value.length - 1) : value;
   }
 
+  /// Sets the access token and refreshes the cached auth headers.
   set token(String? value) {
     _token = value;
     _applyAuthHeader();
   }
 
+  /// Sets the authenticated user id.
   // ignore: unnecessary_getters_setters
   set userId(String? value) {
     _userId = value;
@@ -70,6 +83,8 @@ class JellyfinConnection {
     }
   }
 
+  /// Issues an HTTP request relative to [baseUrl] (or absolute when
+  /// `absoluteUrl` is `true`), wrapping Dio failures in [JellyfinException].
   Future<Response<T>> request<T>(
     String path, {
     String method = 'GET',
@@ -96,6 +111,7 @@ class JellyfinConnection {
     }
   }
 
+  /// Convenience for byte-stream GETs (artwork, downloads).
   Future<Response<List<int>>> requestBytes(
     String url, {
     Map<String, dynamic>? queryParameters,

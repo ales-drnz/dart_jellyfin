@@ -10,6 +10,7 @@ import '../jellyfin_connection.dart';
 class JellyfinActivityLogApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinActivityLogApi(this._http);
 
   /// `GET /System/ActivityLog/Entries` — recent activity entries.

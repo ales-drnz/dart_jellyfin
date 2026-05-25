@@ -18,6 +18,7 @@ import '../jellyfin_models.dart';
 class JellyfinInstantMixApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinInstantMixApi(this._http);
 
   /// `/Items/{itemId}/InstantMix` — works on any item kind the server

@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinLiveTvApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinLiveTvApi(this._http);
 
   // ─── Channels ──────────────────────────────────────────────────────

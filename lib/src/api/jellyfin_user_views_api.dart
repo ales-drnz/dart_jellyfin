@@ -15,6 +15,7 @@ import '../jellyfin_models.dart';
 class JellyfinUserViewsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinUserViewsApi(this._http);
 
   /// `GET /UserViews` — views with optional preset/hidden/external

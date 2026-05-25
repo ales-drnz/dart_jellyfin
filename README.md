@@ -25,7 +25,7 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.0.1
+  dart_jellyfin: ^0.0.2
 ```
 
 ---

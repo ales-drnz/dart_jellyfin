@@ -13,6 +13,7 @@ import '../jellyfin_connection.dart';
 class JellyfinLibraryStructureApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinLibraryStructureApi(this._http);
 
   /// `GET /Library/VirtualFolders` — list every configured library.

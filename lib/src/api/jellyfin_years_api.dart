@@ -14,6 +14,7 @@ import '../jellyfin_models.dart';
 class JellyfinYearsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinYearsApi(this._http);
 
   /// `GET /Years` — every year that has at least one matching item.

@@ -20,6 +20,7 @@ import '../jellyfin_models.dart';
 class JellyfinUserDataApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinUserDataApi(this._http);
 
   /// Mark an item as favourite.
@@ -40,6 +41,7 @@ class JellyfinUserDataApi {
     return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
+  /// Convenience wrapper — calls [markFavorite] or [unmarkFavorite] based on [isFavorite].
   Future<JellyfinUserData> setFavorite(String itemId, bool isFavorite) =>
       isFavorite ? markFavorite(itemId) : unmarkFavorite(itemId);
 

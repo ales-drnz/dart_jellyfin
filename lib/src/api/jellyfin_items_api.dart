@@ -11,6 +11,7 @@ import '../jellyfin_models.dart';
 class JellyfinItemsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinItemsApi(this._http);
 
   /// A reasonable default set of fields for music browsing — overview,

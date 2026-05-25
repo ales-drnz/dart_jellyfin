@@ -20,6 +20,7 @@ import '../jellyfin_models.dart';
 class JellyfinLyricsApi {
   final JellyfinConnection _http;
 
+  /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinLyricsApi(this._http);
 
   /// `GET /Audio/{itemId}/Lyrics` — fetch the currently-stored lyrics
