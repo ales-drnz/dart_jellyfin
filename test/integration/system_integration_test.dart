@@ -14,49 +14,54 @@ import '_fixture.dart';
 ///
 /// Run with: `dart test --tags integration`
 void main() {
-  group('Jellyfin system', () {
-    late JellyfinClient jf;
+  group(
+    'Jellyfin system',
+    () {
+      late JellyfinClient jf;
 
-    setUpAll(() {
-      jf = jellyfinFromCache();
-    });
+      setUpAll(() {
+        jf = jellyfinFromCache();
+      });
 
-    test('publicInfo returns server identity without authentication', () async {
-      final info = await jf.system.publicInfo();
-      expect(info.serverName, isNotEmpty);
-      expect(info.version, matches(RegExp(r'^\d+\.\d+\.\d+')));
-      expect(info.id, isNotEmpty);
-    });
+      test('publicInfo returns server identity without authentication',
+          () async {
+        final info = await jf.system.publicInfo();
+        expect(info.serverName, isNotEmpty);
+        expect(info.version, matches(RegExp(r'^\d+\.\d+\.\d+')));
+        expect(info.id, isNotEmpty);
+      });
 
-    test('info (authenticated) returns the same server identity', () async {
-      final info = await jf.system.info();
-      expect(info.id, isNotEmpty);
-      expect(info.version, isNotEmpty);
-    });
+      test('info (authenticated) returns the same server identity', () async {
+        final info = await jf.system.info();
+        expect(info.id, isNotEmpty);
+        expect(info.version, isNotEmpty);
+      });
 
-    test('ping returns true for a reachable server', () async {
-      expect(await jf.system.ping(), isTrue);
-    });
+      test('ping returns true for a reachable server', () async {
+        expect(await jf.system.ping(), isTrue);
+      });
 
-    test('utcTime returns RequestReceptionTime / ResponseTransmissionTime',
-        () async {
-      final t = await jf.system.utcTime();
-      expect(t, isNotEmpty);
-      expect(
-        t.keys.toSet().intersection(
-          {'RequestReceptionTime', 'ResponseTransmissionTime'},
-        ),
-        isNotEmpty,
-      );
-    });
+      test('utcTime returns RequestReceptionTime / ResponseTransmissionTime',
+          () async {
+        final t = await jf.system.utcTime();
+        expect(t, isNotEmpty);
+        expect(
+          t.keys.toSet().intersection(
+            {'RequestReceptionTime', 'ResponseTransmissionTime'},
+          ),
+          isNotEmpty,
+        );
+      });
 
-    test('endpointInfo returns a parseable map', () async {
-      // Inside Docker, the server sees the connection coming from
-      // the bridge network, so IsLocal is not reliable in this
-      // fixture. We just verify the endpoint is callable.
-      final ep = await jf.system.endpointInfo();
-      expect(ep, isNotEmpty);
-      expect(ep.containsKey('IsLocal') || ep.containsKey('isLocal'), isTrue);
-    });
-  }, skip: bootstrapSkipReason);
+      test('endpointInfo returns a parseable map', () async {
+        // Inside Docker, the server sees the connection coming from
+        // the bridge network, so IsLocal is not reliable in this
+        // fixture. We just verify the endpoint is callable.
+        final ep = await jf.system.endpointInfo();
+        expect(ep, isNotEmpty);
+        expect(ep.containsKey('IsLocal') || ep.containsKey('isLocal'), isTrue);
+      });
+    },
+    skip: bootstrapSkipReason,
+  );
 }

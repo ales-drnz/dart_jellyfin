@@ -20,46 +20,46 @@ import 'api/jellyfin_display_preferences_api.dart';
 import 'api/jellyfin_environment_api.dart';
 import 'api/jellyfin_filter_api.dart';
 import 'api/jellyfin_genres_api.dart';
+import 'api/jellyfin_hls_api.dart';
+import 'api/jellyfin_images_api.dart';
+import 'api/jellyfin_instant_mix_api.dart';
 import 'api/jellyfin_item_lookup_api.dart';
+import 'api/jellyfin_items_api.dart';
+import 'api/jellyfin_library_api.dart';
 import 'api/jellyfin_library_structure_api.dart';
+import 'api/jellyfin_live_tv_api.dart';
 import 'api/jellyfin_localization_api.dart';
 import 'api/jellyfin_lyrics_api.dart';
+import 'api/jellyfin_media_info_api.dart';
+import 'api/jellyfin_media_segments_api.dart';
+import 'api/jellyfin_movies_api.dart';
 import 'api/jellyfin_music_genres_api.dart';
 import 'api/jellyfin_notifications_api.dart';
 import 'api/jellyfin_packages_api.dart';
 import 'api/jellyfin_persons_api.dart';
+import 'api/jellyfin_playback_api.dart';
+import 'api/jellyfin_playlists_api.dart';
 import 'api/jellyfin_plugins_api.dart';
+import 'api/jellyfin_quick_connect_api.dart';
 import 'api/jellyfin_remote_image_api.dart';
 import 'api/jellyfin_scheduled_tasks_api.dart';
-import 'api/jellyfin_startup_api.dart';
-import 'api/jellyfin_studios_api.dart';
-import 'api/jellyfin_tmdb_api.dart';
-import 'api/jellyfin_trailers_api.dart';
-import 'api/jellyfin_years_api.dart';
-import 'api/jellyfin_hls_api.dart';
-import 'api/jellyfin_images_api.dart';
-import 'api/jellyfin_instant_mix_api.dart';
-import 'api/jellyfin_items_api.dart';
-import 'api/jellyfin_live_tv_api.dart';
-import 'api/jellyfin_library_api.dart';
-import 'api/jellyfin_media_info_api.dart';
-import 'api/jellyfin_media_segments_api.dart';
-import 'api/jellyfin_movies_api.dart';
-import 'api/jellyfin_playlists_api.dart';
-import 'api/jellyfin_playback_api.dart';
-import 'api/jellyfin_quick_connect_api.dart';
 import 'api/jellyfin_search_api.dart';
 import 'api/jellyfin_sessions_api.dart';
+import 'api/jellyfin_startup_api.dart';
+import 'api/jellyfin_studios_api.dart';
 import 'api/jellyfin_subtitles_api.dart';
 import 'api/jellyfin_suggestions_api.dart';
 import 'api/jellyfin_sync_play_api.dart';
 import 'api/jellyfin_system_api.dart';
-import 'api/jellyfin_user_views_api.dart';
+import 'api/jellyfin_tmdb_api.dart';
+import 'api/jellyfin_trailers_api.dart';
 import 'api/jellyfin_trickplay_api.dart';
 import 'api/jellyfin_tv_shows_api.dart';
 import 'api/jellyfin_user_api.dart';
 import 'api/jellyfin_user_data_api.dart';
+import 'api/jellyfin_user_views_api.dart';
 import 'api/jellyfin_videos_api.dart';
+import 'api/jellyfin_years_api.dart';
 import 'jellyfin_connection.dart';
 import 'jellyfin_credentials.dart';
 
@@ -365,6 +365,7 @@ class JellyfinClient {
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
     ResponseType? responseType,
+    CancelToken? cancelToken,
   }) =>
       _http.request<T>(
         path,
@@ -374,18 +375,24 @@ class JellyfinClient {
         extraHeaders: extraHeaders,
         absoluteUrl: absoluteUrl,
         responseType: responseType,
+        cancelToken: cancelToken,
       );
 
   /// Convenience for byte-stream GETs (artwork, downloads).
+  ///
+  /// Pass a [cancelToken] to abort an in-flight download — useful for large
+  /// artwork or media transfers the caller may need to cancel.
   Future<Response<List<int>>> requestBytes(
     String url, {
     Map<String, dynamic>? queryParameters,
     bool absoluteUrl = true,
+    CancelToken? cancelToken,
   }) =>
       _http.requestBytes(
         url,
         queryParameters: queryParameters,
         absoluteUrl: absoluteUrl,
+        cancelToken: cancelToken,
       );
 
   // ─── Lightweight method aliases ────────────────────────────────────
@@ -432,6 +439,13 @@ class JellyfinClient {
 
   /// Alias for [requestBytes] — kept so the calling code can read like
   /// the original Dio-based wrapper it replaced.
-  Future<Response<List<int>>> fetchBytes(String url) =>
-      requestBytes(url, absoluteUrl: true);
+  ///
+  /// Redundant: `requestBytes` already defaults to `absoluteUrl: true` and
+  /// additionally supports `queryParameters` and relative paths. Prefer
+  /// [requestBytes] directly; this alias is retained for one deprecation
+  /// cycle and will be removed in a future release.
+  @Deprecated(
+    'Use requestBytes; this alias will be removed in a future release.',
+  )
+  Future<Response<List<int>>> fetchBytes(String url) => requestBytes(url);
 }

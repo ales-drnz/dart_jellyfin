@@ -19,7 +19,10 @@ class JellyfinPluginsApi {
   Future<List<Map<String, dynamic>>> list() async {
     final res = await _http.request<List<dynamic>>('/Plugins');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `DELETE /Plugins/{pluginId}` — uninstall every version of a

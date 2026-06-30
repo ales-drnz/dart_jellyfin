@@ -234,6 +234,53 @@ const _sessionJson = r'''
 }
 ''';
 
+const _sessionPlayingJson = r'''
+{
+  "Id": "session-2",
+  "UserId": "user-abc",
+  "UserName": "admin",
+  "Client": "dart_jellyfin",
+  "DeviceId": "device-1",
+  "DeviceName": "test-device",
+  "ApplicationVersion": "0.0.1",
+  "RemoteEndPoint": "127.0.0.1",
+  "LastActivityDate": "2026-05-24T20:00:00.000Z",
+  "IsActive": true,
+  "SupportsMediaControl": true,
+  "SupportsRemoteControl": true,
+  "PlayableMediaTypes": ["Audio"],
+  "SupportedCommands": ["Play", "Pause"],
+  "NowPlayingItem": {
+    "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Name": "Track 1",
+    "Type": "Audio",
+    "MediaType": "Audio",
+    "RunTimeTicks": 30302040,
+    "Album": "Test Album",
+    "AlbumId": "72839210ba8018a1bf1039f340953486"
+  },
+  "PlayState": {"PositionTicks": 1500000, "IsPaused": false, "IsMuted": false}
+}
+''';
+
+const _sessionPausedJson = r'''
+{
+  "Id": "session-3",
+  "UserId": "user-abc",
+  "Client": "dart_jellyfin",
+  "DeviceId": "device-1",
+  "DeviceName": "test-device",
+  "IsActive": true,
+  "NowPlayingItem": {
+    "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Name": "Track 1",
+    "Type": "Audio",
+    "MediaType": "Audio"
+  },
+  "PlayState": {"PositionTicks": 9000000, "IsPaused": true, "IsMuted": false}
+}
+''';
+
 const _queryFiltersJson = r'''
 {
   "Genres": [
@@ -333,8 +380,10 @@ void main() {
 
       // Media sources / streams nested parsing
       expect(item.mediaSources, hasLength(1));
-      expect(item.mediaSources.single.path,
-          '/media/Music/Test Artist/Test Album/01 - Track 1.mp3');
+      expect(
+        item.mediaSources.single.path,
+        '/media/Music/Test Artist/Test Album/01 - Track 1.mp3',
+      );
       expect(item.mediaSources.single.container, 'mp3');
       expect(item.mediaSources.single.bitrate, 129464);
       expect(item.mediaSources.single.size, 49038);
@@ -560,6 +609,34 @@ void main() {
       expect(s.playState, isNotNull);
       expect(s.playState!['IsPaused'], isFalse);
       expect(s.isPlaying, isFalse);
+    });
+
+    test('recurses into NowPlayingItem and reports isPlaying', () {
+      final s = JellyfinSession.fromJson(
+        jsonDecode(_sessionPlayingJson) as Map<String, dynamic>,
+      );
+      expect(s.id, 'session-2');
+      expect(s.nowPlayingItem, isNotNull);
+      expect(s.nowPlayingItem!.id, 'b5455b2dcaf64392527a5ae01dd1523f');
+      expect(s.nowPlayingItem!.name, 'Track 1');
+      expect(s.nowPlayingItem!.type, 'Audio');
+      expect(s.nowPlayingItem!.album, 'Test Album');
+      expect(s.nowPlayingItem!.runTimeTicks, 30302040);
+      // isPlaying derives purely from the presence of a NowPlayingItem.
+      expect(s.isPlaying, isTrue);
+      expect(s.playState!['IsPaused'], isFalse);
+    });
+
+    test('a paused session with a NowPlayingItem still reports isPlaying', () {
+      final s = JellyfinSession.fromJson(
+        jsonDecode(_sessionPausedJson) as Map<String, dynamic>,
+      );
+      expect(s.nowPlayingItem, isNotNull);
+      expect(s.nowPlayingItem!.id, 'b5455b2dcaf64392527a5ae01dd1523f');
+      expect(s.playState!['IsPaused'], isTrue);
+      // isPlaying is `nowPlayingItem != null`, so a paused-but-loaded
+      // session is still considered "playing" by this getter.
+      expect(s.isPlaying, isTrue);
     });
   });
 

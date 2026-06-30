@@ -50,8 +50,8 @@ class JellyfinQueryResult<T> {
           for (final e in raw)
             if (e is Map<String, dynamic>) parser(e),
       ],
-      totalRecordCount: _int(json['TotalRecordCount']) ??
-          (raw is List ? raw.length : 0),
+      totalRecordCount:
+          _int(json['TotalRecordCount']) ?? (raw is List ? raw.length : 0),
       startIndex: _int(json['StartIndex']),
     );
   }
@@ -161,8 +161,7 @@ class JellyfinUser {
         primaryImageTag: _str(json['PrimaryImageTag']),
         hasPassword: json['HasPassword'] == true,
         hasConfiguredPassword: json['HasConfiguredPassword'] == true,
-        hasConfiguredEasyPassword:
-            json['HasConfiguredEasyPassword'] == true,
+        hasConfiguredEasyPassword: json['HasConfiguredEasyPassword'] == true,
         lastLoginDate: _dt(json['LastLoginDate']),
         lastActivityDate: _dt(json['LastActivityDate']),
         raw: json,
@@ -595,11 +594,7 @@ class JellyfinItem {
       albumArtist: _str(json['AlbumArtist']),
       albumArtists: _stringList(json['AlbumArtists'], 'Name'),
       artists: _strList(json['Artists']),
-      artistItems: [
-        if (json['ArtistItems'] is List)
-          for (final a in json['ArtistItems'] as List)
-            if (a is Map<String, dynamic>) JellyfinArtistRef.fromJson(a),
-      ],
+      artistItems: _objList(json['ArtistItems'], JellyfinArtistRef.fromJson),
       indexNumber: _int(json['IndexNumber']),
       parentIndexNumber: _int(json['ParentIndexNumber']),
       productionYear: _int(json['ProductionYear']),
@@ -607,16 +602,10 @@ class JellyfinItem {
       dateCreated: _dt(json['DateCreated']),
       runTimeTicks: _int(json['RunTimeTicks']),
       container: _str(json['Container']),
-      mediaSources: [
-        if (json['MediaSources'] is List)
-          for (final m in json['MediaSources'] as List)
-            if (m is Map<String, dynamic>) JellyfinMediaSource.fromJson(m),
-      ],
-      mediaStreams: [
-        if (json['MediaStreams'] is List)
-          for (final s in json['MediaStreams'] as List)
-            if (s is Map<String, dynamic>) JellyfinMediaStream.fromJson(s),
-      ],
+      mediaSources:
+          _objList(json['MediaSources'], JellyfinMediaSource.fromJson),
+      mediaStreams:
+          _objList(json['MediaStreams'], JellyfinMediaStream.fromJson),
       isFolder: json['IsFolder'] == true,
       childCount: _int(json['ChildCount']),
       hasLyrics: json['HasLyrics'] == true,
@@ -659,7 +648,8 @@ class JellyfinArtistRef {
   const JellyfinArtistRef({required this.id, required this.name});
 
   /// Decodes a `{Id, Name}` artist reference.
-  factory JellyfinArtistRef.fromJson(Map<String, dynamic> json) => JellyfinArtistRef(
+  factory JellyfinArtistRef.fromJson(Map<String, dynamic> json) =>
+      JellyfinArtistRef(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
       );
@@ -742,11 +732,8 @@ class JellyfinMediaSource {
         transcodingUrl: _str(json['TranscodingUrl']),
         transcodingSubProtocol: _str(json['TranscodingSubProtocol']),
         transcodingContainer: _str(json['TranscodingContainer']),
-        mediaStreams: [
-          if (json['MediaStreams'] is List)
-            for (final s in json['MediaStreams'] as List)
-              if (s is Map<String, dynamic>) JellyfinMediaStream.fromJson(s),
-        ],
+        mediaStreams:
+            _objList(json['MediaStreams'], JellyfinMediaStream.fromJson),
         raw: json,
       );
 }
@@ -756,7 +743,7 @@ class JellyfinMediaStream {
   /// Zero-based stream index within the source.
   final int? index;
 
-  /// `Audio | Video | Subtitle | Lyrics | EmbeddedImage`.
+  /// `Audio | Video | Subtitle | EmbeddedImage | Data | Lyric`.
   final String? type;
 
   /// Codec name (`'h264'`, `'flac'`, `'opus'`, …).
@@ -826,8 +813,14 @@ class JellyfinMediaStream {
   /// `true` when this stream carries subtitles.
   bool get isSubtitle => type == 'Subtitle';
 
-  /// `true` when this stream carries lyrics.
-  bool get isLyrics => type == 'Lyrics';
+  /// `true` when this stream carries lyrics (spec enum value `'Lyric'`).
+  bool get isLyrics => type == 'Lyric';
+
+  /// `true` when this stream is an embedded image (cover art).
+  bool get isEmbeddedImage => type == 'EmbeddedImage';
+
+  /// `true` when this stream carries auxiliary data.
+  bool get isData => type == 'Data';
 }
 
 /// Per-user state attached to a [JellyfinItem] (`UserItemDataDto`).
@@ -929,13 +922,8 @@ class JellyfinLyrics {
 
   /// Decodes `{Lyrics: [...]}`. Tolerates missing or non-list `Lyrics`.
   factory JellyfinLyrics.fromJson(Map<String, dynamic> json) {
-    final ly = json['Lyrics'];
     return JellyfinLyrics(
-      lines: [
-        if (ly is List)
-          for (final l in ly)
-            if (l is Map<String, dynamic>) JellyfinLyricLine.fromJson(l),
-      ],
+      lines: _objList(json['Lyrics'], JellyfinLyricLine.fromJson),
       raw: json,
     );
   }
@@ -974,6 +962,12 @@ class JellyfinSearchHint {
   /// Album-artist string, for audio hits.
   final String? albumArtist;
 
+  /// Album title, for audio hits.
+  final String? album;
+
+  /// Id of the owning album, for audio hits.
+  final String? albumId;
+
   /// All artist names, for audio hits.
   final List<String> artists;
 
@@ -982,6 +976,9 @@ class JellyfinSearchHint {
 
   /// Track/episode number within the parent, when applicable.
   final int? indexNumber;
+
+  /// Disc/season number (parent index) within the parent, when applicable.
+  final int? parentIndexNumber;
 
   /// Release year, when applicable.
   final int? productionYear;
@@ -1002,8 +999,11 @@ class JellyfinSearchHint {
     this.type,
     this.mediaType,
     this.albumArtist,
+    this.album,
+    this.albumId,
     this.runTimeTicks,
     this.indexNumber,
+    this.parentIndexNumber,
     this.productionYear,
     this.primaryImageTag,
   });
@@ -1017,9 +1017,12 @@ class JellyfinSearchHint {
         type: _str(json['Type']),
         mediaType: _str(json['MediaType']),
         albumArtist: _str(json['AlbumArtist']),
+        album: _str(json['Album']),
+        albumId: _str(json['AlbumId']),
         artists: _strList(json['Artists']),
         runTimeTicks: _int(json['RunTimeTicks']),
         indexNumber: _int(json['IndexNumber']),
+        parentIndexNumber: _int(json['ParentIndexNumber']),
         productionYear: _int(json['ProductionYear']),
         primaryImageTag: _str(json['PrimaryImageTag']),
         raw: json,
@@ -1060,14 +1063,26 @@ DateTime? _dt(Object? v) {
 
 List<String> _strList(Object? v) {
   if (v is! List) return const [];
-  return [for (final e in v) if (e is String) e];
+  return [
+    for (final e in v)
+      if (e is String) e,
+  ];
+}
+
+List<T> _objList<T>(Object? v, T Function(Map<String, dynamic>) parser) {
+  if (v is! List) return const [];
+  return [
+    for (final e in v)
+      if (e is Map<String, dynamic>) parser(e),
+  ];
 }
 
 List<String> _stringList(Object? v, String fieldName) {
   if (v is! List) return const [];
   return [
     for (final e in v)
-      if (e is Map<String, dynamic> && e[fieldName] is String) e[fieldName] as String,
+      if (e is Map<String, dynamic> && e[fieldName] is String)
+        e[fieldName] as String,
   ];
 }
 
@@ -1189,9 +1204,8 @@ class JellyfinSession {
       supportsRemoteControl: json['SupportsRemoteControl'] == true,
       playableMediaTypes: _strList(json['PlayableMediaTypes']),
       supportedCommands: _strList(json['SupportedCommands']),
-      nowPlayingItem: npi is Map<String, dynamic>
-          ? JellyfinItem.fromJson(npi)
-          : null,
+      nowPlayingItem:
+          npi is Map<String, dynamic> ? JellyfinItem.fromJson(npi) : null,
       playState: json['PlayState'] is Map<String, dynamic>
           ? json['PlayState'] as Map<String, dynamic>
           : null,
@@ -1238,15 +1252,70 @@ class JellyfinPlaybackInfo {
   /// Decodes the `PlaybackInfoResponse` envelope.
   factory JellyfinPlaybackInfo.fromJson(Map<String, dynamic> json) =>
       JellyfinPlaybackInfo(
-        mediaSources: [
-          if (json['MediaSources'] is List)
-            for (final m in json['MediaSources'] as List)
-              if (m is Map<String, dynamic>) JellyfinMediaSource.fromJson(m),
-        ],
+        mediaSources:
+            _objList(json['MediaSources'], JellyfinMediaSource.fromJson),
         playSessionId: _str(json['PlaySessionId']),
         errorCode: _str(json['ErrorCode']),
         raw: json,
       );
+}
+
+/// One `DirectPlayProfile` entry of a [JellyfinDeviceProfile].
+///
+/// [type] is the `DlnaProfileType` selector telling the server which
+/// media kind the profile applies to — one of
+/// `'Audio' | 'Video' | 'Photo' | 'Subtitle' | 'Lyric'`. It is required
+/// because the server only matches a source against a profile whose kind
+/// matches the source; an audio source never matches a `Video` profile.
+/// [container], [audioCodec], and [videoCodec] are optional, comma-
+/// separated constraint lists (mirroring the spec); null entries are
+/// omitted from the wire body.
+class JellyfinDirectPlayProfile {
+  /// Media kind this profile applies to: `'Audio' | 'Video' | 'Photo' |
+  /// 'Subtitle' | 'Lyric'`.
+  final String type;
+
+  /// Comma-separated container constraint (e.g. `'mp3'`, `'mp4,mkv'`).
+  final String? container;
+
+  /// Comma-separated audio-codec constraint (e.g. `'aac,mp3'`).
+  final String? audioCodec;
+
+  /// Comma-separated video-codec constraint (e.g. `'h264,hevc'`).
+  final String? videoCodec;
+
+  /// Builds a direct-play profile. [type] selects the media kind and is
+  /// required; the codec/container constraints are optional.
+  const JellyfinDirectPlayProfile({
+    required this.type,
+    this.container,
+    this.audioCodec,
+    this.videoCodec,
+  });
+
+  /// Convenience constructor for an audio direct-play profile
+  /// (`type: 'Audio'`).
+  const JellyfinDirectPlayProfile.audio({
+    this.container,
+    this.audioCodec,
+  })  : type = 'Audio',
+        videoCodec = null;
+
+  /// Convenience constructor for a video direct-play profile
+  /// (`type: 'Video'`).
+  const JellyfinDirectPlayProfile.video({
+    this.container,
+    this.audioCodec,
+    this.videoCodec,
+  }) : type = 'Video';
+
+  /// `DirectPlayProfile` JSON body. Null constraints are omitted.
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'Type': type,
+        if (container != null) 'Container': container,
+        if (audioCodec != null) 'AudioCodec': audioCodec,
+        if (videoCodec != null) 'VideoCodec': videoCodec,
+      };
 }
 
 /// Subset of `DeviceProfile` from the OpenAPI spec — enough to tell
@@ -1272,11 +1341,13 @@ class JellyfinDeviceProfile {
   /// Music-only bitrate ceiling.
   final int? musicStreamingTranscodingBitrate;
 
-  /// Containers the client can direct-play (e.g. `['mp4', 'mkv',
-  /// 'webm', 'mp3', 'aac', 'flac']`). The server skips transcoding if
-  /// the source matches one of these AND the codecs inside are also
-  /// supported.
-  final List<String> directPlayProfiles;
+  /// Profiles the client can direct-play. Each entry names a media kind
+  /// (`'Audio'`, `'Video'`, …) plus an optional container/codec
+  /// constraint. The server skips transcoding when a source matches one
+  /// of these AND the codecs inside are also supported. Because the kind
+  /// is explicit per entry, audio sources (`flac`, `mp3`, `aac`) match
+  /// `Type: 'Audio'` profiles rather than being forced down the video path.
+  final List<JellyfinDirectPlayProfile> directPlayProfiles;
 
   /// Containers + codecs the server should re-mux into when direct
   /// play isn't possible but transcoding would be wasteful.
@@ -1319,20 +1390,16 @@ class JellyfinDeviceProfile {
         'MaxStreamingBitrate': maxStreamingBitrate,
       if (maxStaticBitrate != null) 'MaxStaticBitrate': maxStaticBitrate,
       if (musicStreamingTranscodingBitrate != null)
-        'MusicStreamingTranscodingBitrate':
-            musicStreamingTranscodingBitrate,
+        'MusicStreamingTranscodingBitrate': musicStreamingTranscodingBitrate,
       if (directPlayProfiles.isNotEmpty)
         'DirectPlayProfiles': [
-          for (final container in directPlayProfiles)
-            {'Container': container, 'Type': 'Video'},
+          for (final profile in directPlayProfiles) profile.toJson(),
         ],
       if (transcodingProfiles.isNotEmpty)
         'TranscodingProfiles': transcodingProfiles,
       if (codecProfiles.isNotEmpty) 'CodecProfiles': codecProfiles,
-      if (containerProfiles.isNotEmpty)
-        'ContainerProfiles': containerProfiles,
-      if (subtitleProfiles.isNotEmpty)
-        'SubtitleProfiles': subtitleProfiles,
+      if (containerProfiles.isNotEmpty) 'ContainerProfiles': containerProfiles,
+      if (subtitleProfiles.isNotEmpty) 'SubtitleProfiles': subtitleProfiles,
       ...extra,
     };
   }
@@ -1452,8 +1519,7 @@ class JellyfinDisplayPreferences {
         if (showSidebar != null) 'ShowSidebar': showSidebar,
         if (primaryImageHeight != null)
           'PrimaryImageHeight': primaryImageHeight,
-        if (primaryImageWidth != null)
-          'PrimaryImageWidth': primaryImageWidth,
+        if (primaryImageWidth != null) 'PrimaryImageWidth': primaryImageWidth,
         if (customPrefs.isNotEmpty) 'CustomPrefs': customPrefs,
       };
 }
@@ -1501,18 +1567,12 @@ class JellyfinQueryFilters {
   });
 
   /// Decodes a `/Items/Filters2` response.
-  factory JellyfinQueryFilters.fromJson(Map<String, dynamic> json) {
-    final rawGenres = json['Genres'];
-    return JellyfinQueryFilters(
-      genres: [
-        if (rawGenres is List)
-          for (final e in rawGenres)
-            if (e is Map<String, dynamic>) JellyfinNameGuidPair.fromJson(e),
-      ],
-      tags: _strList(json['Tags']),
-      raw: json,
-    );
-  }
+  factory JellyfinQueryFilters.fromJson(Map<String, dynamic> json) =>
+      JellyfinQueryFilters(
+        genres: _objList(json['Genres'], JellyfinNameGuidPair.fromJson),
+        tags: _strList(json['Tags']),
+        raw: json,
+      );
 }
 
 /// Legacy facet response from `/Items/Filters` — flat string arrays.
@@ -1571,6 +1631,7 @@ class JellyfinMediaSegment {
 
   /// Id of the item this segment belongs to.
   final String? itemId;
+
   /// `Unknown`, `Commercial`, `Preview`, `Recap`, `Outro`, `Intro`.
   final String? type;
 
@@ -1614,7 +1675,7 @@ class JellyfinMediaSegment {
 }
 
 /// Canonical [JellyfinMediaSegment.type] values.
-class JellyfinMediaSegmentType {
+abstract final class JellyfinMediaSegmentType {
   /// Unclassified segment.
   static const unknown = 'Unknown';
 
@@ -1665,20 +1726,14 @@ class JellyfinMovieRecommendation {
   });
 
   /// Decodes a recommendation entry, recursing into each `Items` element.
-  factory JellyfinMovieRecommendation.fromJson(Map<String, dynamic> json) {
-    final rawItems = json['Items'];
-    return JellyfinMovieRecommendation(
-      categoryId: _str(json['CategoryId']),
-      baselineItemName: _str(json['BaselineItemName']),
-      recommendationType: _str(json['RecommendationType']),
-      items: [
-        if (rawItems is List)
-          for (final e in rawItems)
-            if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
-      ],
-      raw: json,
-    );
-  }
+  factory JellyfinMovieRecommendation.fromJson(Map<String, dynamic> json) =>
+      JellyfinMovieRecommendation(
+        categoryId: _str(json['CategoryId']),
+        baselineItemName: _str(json['BaselineItemName']),
+        recommendationType: _str(json['RecommendationType']),
+        items: _objList(json['Items'], JellyfinItem.fromJson),
+        raw: json,
+      );
 }
 
 /// `ImageBlurHashes` shape from server: `{ "Primary": { "<tag>": "<hash>" } }`.

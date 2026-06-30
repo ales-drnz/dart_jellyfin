@@ -17,7 +17,10 @@ class JellyfinBackupApi {
   Future<List<Map<String, dynamic>>> list() async {
     final res = await _http.request<List<dynamic>>('/Backup');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `POST /Backup/Create` — create a new backup. [body] carries

@@ -41,15 +41,21 @@ class JellyfinNotificationsApi {
   bool get isConnected => _channel != null;
 
   /// Open the `/socket` WebSocket and start emitting
-  /// [JellyfinNotification]s. Throws [JellyfinException] when no
-  /// base URL or token has been configured.
+  /// [JellyfinNotification]s. Throws [JellyfinException] of type
+  /// [JellyfinErrorType.state] when no base URL or token has been
+  /// configured, or [JellyfinErrorType.connection] if the socket cannot
+  /// be opened.
+  ///
+  /// Awaits the socket handshake before returning, so the returned stream
+  /// is live and [isConnected] is only `true` (and the keep-alive timer
+  /// only armed) once the connection is actually open.
   ///
   /// [keepAliveInterval] sets the server-side timeout. The server
   /// closes the socket after ~60 s of silence; the default 30 s
   /// keep-alive is safely under that.
-  Stream<JellyfinNotification> connect({
+  Future<Stream<JellyfinNotification>> connect({
     Duration keepAliveInterval = const Duration(seconds: 30),
-  }) {
+  }) async {
     if (_channel != null) {
       throw const JellyfinException(
         'Already connected. Call close() before re-connecting.',
@@ -67,7 +73,18 @@ class JellyfinNotificationsApi {
     final wsUrl = _toWs('$base/socket?api_key=$token'
         '&deviceId=${Uri.encodeQueryComponent(_http.credentials.deviceId)}');
 
-    final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+    final WebSocketChannel channel;
+    try {
+      channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      await channel.ready;
+    } catch (e, st) {
+      throw JellyfinException(
+        'WebSocket connection failed: $e',
+        type: JellyfinErrorType.connection,
+        cause: e,
+        stackTrace: st,
+      );
+    }
     final controller = StreamController<JellyfinNotification>.broadcast(
       onCancel: () {
         // Idempotent — close() releases the underlying channel.
@@ -125,10 +142,12 @@ class JellyfinNotificationsApi {
         type: JellyfinErrorType.state,
       );
     }
-    ch.sink.add(jsonEncode({
-      'MessageType': messageType,
-      if (data != null) 'Data': data,
-    }));
+    ch.sink.add(
+      jsonEncode({
+        'MessageType': messageType,
+        if (data != null) 'Data': data,
+      }),
+    );
   }
 
   /// Subscribe to the sessions channel. Convenience for

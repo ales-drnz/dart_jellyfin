@@ -6,6 +6,11 @@
 #
 # Without --concurrency 1, parallel test files race on writes (rename +
 # playback in particular trigger lost-update behaviour upstream).
+# Declare the `integration` tag so `--tags integration` doesn't warn
+# about an unknown tag.
+tags:
+  integration:
+
 presets:
   integration:
     concurrency: 1

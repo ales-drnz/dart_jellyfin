@@ -62,6 +62,9 @@ class JellyfinRemoteImageApi {
       '/Items/$itemId/RemoteImages/Providers',
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 }

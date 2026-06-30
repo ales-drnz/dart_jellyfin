@@ -298,15 +298,17 @@ class JellyfinHlsApi {
 
   /// `DELETE /Videos/ActiveEncodings` — stop an active HLS encoding
   /// session on the server. Pass the [deviceId] of the session to
-  /// stop (defaults to the connection's device id).
+  /// stop (defaults to the connection's device id) and the
+  /// [playSessionId] of the encoding to stop. The server marks both
+  /// query parameters as required, so [playSessionId] is mandatory.
   Future<void> stopEncoding({
     String? deviceId,
-    String? playSessionId,
+    required String playSessionId,
   }) async {
     final qp = <String, dynamic>{
       'deviceId': deviceId ?? _http.credentials.deviceId,
+      'playSessionId': playSessionId,
     };
-    if (playSessionId != null) qp['playSessionId'] = playSessionId;
     await _http.request<void>(
       '/Videos/ActiveEncodings',
       method: 'DELETE',

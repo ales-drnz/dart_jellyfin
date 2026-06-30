@@ -86,14 +86,15 @@ class JellyfinSyncPlayApi {
 
   // ─── Queue ─────────────────────────────────────────────────────────
 
-  /// `POST /SyncPlay/Queue` — replace the group queue (the items every
-  /// member will play, in order).
+  /// `POST /SyncPlay/Queue` — append [itemIds] to the group's existing
+  /// playback queue. To replace the entire queue, use [setNewQueue].
   ///
-  /// [mode] is `'Default' | 'Next' | 'Last'` — see the upstream
-  /// `PlayMode` enum.
+  /// [mode] is `'Queue' | 'QueueNext'` (the upstream `GroupQueueMode`
+  /// enum): `'Queue'` appends to the end of the queue, `'QueueNext'`
+  /// inserts right after the current item.
   Future<void> queue({
     required List<String> itemIds,
-    String mode = 'Default',
+    String mode = 'Queue',
   }) async {
     await _http.request<void>(
       '/SyncPlay/Queue',

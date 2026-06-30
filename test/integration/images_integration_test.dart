@@ -12,51 +12,53 @@ import '_fixture.dart';
 
 /// Smoke tests for [JellyfinImagesApi].
 void main() {
-  group('Jellyfin images', () {
-    late JellyfinClient jf;
+  group(
+    'Jellyfin images',
+    () {
+      late JellyfinClient jf;
 
-    setUpAll(() {
-      jf = jellyfinFromCache();
-    });
+      setUpAll(() {
+        jf = jellyfinFromCache();
+      });
 
-    test('url() builds a deterministic image URL', () {
-      final url = jf.images.url(
-        itemId: 'abcd1234',
-        type: JellyfinImagesApi.typePrimary,
-        width: 200,
-        height: 200,
-        tag: 'hash-x',
-      );
-      expect(url, contains('/Items/abcd1234/Images/Primary'));
-      expect(url, contains('width=200'));
-      expect(url, contains('tag=hash-x'));
-    });
+      test('url() builds a deterministic image URL', () {
+        final url = jf.images.url(
+          itemId: 'abcd1234',
+          width: 200,
+          height: 200,
+          tag: 'hash-x',
+        );
+        expect(url, contains('/Items/abcd1234/Images/Primary'));
+        expect(url, contains('width=200'));
+        expect(url, contains('tag=hash-x'));
+      });
 
-    test('userImageUrl builds /UserImage with the current session token', () {
-      final url = jf.images.userImageUrl(width: 96);
-      expect(url, contains('/UserImage'));
-      expect(url, contains('width=96'));
-    });
+      test('userImageUrl builds /UserImage with the current session token', () {
+        final url = jf.images.userImageUrl(format: JellyfinImagesApi.formatPng);
+        expect(url, contains('/UserImage'));
+        expect(url, contains('format=Png'));
+      });
 
-    test('fetch on an item with primary art returns bytes', () async {
-      final tracks = await jf.items.list(
-        includeItemTypes: const ['Audio'],
-        limit: 1,
-      );
-      expect(tracks.items, isNotEmpty);
-      final t = tracks.items.first;
-      // Skip gracefully if the seed track has no embedded art (ffmpeg
-      // silence MP3s don't ship cover art).
-      if ((t.imageTags['Primary'] ?? '').isEmpty) {
-        return;
-      }
-      final bytes = await jf.images.fetch(
-        itemId: t.id,
-        type: JellyfinImagesApi.typePrimary,
-        tag: t.imageTags['Primary'],
-      );
-      expect(bytes, isNotNull);
-      expect(bytes!.length, greaterThan(0));
-    });
-  }, skip: bootstrapSkipReason);
+      test('fetch on an item with primary art returns bytes', () async {
+        final tracks = await jf.items.list(
+          includeItemTypes: const ['Audio'],
+          limit: 1,
+        );
+        expect(tracks.items, isNotEmpty);
+        final t = tracks.items.first;
+        // Skip gracefully if the seed track has no embedded art (ffmpeg
+        // silence MP3s don't ship cover art).
+        if ((t.imageTags['Primary'] ?? '').isEmpty) {
+          return;
+        }
+        final bytes = await jf.images.fetch(
+          itemId: t.id,
+          tag: t.imageTags['Primary'],
+        );
+        expect(bytes, isNotNull);
+        expect(bytes!.length, greaterThan(0));
+      });
+    },
+    skip: bootstrapSkipReason,
+  );
 }

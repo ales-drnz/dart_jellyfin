@@ -31,12 +31,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Items/$itemId/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Items/$itemId/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/Songs/{songId}/InstantMix` — seeded by a song.
   Future<JellyfinQueryResult<JellyfinItem>> fromSong({
@@ -47,12 +49,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Songs/$songId/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Songs/$songId/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/Albums/{albumId}/InstantMix`.
   Future<JellyfinQueryResult<JellyfinItem>> fromAlbum({
@@ -63,12 +67,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Albums/$albumId/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Albums/$albumId/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/Artists/{artistId}/InstantMix` (modern variant — uses item id).
   Future<JellyfinQueryResult<JellyfinItem>> fromArtist({
@@ -79,12 +85,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Artists/$artistId/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Artists/$artistId/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/MusicGenres/{name}/InstantMix` (by name).
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenre({
@@ -95,12 +103,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/MusicGenres/$name/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/MusicGenres/${Uri.encodeComponent(name)}/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/MusicGenres/InstantMix?id={genreId}` (by id).
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenreById({
@@ -111,13 +121,15 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/MusicGenres/InstantMix',
-          extra: {'id': genreId},
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/MusicGenres/InstantMix',
+        extra: {'id': genreId},
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/Artists/InstantMix?name={name}` — alternative name-keyed
   /// entry point for the artist mix (`GetInstantMixFromArtists2`).
@@ -129,13 +141,15 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Artists/InstantMix',
-          extra: {'name': name},
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Artists/InstantMix',
+        extra: {'name': name},
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   /// `/Playlists/{playlistId}/InstantMix` — seeded by a playlist.
   Future<JellyfinQueryResult<JellyfinItem>> fromPlaylist({
@@ -146,12 +160,14 @@ class JellyfinInstantMixApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) =>
-      _request('/Playlists/$playlistId/InstantMix',
-          limit: limit,
-          fields: fields,
-          enableImages: enableImages,
-          enableUserData: enableUserData,
-          imageTypeLimit: imageTypeLimit);
+      _request(
+        '/Playlists/$playlistId/InstantMix',
+        limit: limit,
+        fields: fields,
+        enableImages: enableImages,
+        enableUserData: enableUserData,
+        imageTypeLimit: imageTypeLimit,
+      );
 
   // ─── Internal helper ──────────────────────────────────────────────
 

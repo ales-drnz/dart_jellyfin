@@ -18,15 +18,19 @@ class JellyfinClientLogApi {
 
   /// `POST /ClientLog/Document` — upload a log document. [body] is
   /// the raw text/bytes of the log.
-  Future<void> upload({
+  ///
+  /// Returns the `FileName` the server stored the log under (from the
+  /// `ClientLogDocumentResponseDto`), or `null` if the server omits it.
+  Future<String?> upload({
     required Uint8List body,
     String contentType = 'text/plain',
   }) async {
-    await _http.request<void>(
+    final res = await _http.request<Map<String, dynamic>>(
       '/ClientLog/Document',
       method: 'POST',
       data: body,
       extraHeaders: {'Content-Type': contentType},
     );
+    return res.data?['FileName'] as String?;
   }
 }

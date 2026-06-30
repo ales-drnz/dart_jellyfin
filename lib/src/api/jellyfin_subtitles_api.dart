@@ -20,12 +20,16 @@ import '../jellyfin_exception.dart';
 class JellyfinSubtitlesApi {
   /// SubRip — the universal sidecar format.
   static const String formatSrt = 'srt';
+
   /// WebVTT — the format the HTML5 `<video>` element consumes.
   static const String formatVtt = 'vtt';
+
   /// Advanced SubStation Alpha — required for libass styling.
   static const String formatAss = 'ass';
+
   /// SubStation Alpha (predecessor of ASS).
   static const String formatSsa = 'ssa';
+
   /// MicroDVD / legacy `.sub` text format.
   static const String formatSub = 'sub';
 

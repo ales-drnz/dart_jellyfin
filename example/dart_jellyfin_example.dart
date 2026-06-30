@@ -22,6 +22,8 @@ Future<void> main() async {
   );
   print('Logged in as ${auth.user.name}');
 
+  jellyfin.setSession(token: auth.accessToken, userId: auth.user.id);
+
   final views = await jellyfin.userViews.list();
   for (final v in views.items) {
     print('${v.name} (${v.collectionType})');

@@ -16,6 +16,11 @@ class JellyfinEnvironmentApi {
   JellyfinEnvironmentApi(this._http);
 
   /// `GET /Environment/DirectoryContents` — entries under [path].
+  ///
+  /// Tuned for the directory-browse UI: this client defaults
+  /// [includeDirectories] to `true`, unlike the OpenAPI spec which
+  /// defaults it to `false`. [includeFiles] keeps the spec default of
+  /// `false`. Both are always sent on the wire.
   Future<List<Map<String, dynamic>>> directoryContents({
     required String path,
     bool includeFiles = false,
@@ -30,7 +35,10 @@ class JellyfinEnvironmentApi {
       },
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /Environment/DefaultDirectoryBrowser` — server's
@@ -46,7 +54,10 @@ class JellyfinEnvironmentApi {
   Future<List<Map<String, dynamic>>> drives() async {
     final res = await _http.request<List<dynamic>>('/Environment/Drives');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /Environment/NetworkShares` — discovered SMB / network
@@ -55,7 +66,10 @@ class JellyfinEnvironmentApi {
     final res =
         await _http.request<List<dynamic>>('/Environment/NetworkShares');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /Environment/ParentPath?path={path}` — the parent

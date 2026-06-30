@@ -18,6 +18,12 @@ class JellyfinSearchApi {
   /// safe to call on every keystroke. Pass [userId] to scope to a user's
   /// libraries; the include/exclude flags control which content types
   /// participate in the result.
+  ///
+  /// Note: the server defaults every `include*` flag to `true`, but this
+  /// wrapper deliberately narrows the result to media and artists only —
+  /// [includeGenres], [includeStudios] and [includePeople] default to `false`
+  /// to keep type-as-you-go results light. Set them to `true` to opt genre,
+  /// studio and people hints back in.
   Future<JellyfinQueryResult<JellyfinSearchHint>> hints({
     required String query,
     String? userId,

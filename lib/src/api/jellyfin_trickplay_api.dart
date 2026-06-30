@@ -35,17 +35,22 @@ class JellyfinTrickplayApi {
     return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/$index.jpg?${_encode(qp)}';
   }
 
-  /// `/Videos/{itemId}/{mediaSourceId}/Trickplay/{width}/tiles.m3u8` —
-  /// HLS playlist describing every tile. Useful when the player wants
-  /// to lazy-load tiles via HTTP range instead of building each URL
-  /// itself.
+  /// `/Videos/{itemId}/Trickplay/{width}/tiles.m3u8` — HLS playlist
+  /// describing every tile. Useful when the player wants to lazy-load
+  /// tiles via HTTP range instead of building each URL itself.
+  ///
+  /// [mediaSourceId] is optional and, per the server route, is passed
+  /// as a query parameter (not a path segment).
   String hlsPlaylistUrl({
     required String itemId,
-    required String mediaSourceId,
     required int width,
+    String? mediaSourceId,
   }) {
-    final qp = <String, String>{'api_key': _requireToken()};
-    return '${_requireBaseUrl()}/Videos/$itemId/$mediaSourceId/Trickplay/$width/tiles.m3u8?${_encode(qp)}';
+    final qp = <String, String>{
+      'api_key': _requireToken(),
+      if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
+    };
+    return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/tiles.m3u8?${_encode(qp)}';
   }
 
   String _requireBaseUrl() {

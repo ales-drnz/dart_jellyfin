@@ -23,6 +23,10 @@ class JellyfinException implements Exception {
   /// Underlying error (typically the originating [DioException]).
   final Object? cause;
 
+  /// The originating stack trace, when captured. Preserves the async stack
+  /// across catch-and-rethrow so crash reporters can pinpoint the failure.
+  final StackTrace? stackTrace;
+
   /// Creates an exception with the given message and optional metadata.
   const JellyfinException(
     this.message, {
@@ -30,9 +34,12 @@ class JellyfinException implements Exception {
     this.statusCode,
     this.path,
     this.cause,
+    this.stackTrace,
   });
 
   /// Converts a Dio failure into a [JellyfinException] with a mapped [type].
+  /// A response-body decode failure (Dio surfaces a [FormatException] under
+  /// [DioExceptionType.unknown]) maps to [JellyfinErrorType.parse].
   factory JellyfinException.fromDio(DioException e, {String? path}) {
     final code = e.response?.statusCode;
     final type = switch (e.type) {
@@ -43,7 +50,9 @@ class JellyfinException implements Exception {
       DioExceptionType.connectionError => JellyfinErrorType.connection,
       DioExceptionType.badResponse when code != null =>
         JellyfinErrorType.fromHttpStatus(code),
-      DioExceptionType.cancel => JellyfinErrorType.unknown,
+      DioExceptionType.cancel => JellyfinErrorType.cancelled,
+      DioExceptionType.unknown when e.error is FormatException =>
+        JellyfinErrorType.parse,
       _ => JellyfinErrorType.unknown,
     };
     return JellyfinException(
@@ -52,6 +61,7 @@ class JellyfinException implements Exception {
       statusCode: code,
       path: path ?? e.requestOptions.path,
       cause: e,
+      stackTrace: e.stackTrace,
     );
   }
 

@@ -17,6 +17,14 @@ import 'dart:io';
 /// correctness guarantee comes from the integration tests in
 /// `test/integration/`, which exercise the library against a real
 /// Jellyfin running in Docker.
+///
+/// Minimum acceptable ratio of pinned-spec paths referenced by the typed
+/// wrappers. Enforced by `spec_drift_watchdog_test.dart`: a drop below this
+/// fails the suite, flagging that typed API wrappers may have been removed.
+/// Measured baseline is ~0.97; lower it only after confirming the wrappers
+/// were intentionally removed.
+const double jellyfinLocalCoverageFloor = 0.93;
+
 ({int matched, int total}) computeJellyfinLocalCoverage() {
   final specRaw = File('docs/jellyfin-openapi-stable.json').readAsStringSync();
   final spec = jsonDecode(specRaw);
@@ -29,7 +37,8 @@ import 'dart:io';
     if (path is! String || ops is! Map) return;
     for (final method in ops.keys) {
       if (method is String &&
-          {'get', 'post', 'put', 'delete', 'patch'}.contains(method.toLowerCase())) {
+          {'get', 'post', 'put', 'delete', 'patch'}
+              .contains(method.toLowerCase())) {
         specPaths.add(path);
       }
     }

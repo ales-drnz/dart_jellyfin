@@ -25,7 +25,7 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.0.2
+  dart_jellyfin: ^0.1.0
 ```
 
 ---
@@ -359,17 +359,17 @@ dependencies:
 <td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/package.png" width="32"></td>
 <td valign="middle" width="45%"><b>Pure Dart</b><br>no native plugin, no Flutter dependency. Runs on every Dart-supported platform.</td>
 <td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/shield-check.png" width="32"></td>
-<td valign="middle" width="45%"><b>Typed DTOs</b><br><code>JellyfinItem</code>, <code>JellyfinMediaSource</code>, <code>JellyfinMediaStream</code>, <code>JellyfinUserData</code>, <code>JellyfinView</code>, <code>JellyfinAuthResult</code>, <code>JellyfinLyrics</code>, <code>JellyfinSearchHint</code>, <code>JellyfinQueryResult&lt;T&gt;</code>, each with <code>factory fromJson</code> and a <code>.raw</code> map for forward compatibility.</td>
+<td valign="middle" width="45%"><b>Typed DTOs</b><br>every response is a typed Dart object (items, media, streams, users, search hints), each with a <code>.raw</code> map so new server fields are never lost.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/key-round.png" width="32"></td>
 <td valign="middle"><b>Both auth flows</b><br><code>user.authenticateByName()</code> for credentials, plus <code>quickConnect.initiate()</code> + <code>state()</code> + <code>user.authenticateWithQuickConnect()</code> for the Quick Connect link flow.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/wrench.png" width="32"></td>
-<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. The historical <code>X-Emby-Authorization</code> alias is sent in parallel.</td>
+<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. Emitted as the single <code>Authorization: MediaBrowser</code> header. It is the only auth path Jellyfin 10.12+ honors.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/layers.png" width="32"></td>
-<td valign="middle"><b>Stateful façade</b><br><code>JellyfinClient</code> holds the credentials, the active base URL, the access token and the user id; sub-APIs reuse the same Dio internally.</td>
+<td valign="middle"><b>Stateful façade</b><br>one <code>JellyfinClient</code> holds your identity, server, token and user. Every sub-API works through it, so you set things up once.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/file-code.png" width="32"></td>
 <td valign="middle"><b>Built on the official OpenAPI spec</b><br>endpoint names, field names and casing match the upstream contract at <a href="https://api.jellyfin.org">api.jellyfin.org</a>. Nothing is reinvented.</td>
 </tr>
@@ -381,7 +381,7 @@ dependencies:
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/triangle-alert.png" width="32"></td>
-<td valign="middle"><b>Semantic errors</b><br>one <code>JellyfinException</code> hierarchy with <code>JellyfinErrorType</code> enum (<code>auth</code>, <code>notFound</code>, <code>connection</code>, <code>timeout</code>, <code>serverError</code>, <code>parse</code>, …), never raw Dio exceptions in your code.</td>
+<td valign="middle"><b>Semantic errors</b><br>every failure is a <code>JellyfinException</code> you can branch on (auth, not found, timeout, connection), never a raw network error in your code.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/terminal.png" width="32"></td>
 <td valign="middle"><b>Escape hatch</b><br><code>client.request&lt;T&gt;()</code> and <code>client.requestBytes()</code> for endpoints not yet covered by the typed sub-APIs.</td>
 </tr>
@@ -458,7 +458,7 @@ final jellyfin = JellyfinClient(
 
 The `baseUrl` is optional and can be set later via `connect()`. The
 constructor optionally accepts a custom `dio: Dio()` plus
-`connectTimeout` / `receiveTimeout`. By default it owns its own Dio.
+`connectTimeout` and `receiveTimeout`. By default it owns its own Dio.
 
 #### 1.2 Credentials and the Authorization header
 
@@ -469,10 +469,10 @@ carries:
 Authorization: MediaBrowser Client="MyApp", Device="iPhone", DeviceId="…uuid…", Version="1.0.0"
 ```
 
-After login the same line gets a `, Token="…"` suffix. The
-historical `X-Emby-Authorization` alias (same payload without the
-`MediaBrowser ` prefix) is sent in parallel for compatibility with
-older servers.
+After login the same line gets a `, Token="…"` suffix. Only this
+`Authorization: MediaBrowser` header is emitted; the deprecated
+`X-Emby-Authorization` and `X-MediaBrowser-Token` headers are no longer
+sent (they are off by default in Jellyfin 10.12 and removed in 10.13).
 
 `deviceId` MUST be a **stable per-installation UUID**. Jellyfin
 tracks sessions by it. Generate it once, persist it (SharedPreferences,
@@ -682,10 +682,7 @@ server answers with just the total.
 #### 4.4 Single item
 
 ```dart
-final item = await jellyfin.items.byId(
-  '12345',
-  fields: JellyfinItemsApi.musicFields,
-);
+final item = await jellyfin.items.byId('12345');
 if (item != null) {
   print(item.name);
   print(item.mediaSources.first.bitrate);
@@ -876,7 +873,7 @@ else if (lyrics.isSynced) {
 
 `JellyfinLyrics` exposes the parsed lines (`startTicks` in
 100-nanosecond units, `text`) plus convenience renderers. To grab the
-raw `.lrc` / `.txt` body without going through `JellyfinLyrics`:
+raw `.lrc` or `.txt` body without going through `JellyfinLyrics`:
 
 ```dart
 final raw = await jellyfin.audio.lyricsRaw(track.id);
@@ -886,7 +883,7 @@ final raw = await jellyfin.audio.lyricsRaw(track.id);
 
 ### 8. Video streaming
 
-Mirrors the `Videos` OpenAPI tag. URL builders only — like
+Mirrors the `Videos` OpenAPI tag. URL builders only, like
 [`audio`](#7-audio-streaming) they don't fetch the stream themselves.
 Hand the URL to your video engine (mpv, AVPlayer, ExoPlayer, …). The
 token is appended as `api_key=…` so HLS segment requests work without
@@ -948,7 +945,7 @@ if (source.supportsDirectPlay) {
   final (url, _) = jellyfin.videos.streamUrl(itemId: movie.id, isStatic: true);
   play(url);
 } else if (source.transcodingUrl != null) {
-  // Server already built the right transcoding URL — use it verbatim.
+  // Server already built the right transcoding URL, use it verbatim.
   play('${jellyfin.baseUrl}${source.transcodingUrl}');
 }
 ```
@@ -1121,7 +1118,7 @@ final hits = await jellyfin.subtitles.searchRemote(
   language: 'eng',
 );
 for (final h in hits) {
-  print('${h['ProviderName']} – ${h['Name']} '
+  print('${h['ProviderName']} - ${h['Name']} '
         '(${h['DownloadCount']} downloads, ${h['Format']})');
 }
 
@@ -1133,7 +1130,7 @@ await jellyfin.subtitles.downloadRemote(
 
 #### 10.6 Fallback fonts
 
-For libass-rendered `.ass` / `.ssa` subtitles, the server hosts a
+For libass-rendered `.ass` and `.ssa` subtitles, the server hosts a
 set of fallback fonts the client can fetch on demand:
 
 ```dart
@@ -1191,28 +1188,33 @@ to use verbatim.
 #### 12.1 Quick playback info
 
 `GET /Items/{itemId}/PlaybackInfo`, the lightweight version. No device
-profile, so the server falls back to generic defaults — fine for
+profile, so the server falls back to generic defaults. Fine for
 audio, often wrong for video.
 
 ```dart
 final info = await jellyfin.mediaInfo.info(
   itemId: track.id,
-  maxStreamingBitrate: 320000,
 );
 ```
 
 #### 12.2 Posting a device profile
 
-`POST /Items/{itemId}/PlaybackInfo` — the right call for video.
+`POST /Items/{itemId}/PlaybackInfo`, the right call for video.
 
 ```dart
 const profile = JellyfinDeviceProfile(
   name: 'MyApp',
   maxStreamingBitrate: 8000000,
   musicStreamingTranscodingBitrate: 320000,
-  directPlayProfiles: ['mp4', 'mkv', 'webm'],
-  // For finer-grained codec/container constraints, pass them in
-  // transcodingProfiles / codecProfiles / containerProfiles. The
+  directPlayProfiles: const [
+    JellyfinDirectPlayProfile.audio(container: 'mp3,aac,flac'),
+    JellyfinDirectPlayProfile.video(container: 'mp4,mkv,webm'),
+  ],
+  // Each profile carries an explicit media-kind `Type` (`'Audio'`,
+  // `'Video'`, …), so audio sources match an `Audio` profile and
+  // direct-play correctly instead of being forced down the video path.
+  // For finer-grained codec and container constraints, pass them in
+  // transcodingProfiles, codecProfiles and containerProfiles. The
   // `extra` map is merged verbatim into the JSON body for any other
   // top-level field the spec exposes.
 );
@@ -1259,7 +1261,6 @@ final bps = (size ?? 0) * 8 * 1000 ~/ stopwatch.elapsedMilliseconds;
 
 ### 13. Images
 
-
 Jellyfin's image URLs are deterministic: `/Items/{id}/Images/{type}`
 with a `tag` query parameter (the hash from
 `JellyfinItem.imageTags[type]`) for cache busting. The response is a
@@ -1300,7 +1301,7 @@ from "try again later".
 | :--- | :--- | :--- |
 | `typePrimary`  | `Primary`  | Album cover, movie poster, track art |
 | `typeArt`      | `Art`      | Fan art (clear logo placement) |
-| `typeBackdrop` | `Backdrop` | Hero / cinematic backdrop |
+| `typeBackdrop` | `Backdrop` | Hero or cinematic backdrop |
 | `typeBanner`   | `Banner`   | Wide banner |
 | `typeLogo`     | `Logo`     | Title logo |
 | `typeThumb`    | `Thumb`    | Wide thumbnail |
@@ -1525,8 +1526,8 @@ await jellyfin.userData.update(
 
 ### 17. Instant Mix
 
-Server-side radio. Jellyfin generates a "Mix" — a list of related
-audio items — from any seed (song, album, artist, playlist, music
+Server-side radio. Jellyfin generates a "Mix" (a list of related
+audio items) from any seed (song, album, artist, playlist, music
 genre). The mix quality depends on the server's metadata + similar
 artist recommendations.
 
@@ -1540,7 +1541,7 @@ final mix = await jellyfin.instantMix.fromItem(
   limit: 50,
 );
 for (final item in mix.items) {
-  print('${item.name} – ${item.albumArtist}');
+  print('${item.name} - ${item.albumArtist}');
 }
 ```
 
@@ -1557,7 +1558,7 @@ final fromList   = await jellyfin.instantMix.fromPlaylist(playlistId: playlist.i
 final fromGenre  = await jellyfin.instantMix.fromMusicGenre(name: 'Rock');
 ```
 
-Each helper returns a [`JellyfinQueryResult<JellyfinItem>`] — same
+Each helper returns a [`JellyfinQueryResult<JellyfinItem>`], the same
 shape as `items.list()`, so the result drops straight into a UI list.
 
 ---
@@ -1575,7 +1576,7 @@ admin-only and stay behind the escape hatch.
 final channels = await jellyfin.liveTv.channels(
   type: 'TV',           // or 'Radio'
   isFavorite: false,
-  sortBy: const ['DefaultChannelOrder'],
+  sortBy: const ['Default'],
   limit: 50,
 );
 for (final ch in channels.items) {
@@ -1613,7 +1614,7 @@ final recordings = await jellyfin.liveTv.recordings(
   limit: 100,
 );
 for (final rec in recordings.items) {
-  print('${rec.name} — ${rec.runTimeTicks} ticks');
+  print('${rec.name} - ${rec.runTimeTicks} ticks');
 }
 
 final detail = await jellyfin.liveTv.recording(recordingId);
@@ -1650,7 +1651,7 @@ await jellyfin.liveTv.createSeriesTimer(body: {
 ### 19. SyncPlay
 
 Synchronised playback across multiple clients ("watch party"). One
-client creates a group, others join; pause / seek / next-track
+client creates a group, others join; pause, seek and next-track
 actions propagate to every member. Each member calls
 [`syncPlay.ready()`](#193-group-queue) when buffered so the server
 can resume the group simultaneously.
@@ -1692,7 +1693,7 @@ await jellyfin.syncPlay.setShuffleMode(mode: 'Shuffle');
 // Replace the queue.
 await jellyfin.syncPlay.queue(
   itemIds: const ['12345', '12346', '12347'],
-  mode: 'Default',
+  mode: 'Queue',
 );
 
 // Reorder and remove.
@@ -1704,7 +1705,7 @@ await jellyfin.syncPlay.removeFromPlaylist(
   playlistItemIds: const ['entry-1', 'entry-2'],
 );
 
-// While buffering / when ready:
+// While buffering or when ready:
 await jellyfin.syncPlay.buffering(
   playlistItemId: entryId,
   positionTicks: 0,
@@ -1938,7 +1939,7 @@ Returns null on 404.
 
 Per-client UI state stored on the server: view type, sort order,
 scroll direction, sidebar visibility, plus a free-form `customPrefs`
-map for arbitrary key/value layout state. Layout choices follow the
+map for arbitrary key and value layout state. Layout choices follow the
 user across devices.
 
 The `displayPreferencesId` is the namespace for the document (e.g.
@@ -2137,7 +2138,7 @@ collection membership is cleared.
 
 `library.userViews()` covers the common case. This sub-API exposes
 the richer `/UserViews` endpoint with hidden libraries, external
-(channel/plugin) content, and the server's grouping recommendations.
+(channel and plugin) content, and the server's grouping recommendations.
 
 #### 30.1 Listing with filters
 

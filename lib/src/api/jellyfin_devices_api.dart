@@ -25,7 +25,10 @@ class JellyfinDevicesApi {
     );
     final items = res.data?['Items'];
     if (items is! List) return const [];
-    return [for (final e in items) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in items)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `DELETE /Devices?id={id}` — revoke a device (logs it out).

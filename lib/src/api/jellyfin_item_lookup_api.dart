@@ -67,22 +67,27 @@ class JellyfinItemLookupApi {
       _search('/Items/RemoteSearch/Series', body);
 
   /// `POST /Items/RemoteSearch/Trailer`.
-  Future<List<Map<String, dynamic>>> searchTrailers(Map<String, dynamic> body) =>
+  Future<List<Map<String, dynamic>>> searchTrailers(
+    Map<String, dynamic> body,
+  ) =>
       _search('/Items/RemoteSearch/Trailer', body);
 
   /// `POST /Items/RemoteSearch/MusicAlbum`.
   Future<List<Map<String, dynamic>>> searchMusicAlbums(
-          Map<String, dynamic> body) =>
+    Map<String, dynamic> body,
+  ) =>
       _search('/Items/RemoteSearch/MusicAlbum', body);
 
   /// `POST /Items/RemoteSearch/MusicArtist`.
   Future<List<Map<String, dynamic>>> searchMusicArtists(
-          Map<String, dynamic> body) =>
+    Map<String, dynamic> body,
+  ) =>
       _search('/Items/RemoteSearch/MusicArtist', body);
 
   /// `POST /Items/RemoteSearch/MusicVideo`.
   Future<List<Map<String, dynamic>>> searchMusicVideos(
-          Map<String, dynamic> body) =>
+    Map<String, dynamic> body,
+  ) =>
       _search('/Items/RemoteSearch/MusicVideo', body);
 
   /// `POST /Items/RemoteSearch/Person`.

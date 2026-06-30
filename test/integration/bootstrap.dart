@@ -62,7 +62,8 @@ Future<void> main(List<String> args) async {
 
   // 2. Docker stack
   _step(
-      'Starting Docker stack (Jellyfin ${env['JELLYFIN_IMAGE_TAG'] ?? '10.11.9'})');
+    'Starting Docker stack (Jellyfin ${env['JELLYFIN_IMAGE_TAG'] ?? '10.11.9'})',
+  );
   await _composeUp();
 
   // 3. Wait for HTTP

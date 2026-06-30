@@ -64,7 +64,7 @@ class JellyfinItemsApi {
     bool enableUserData = true,
     int? imageTypeLimit,
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'startIndex': startIndex,
@@ -112,7 +112,7 @@ class JellyfinItemsApi {
     List<String> includeItemTypes = const [],
     List<String> filters = const [],
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'recursive': true,
@@ -139,14 +139,17 @@ class JellyfinItemsApi {
   }
 
   /// Single item by id. Returns null on 404.
-  Future<JellyfinItem?> byId(String itemId, {List<String> fields = musicFields}) async {
-    final userId = _requireUser();
+  ///
+  /// `GET /Items/{itemId}` always returns the full `BaseItemDto`; it has
+  /// no `fields` parameter, so none is sent. Use [list] with
+  /// `ids: [itemId]` if you need server-side field selection.
+  Future<JellyfinItem?> byId(String itemId) async {
+    final userId = _http.requireUserId();
     try {
       final res = await _http.request<Map<String, dynamic>>(
         '/Items/$itemId',
         queryParameters: {
           'userId': userId,
-          if (fields.isNotEmpty) 'fields': fields.join(','),
         },
       );
       final data = res.data;
@@ -165,7 +168,7 @@ class JellyfinItemsApi {
     int startIndex = 0,
     int? limit,
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'startIndex': startIndex,
@@ -188,7 +191,7 @@ class JellyfinItemsApi {
   /// `GET /Items/Root` — the user's root folder. Returned as a
   /// single [JellyfinItem]; treat it as the "Home" parent.
   Future<JellyfinItem?> root() async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<Map<String, dynamic>>(
       '/Items/Root',
       queryParameters: {'userId': userId},
@@ -201,7 +204,7 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/Intros` — pre-roll items (intros/trailers
   /// the server schedules ahead of this item).
   Future<JellyfinQueryResult<JellyfinItem>> intros(String itemId) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<Map<String, dynamic>>(
       '/Items/$itemId/Intros',
       queryParameters: {'userId': userId},
@@ -215,7 +218,7 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/LocalTrailers` — every local trailer file
   /// attached to the item (returned as a flat list).
   Future<List<JellyfinItem>> localTrailers(String itemId) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<List<dynamic>>(
       '/Items/$itemId/LocalTrailers',
       queryParameters: {'userId': userId},
@@ -307,7 +310,7 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/SpecialFeatures` — bonus content (deleted
   /// scenes, behind-the-scenes, etc.) attached to a movie or show.
   Future<List<JellyfinItem>> specialFeatures(String itemId) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<List<dynamic>>(
       '/Items/$itemId/SpecialFeatures',
       queryParameters: {'userId': userId},
@@ -320,22 +323,27 @@ class JellyfinItemsApi {
   }
 
   /// Latest additions (`/Items/Latest`).
+  ///
+  /// [isPlayed] is an optional play-state filter: leave it `null` (the
+  /// default) to get all recent items regardless of play state, `true`
+  /// for only-played, or `false` for only-unplayed. Omitting it matches
+  /// the server's `GetLatestMedia` default of returning every play state.
   Future<List<JellyfinItem>> latest({
     String? parentId,
     List<String> includeItemTypes = const [],
     int limit = 20,
-    bool isPlayed = false,
+    bool? isPlayed,
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'limit': limit,
-      'isPlayed': isPlayed,
     };
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes.join(',');
     }
+    if (isPlayed != null) qp['isPlayed'] = isPlayed;
     final res = await _http.request<List<dynamic>>(
       '/Items/Latest',
       queryParameters: qp,
@@ -345,16 +353,5 @@ class JellyfinItemsApi {
       for (final e in list)
         if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
     ];
-  }
-
-  String _requireUser() {
-    final id = _http.userId;
-    if (id == null) {
-      throw const JellyfinException(
-        'No user — call JellyfinClient.setSession() with a userId first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return id;
   }
 }

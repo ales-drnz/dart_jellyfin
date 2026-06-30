@@ -56,9 +56,8 @@ class JellyfinVideosApi {
   }) {
     final base = _requireBaseUrl();
     final ext = container ?? '';
-    final path = ext.isEmpty
-        ? '/Videos/$itemId/stream'
-        : '/Videos/$itemId/stream.$ext';
+    final path =
+        ext.isEmpty ? '/Videos/$itemId/stream' : '/Videos/$itemId/stream.$ext';
     final qp = <String, String>{
       'api_key': _requireToken(),
       'DeviceId': _http.credentials.deviceId,

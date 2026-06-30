@@ -56,7 +56,10 @@ class JellyfinSystemApi {
   Future<List<Map<String, dynamic>>> logs() async {
     final res = await _http.request<List<dynamic>>('/System/Logs');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /System/Logs/Log?name={name}` — fetch one log file as

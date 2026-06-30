@@ -28,11 +28,12 @@ class JellyfinAudioApi {
   String universalStreamUrl({
     required String itemId,
     List<String> containers = const ['mp3', 'aac', 'flac', 'ogg', 'opus'],
+    String? mediaSourceId,
     int? maxStreamingBitrate,
     int? audioBitRate,
     String? audioCodec,
-    int? audioChannels,
     int? maxAudioChannels,
+    int? transcodingAudioChannels,
     int? maxAudioSampleRate,
     int? maxAudioBitDepth,
     String transcodingContainer = 'ts',
@@ -46,7 +47,7 @@ class JellyfinAudioApi {
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
-      'UserId': _requireUserId(),
+      'UserId': _http.requireUserId(),
       'DeviceId': _http.credentials.deviceId,
       'api_key': _requireToken(),
       'Container': containers.join(','),
@@ -57,13 +58,16 @@ class JellyfinAudioApi {
       'EnableRemoteMedia': '$enableRemoteMedia',
       'BreakOnNonKeyFrames': '$breakOnNonKeyFrames',
     };
+    if (mediaSourceId != null) qp['MediaSourceId'] = mediaSourceId;
     if (maxStreamingBitrate != null) {
       qp['MaxStreamingBitrate'] = '$maxStreamingBitrate';
     }
     if (audioBitRate != null) qp['AudioBitRate'] = '$audioBitRate';
     if (audioCodec != null) qp['AudioCodec'] = audioCodec;
-    if (audioChannels != null) qp['AudioChannels'] = '$audioChannels';
     if (maxAudioChannels != null) qp['MaxAudioChannels'] = '$maxAudioChannels';
+    if (transcodingAudioChannels != null) {
+      qp['TranscodingAudioChannels'] = '$transcodingAudioChannels';
+    }
     if (maxAudioSampleRate != null) {
       qp['MaxAudioSampleRate'] = '$maxAudioSampleRate';
     }
@@ -88,9 +92,8 @@ class JellyfinAudioApi {
   }) {
     final base = _requireBaseUrl();
     final ext = container ?? '';
-    final path = ext.isEmpty
-        ? '/Audio/$itemId/stream'
-        : '/Audio/$itemId/stream.$ext';
+    final path =
+        ext.isEmpty ? '/Audio/$itemId/stream' : '/Audio/$itemId/stream.$ext';
     final qp = <String, String>{
       'api_key': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
@@ -155,17 +158,6 @@ class JellyfinAudioApi {
       );
     }
     return t;
-  }
-
-  String _requireUserId() {
-    final u = _http.userId;
-    if (u == null) {
-      throw const JellyfinException(
-        'No user — call JellyfinClient.setSession() with a userId.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return u;
   }
 
   String _encode(Map<String, String> qp) => qp.entries

@@ -3,8 +3,6 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 
 /// `/UserViews` and library-level helpers.
@@ -16,7 +14,7 @@ class JellyfinLibraryApi {
 
   /// The libraries visible to the current user.
   Future<List<JellyfinView>> userViews() async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<Map<String, dynamic>>(
       '/UserViews',
       queryParameters: {'userId': userId},
@@ -48,11 +46,13 @@ class JellyfinLibraryApi {
     List<String> fields = const [],
     String? userId,
   }) =>
-      _similar('/Items/$itemId/Similar',
-          excludeArtistIds: excludeArtistIds,
-          limit: limit,
-          fields: fields,
-          userId: userId);
+      _similar(
+        '/Items/$itemId/Similar',
+        excludeArtistIds: excludeArtistIds,
+        limit: limit,
+        fields: fields,
+        userId: userId,
+      );
 
   /// `GET /Albums/{itemId}/Similar` — albums the server considers related.
   Future<JellyfinQueryResult<JellyfinItem>> similarAlbums({
@@ -111,19 +111,21 @@ class JellyfinLibraryApi {
     ];
   }
 
-  /// `GET /Items/{itemId}/CriticReviews` — list of critic reviews
-  /// returned as raw maps (the upstream `BaseItemDto` envelope is
-  /// review-shaped, not item-shaped).
-  Future<List<Map<String, dynamic>>> criticReviews({required String itemId}) async {
+  /// `GET /Items/{itemId}/CriticReviews` — critic reviews for the item,
+  /// returned as a standard `BaseItemDtoQueryResult` of items (same
+  /// `{Items, TotalRecordCount}` envelope as every other item query).
+  /// Note this endpoint is effectively deprecated and returns an empty
+  /// result on modern servers.
+  Future<JellyfinQueryResult<JellyfinItem>> criticReviews({
+    required String itemId,
+  }) async {
     final res = await _http.request<Map<String, dynamic>>(
       '/Items/$itemId/CriticReviews',
     );
-    final raw = res.data?['Items'];
-    if (raw is! List) return const [];
-    return [
-      for (final e in raw)
-        if (e is Map<String, dynamic>) e,
-    ];
+    return JellyfinQueryResult.fromJson(
+      res.data ?? const {},
+      JellyfinItem.fromJson,
+    );
   }
 
   /// `GET /Items/{itemId}/ThemeMedia` — title-screen theme media
@@ -199,13 +201,18 @@ class JellyfinLibraryApi {
   Future<List<String>> physicalPaths() async {
     final res = await _http.request<List<dynamic>>('/Library/PhysicalPaths');
     final list = res.data ?? const [];
-    return [for (final e in list) if (e is String) e];
+    return [
+      for (final e in list)
+        if (e is String) e,
+    ];
   }
 
   /// `GET /Libraries/AvailableOptions` — server-side library options
   /// catalog (typed sources, metadata fetchers, …). Used by admin UIs
   /// when configuring a virtual folder.
-  Future<Map<String, dynamic>> availableOptions({String? libraryContentType}) async {
+  Future<Map<String, dynamic>> availableOptions({
+    String? libraryContentType,
+  }) async {
     final qp = <String, dynamic>{};
     if (libraryContentType != null) {
       qp['libraryContentType'] = libraryContentType;
@@ -219,7 +226,9 @@ class JellyfinLibraryApi {
 
   /// `POST /Library/Media/Updated` — notify the server that one or
   /// more media files have changed on disk. Admin-only.
-  Future<void> notifyMediaUpdated(List<Map<String, dynamic>> updatesInfo) async {
+  Future<void> notifyMediaUpdated(
+    List<Map<String, dynamic>> updatesInfo,
+  ) async {
     await _http.request<void>(
       '/Library/Media/Updated',
       method: 'POST',
@@ -227,21 +236,33 @@ class JellyfinLibraryApi {
     );
   }
 
-  /// `POST /Library/Movies/Added` and `/Updated` — notify the server
-  /// of movie file events. Admin-only.
-  Future<void> notifyMoviesAdded(List<Map<String, dynamic>> updatesInfo) =>
-      _notify('/Library/Movies/Added', updatesInfo);
-  /// `POST /Library/Movies/Updated` — counterpart of [notifyMoviesAdded].
-  Future<void> notifyMoviesUpdated(List<Map<String, dynamic>> updatesInfo) =>
-      _notify('/Library/Movies/Updated', updatesInfo);
+  /// `POST /Library/Movies/Added` — notify the server that a movie was
+  /// added, identified by its optional `tmdbId`/`imdbId`. The endpoint
+  /// takes only query parameters and no body. Admin-only.
+  Future<void> notifyMoviesAdded({String? tmdbId, String? imdbId}) =>
+      _notifyExternal(
+        '/Library/Movies/Added',
+        tmdbId: tmdbId,
+        imdbId: imdbId,
+      );
 
-  /// `POST /Library/Series/Added` and `/Updated` — notify the server
-  /// of series file events. Admin-only.
-  Future<void> notifySeriesAdded(List<Map<String, dynamic>> updatesInfo) =>
-      _notify('/Library/Series/Added', updatesInfo);
+  /// `POST /Library/Movies/Updated` — counterpart of [notifyMoviesAdded].
+  Future<void> notifyMoviesUpdated({String? tmdbId, String? imdbId}) =>
+      _notifyExternal(
+        '/Library/Movies/Updated',
+        tmdbId: tmdbId,
+        imdbId: imdbId,
+      );
+
+  /// `POST /Library/Series/Added` — notify the server that a series was
+  /// added, identified by its optional `tvdbId`. The endpoint takes only
+  /// query parameters and no body. Admin-only.
+  Future<void> notifySeriesAdded({String? tvdbId}) =>
+      _notifyExternal('/Library/Series/Added', tvdbId: tvdbId);
+
   /// `POST /Library/Series/Updated` — counterpart of [notifySeriesAdded].
-  Future<void> notifySeriesUpdated(List<Map<String, dynamic>> updatesInfo) =>
-      _notify('/Library/Series/Updated', updatesInfo);
+  Future<void> notifySeriesUpdated({String? tvdbId}) =>
+      _notifyExternal('/Library/Series/Updated', tvdbId: tvdbId);
 
   // ---------------------------------------------------------------------------
   // Item lifecycle
@@ -293,7 +314,9 @@ class JellyfinLibraryApi {
   }
 
   Future<JellyfinQueryResult<JellyfinItem>> _themeBucket(
-      String path, bool inheritFromParent) async {
+    String path,
+    bool inheritFromParent,
+  ) async {
     final qp = <String, dynamic>{'inheritFromParent': inheritFromParent};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
@@ -307,22 +330,20 @@ class JellyfinLibraryApi {
     );
   }
 
-  Future<void> _notify(String path, List<Map<String, dynamic>> updates) async {
+  Future<void> _notifyExternal(
+    String path, {
+    String? tmdbId,
+    String? imdbId,
+    String? tvdbId,
+  }) async {
+    final qp = <String, dynamic>{};
+    if (tmdbId != null) qp['tmdbId'] = tmdbId;
+    if (imdbId != null) qp['imdbId'] = imdbId;
+    if (tvdbId != null) qp['tvdbId'] = tvdbId;
     await _http.request<void>(
       path,
       method: 'POST',
-      data: {'Updates': updates},
+      queryParameters: qp.isEmpty ? null : qp,
     );
-  }
-
-  String _requireUser() {
-    final id = _http.userId;
-    if (id == null) {
-      throw const JellyfinException(
-        'No user. Call JellyfinClient.setSession() with a userId first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return id;
   }
 }

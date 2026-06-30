@@ -51,12 +51,18 @@ class JellyfinSessionsApi {
   // ─── Capabilities (register this client as a cast target) ──────────
 
   /// POST `/Sessions/Capabilities` — tells the server which playback
-  /// surfaces this client can handle (Play, Pause, Seek, Volume, …)
+  /// surfaces this client can handle (Play, PlayState, Volume, …)
   /// and which media types it knows. Other clients will list this one
   /// as a cast target once capabilities are registered.
+  ///
+  /// [supportedCommands] values must come from the `GeneralCommandType`
+  /// enum (see [JellyfinGeneralCommand]). Playstate actions such as
+  /// pause/stop/seek are issued separately via
+  /// [sendPlaystateCommand]; the `PlayState` capability advertises that
+  /// this client accepts them.
   Future<void> postCapabilities({
     List<String> playableMediaTypes = const ['Audio'],
-    List<String> supportedCommands = const ['Play', 'Pause', 'Stop'],
+    List<String> supportedCommands = const ['Play', 'PlayState'],
     bool supportsMediaControl = false,
     bool supportsPersistentIdentifier = true,
   }) async {
@@ -106,11 +112,13 @@ class JellyfinSessionsApi {
 
   /// POST `/Sessions/{sessionId}/Playing` — instruct a remote session
   /// to start playing a list of items. The `playCommand` controls
-  /// whether the target queues, replaces, or inserts.
+  /// whether the target queues, replaces, or inserts. See
+  /// [JellyfinPlayCommand] for the accepted values.
   Future<void> play({
     required String sessionId,
     required List<String> itemIds,
-    String playCommand = 'PlayNow', // PlayNow | PlayNext | PlayLast | Shuffle
+    String playCommand =
+        'PlayNow', // PlayNow | PlayNext | PlayLast | PlayInstantMix | PlayShuffle
     int? startPositionTicks,
     int? startIndex,
     String? mediaSourceId,
@@ -196,19 +204,24 @@ class JellyfinSessionsApi {
 
   /// POST `/Sessions/{sessionId}/Message` — push a banner / toast to
   /// the remote session.
+  ///
+  /// The message is sent as a JSON `MessageCommand` body (the endpoint
+  /// declares no query parameters other than the path `sessionId`):
+  /// `Text` is required, `Header` and `TimeoutMs` are optional.
   Future<void> sendMessage({
     required String sessionId,
     required String text,
     String? header,
     int? timeoutMs,
   }) async {
-    final qp = <String, dynamic>{'text': text};
-    if (header != null) qp['header'] = header;
-    if (timeoutMs != null) qp['timeoutMs'] = timeoutMs;
     await _http.request<void>(
       '/Sessions/$sessionId/Message',
       method: 'POST',
-      queryParameters: qp,
+      data: {
+        'Text': text,
+        if (header != null) 'Header': header,
+        if (timeoutMs != null) 'TimeoutMs': timeoutMs,
+      },
     );
   }
 
@@ -258,24 +271,50 @@ class JellyfinSessionsApi {
   }
 }
 
+/// String constants for `play(playCommand: …)`.
+abstract final class JellyfinPlayCommand {
+  /// Start playing the items immediately, replacing the queue.
+  static const playNow = 'PlayNow';
+
+  /// Insert the items to play right after the current one.
+  static const playNext = 'PlayNext';
+
+  /// Append the items to the end of the queue.
+  static const playLast = 'PlayLast';
+
+  /// Start an instant mix seeded from the items.
+  static const playInstantMix = 'PlayInstantMix';
+
+  /// Shuffle the items and play them.
+  static const playShuffle = 'PlayShuffle';
+}
+
 /// String constants for `sendPlaystateCommand(command: …)`.
 abstract final class JellyfinPlaystateCommand {
   /// Stop playback.
   static const stop = 'Stop';
+
   /// Pause playback.
   static const pause = 'Pause';
+
   /// Resume from pause.
   static const unpause = 'Unpause';
+
   /// Skip to the next track in the queue.
   static const nextTrack = 'NextTrack';
+
   /// Jump back to the previous track.
   static const previousTrack = 'PreviousTrack';
+
   /// Seek to `seekPositionTicks`.
   static const seek = 'Seek';
+
   /// Rewind a small fixed amount.
   static const rewind = 'Rewind';
+
   /// Fast-forward a small fixed amount.
   static const fastForward = 'FastForward';
+
   /// Toggle between play and pause.
   static const playPause = 'PlayPause';
 }
@@ -284,24 +323,34 @@ abstract final class JellyfinPlaystateCommand {
 abstract final class JellyfinGeneralCommand {
   /// Increase volume one notch.
   static const volumeUp = 'VolumeUp';
+
   /// Decrease volume one notch.
   static const volumeDown = 'VolumeDown';
+
   /// Mute audio.
   static const mute = 'Mute';
+
   /// Unmute audio.
   static const unmute = 'Unmute';
+
   /// Toggle the mute state.
   static const toggleMute = 'ToggleMute';
+
   /// Set absolute volume — requires a `Volume` argument via [JellyfinSessionsApi.sendFullCommand].
   static const setVolume = 'SetVolume';
+
   /// Switch audio track — requires an `Index` argument.
   static const setAudioStreamIndex = 'SetAudioStreamIndex';
+
   /// Switch subtitle track — requires an `Index` argument.
   static const setSubtitleStreamIndex = 'SetSubtitleStreamIndex';
+
   /// Toggle fullscreen mode on the remote client.
   static const toggleFullscreen = 'ToggleFullscreen';
+
   /// Toggle the on-screen-display / overlay menu.
   static const toggleOsdMenu = 'ToggleOsdMenu';
+
   /// Show an item's detail page — requires `ItemId`/`ItemType`/`ItemName` arguments.
   static const displayContent = 'DisplayContent';
 }

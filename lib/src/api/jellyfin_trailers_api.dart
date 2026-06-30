@@ -27,7 +27,6 @@ class JellyfinTrailersApi {
     List<String> sortBy = const [],
     bool descending = false,
     List<String> fields = const [],
-    List<String> includeItemTypes = const [],
     List<String> excludeItemTypes = const [],
     List<String> filters = const [],
     bool? isFavorite,
@@ -56,9 +55,6 @@ class JellyfinTrailersApi {
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
     if (fields.isNotEmpty) qp['fields'] = fields.join(',');
-    if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
-    }
     if (excludeItemTypes.isNotEmpty) {
       qp['excludeItemTypes'] = excludeItemTypes.join(',');
     }

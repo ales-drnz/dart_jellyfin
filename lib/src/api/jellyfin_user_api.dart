@@ -83,8 +83,17 @@ class JellyfinUserApi {
   }
 
   /// List all users (admin only).
-  Future<List<JellyfinUser>> list() async {
-    final res = await _http.request<List<dynamic>>('/Users');
+  ///
+  /// Pass [isHidden] / [isDisabled] to filter the result to users whose
+  /// hidden/disabled flag matches; leave them null to return every user.
+  Future<List<JellyfinUser>> list({bool? isHidden, bool? isDisabled}) async {
+    final res = await _http.request<List<dynamic>>(
+      '/Users',
+      queryParameters: {
+        if (isHidden != null) 'isHidden': isHidden,
+        if (isDisabled != null) 'isDisabled': isDisabled,
+      },
+    );
     final list = res.data ?? const [];
     return [
       for (final e in list)
@@ -169,21 +178,25 @@ class JellyfinUserApi {
     );
   }
 
-  /// `POST /Users/Password` — change the current user's password.
+  /// `POST /Users/Password?userId={id}` — change a user's password.
   /// Set both [currentPassword] and [newPassword]; pass
   /// `resetPassword: true` (and leave the password fields null) to
-  /// clear the password.
+  /// clear the password. [userId] targets the password change at
+  /// another user (admin only on the server); omit it to change the
+  /// token's own user.
   Future<void> updatePassword({
     String? userId,
     String? currentPassword,
     String? newPassword,
     bool resetPassword = false,
   }) async {
+    final qp = <String, dynamic>{};
+    if (userId != null) qp['userId'] = userId;
     await _http.request<void>(
       '/Users/Password',
       method: 'POST',
+      queryParameters: qp.isEmpty ? null : qp,
       data: {
-        if (userId != null) 'UserId': userId,
         if (currentPassword != null) 'CurrentPw': currentPassword,
         if (newPassword != null) 'NewPw': newPassword,
         'ResetPassword': resetPassword,
@@ -234,7 +247,8 @@ class JellyfinUserApi {
   /// `GET /Auth/PasswordResetProviders` — list of password-reset
   /// providers configured on the server.
   Future<List<Map<String, dynamic>>> passwordResetProviders() async {
-    final res = await _http.request<List<dynamic>>('/Auth/PasswordResetProviders');
+    final res =
+        await _http.request<List<dynamic>>('/Auth/PasswordResetProviders');
     final list = res.data ?? const [];
     return [
       for (final e in list)

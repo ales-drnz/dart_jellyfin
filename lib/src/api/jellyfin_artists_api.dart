@@ -22,12 +22,17 @@ class JellyfinArtistsApi {
 
   /// `/Artists` — every artist (album artists, featured artists,
   /// composers, etc.).
+  ///
+  /// [sortBy] takes one or more `ItemSortBy` values (e.g. `SortName`,
+  /// `DateCreated`); [descending] flips the sort order to `Descending`.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,
     int startIndex = 0,
     int? limit,
     double? minCommunityRating,
+    List<String> sortBy = const [],
+    bool descending = false,
     List<String> fields = const [],
     List<String> includeItemTypes = const [],
     List<String> excludeItemTypes = const [],
@@ -50,6 +55,8 @@ class JellyfinArtistsApi {
         startIndex: startIndex,
         limit: limit,
         minCommunityRating: minCommunityRating,
+        sortBy: sortBy,
+        descending: descending,
         fields: fields,
         includeItemTypes: includeItemTypes,
         excludeItemTypes: excludeItemTypes,
@@ -69,12 +76,17 @@ class JellyfinArtistsApi {
   /// `/Artists/AlbumArtists` — only artists with at least one album
   /// credited. The right call for an "Artists" library tab in a music
   /// UI.
+  ///
+  /// [sortBy] takes one or more `ItemSortBy` values (e.g. `SortName`,
+  /// `DateCreated`); [descending] flips the sort order to `Descending`.
   Future<JellyfinQueryResult<JellyfinItem>> albumArtists({
     String? parentId,
     String? searchTerm,
     int startIndex = 0,
     int? limit,
     double? minCommunityRating,
+    List<String> sortBy = const [],
+    bool descending = false,
     List<String> fields = const [],
     List<String> includeItemTypes = const [],
     List<String> excludeItemTypes = const [],
@@ -97,6 +109,8 @@ class JellyfinArtistsApi {
         startIndex: startIndex,
         limit: limit,
         minCommunityRating: minCommunityRating,
+        sortBy: sortBy,
+        descending: descending,
         fields: fields,
         includeItemTypes: includeItemTypes,
         excludeItemTypes: excludeItemTypes,
@@ -140,6 +154,8 @@ class JellyfinArtistsApi {
     int startIndex = 0,
     int? limit,
     double? minCommunityRating,
+    List<String> sortBy = const [],
+    bool descending = false,
     List<String> fields = const [],
     List<String> includeItemTypes = const [],
     List<String> excludeItemTypes = const [],
@@ -166,7 +182,13 @@ class JellyfinArtistsApi {
       qp['searchTerm'] = searchTerm;
     }
     if (limit != null) qp['limit'] = limit;
-    if (minCommunityRating != null) qp['minCommunityRating'] = minCommunityRating;
+    if (minCommunityRating != null) {
+      qp['minCommunityRating'] = minCommunityRating;
+    }
+    if (sortBy.isNotEmpty) {
+      qp['sortBy'] = sortBy.join(',');
+      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
+    }
     if (fields.isNotEmpty) qp['fields'] = fields.join(',');
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes.join(',');
@@ -178,7 +200,7 @@ class JellyfinArtistsApi {
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
     if (genres.isNotEmpty) qp['genres'] = genres.join('|');
-    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds.join(',');
+    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds.join('|');
     if (officialRatings.isNotEmpty) {
       qp['officialRatings'] = officialRatings.join('|');
     }

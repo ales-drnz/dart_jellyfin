@@ -28,13 +28,17 @@ enum JellyfinErrorType {
   /// Client used in an invalid state — e.g. no base URL set.
   state,
 
+  /// The request was cancelled by the caller via a `CancelToken` before it
+  /// completed. Not an error condition — distinct from [unknown] so callers
+  /// can ignore cancellations instead of logging them as failures.
+  cancelled,
+
   /// Anything that doesn't fit the other categories.
   unknown;
 
   /// Whether a retry might succeed (connection/timeout only).
   bool get isRetriable =>
-      this == JellyfinErrorType.connection ||
-      this == JellyfinErrorType.timeout;
+      this == JellyfinErrorType.connection || this == JellyfinErrorType.timeout;
 
   /// Whether the failure is an authentication/authorization problem.
   bool get isAuthError => this == JellyfinErrorType.auth;

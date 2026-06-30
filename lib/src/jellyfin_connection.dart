@@ -18,7 +18,9 @@ class JellyfinConnection {
 
   String? _baseUrl;
   String? _token;
-  String? _userId;
+
+  /// Authenticated user id, or `null` if no session is active.
+  String? userId;
 
   /// Creates a connection bound to [credentials] and an optional [baseUrl].
   JellyfinConnection({
@@ -41,13 +43,25 @@ class JellyfinConnection {
   /// Current access token, or `null` if no session is active.
   String? get token => _token;
 
-  /// Authenticated user id, or `null` if no session is active.
-  // ignore: unnecessary_getters_setters
-  String? get userId => _userId;
-
   /// `true` when [baseUrl], [token], and [userId] are all set.
   bool get isAuthenticated =>
-      _baseUrl != null && _token != null && _userId != null;
+      _baseUrl != null && _token != null && userId != null;
+
+  /// Returns the authenticated [userId], or throws a [JellyfinException] of
+  /// type [JellyfinErrorType.state] when no session user is set.
+  ///
+  /// Centralizes the "no user" guard shared by every user-scoped endpoint —
+  /// sub-APIs call this instead of re-checking [userId] themselves.
+  String requireUserId() {
+    final id = userId;
+    if (id == null) {
+      throw const JellyfinException(
+        'No user — call JellyfinClient.setSession() with a userId first.',
+        type: JellyfinErrorType.state,
+      );
+    }
+    return id;
+  }
 
   /// Sets the server root URL, stripping a trailing `/` if present.
   set baseUrl(String? value) {
@@ -65,22 +79,15 @@ class JellyfinConnection {
     _applyAuthHeader();
   }
 
-  /// Sets the authenticated user id.
-  // ignore: unnecessary_getters_setters
-  set userId(String? value) {
-    _userId = value;
-  }
-
   void _applyAuthHeader() {
-    final header = JellyfinAuthHeader.build(credentials, token: _token);
-    _dio.options.headers['Authorization'] = header;
-    _dio.options.headers['X-Emby-Authorization'] =
-        JellyfinAuthHeader.buildEmby(credentials, token: _token);
-    if (_token != null) {
-      _dio.options.headers['X-MediaBrowser-Token'] = _token!;
-    } else {
-      _dio.options.headers.remove('X-MediaBrowser-Token');
-    }
+    // Only the `Authorization: MediaBrowser` header is sent. `build()` already
+    // embeds `Token="$token"` in that header, which is the sole auth path the
+    // server honors on 10.12 (where `EnableLegacyAuthorization` defaults to
+    // false) and 10.13 (where legacy auth is removed). The deprecated
+    // `X-Emby-Authorization` and `X-MediaBrowser-Token` headers are no longer
+    // sent — they are off-by-default in 10.12 and dead weight thereafter.
+    _dio.options.headers['Authorization'] =
+        JellyfinAuthHeader.build(credentials, token: _token);
   }
 
   /// Issues an HTTP request relative to [baseUrl] (or absolute when
@@ -93,6 +100,7 @@ class JellyfinConnection {
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
     ResponseType? responseType,
+    CancelToken? cancelToken,
   }) async {
     final url = absoluteUrl ? path : _resolve(path);
     try {
@@ -100,6 +108,7 @@ class JellyfinConnection {
         url,
         data: data,
         queryParameters: queryParameters,
+        cancelToken: cancelToken,
         options: Options(
           method: method,
           headers: extraHeaders,
@@ -116,12 +125,14 @@ class JellyfinConnection {
     String url, {
     Map<String, dynamic>? queryParameters,
     bool absoluteUrl = true,
+    CancelToken? cancelToken,
   }) =>
       request<List<int>>(
         url,
         queryParameters: queryParameters,
         absoluteUrl: absoluteUrl,
         responseType: ResponseType.bytes,
+        cancelToken: cancelToken,
       );
 
   String _resolve(String path) {

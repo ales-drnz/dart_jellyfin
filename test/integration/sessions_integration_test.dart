@@ -14,62 +14,66 @@ import '_fixture.dart';
 /// ([JellyfinSessionsApi], [JellyfinPlaybackApi]) against a live
 /// server seeded by `bootstrap.dart`.
 void main() {
-  group('Jellyfin sessions + playback', () {
-    late JellyfinClient jf;
-    late String trackId;
+  group(
+    'Jellyfin sessions + playback',
+    () {
+      late JellyfinClient jf;
+      late String trackId;
 
-    setUpAll(() async {
-      jf = jellyfinFromCache();
-      if (bootstrapSkipReason != null) return;
-      final tracks = await jf.items.list(
-        includeItemTypes: const ['Audio'],
-        limit: 1,
-      );
-      trackId = tracks.items.first.id;
-    });
+      setUpAll(() async {
+        jf = jellyfinFromCache();
+        if (bootstrapSkipReason != null) return;
+        final tracks = await jf.items.list(
+          includeItemTypes: const ['Audio'],
+          limit: 1,
+        );
+        trackId = tracks.items.first.id;
+      });
 
-    test('sessions.list returns the current session', () async {
-      // postCapabilities first so this client registers in the
-      // server's session table — otherwise an admin-only call to
-      // /Sessions may still return the empty list on a fresh server.
-      await jf.sessions.postCapabilities();
-      final sessions = await jf.sessions.list();
-      expect(sessions, isA<List<JellyfinSession>>());
-      // The token used by the test fixture should now own a session.
-      expect(
-        sessions.any((s) => (s.client ?? '').isNotEmpty),
-        isTrue,
-      );
-    });
+      test('sessions.list returns the current session', () async {
+        // postCapabilities first so this client registers in the
+        // server's session table — otherwise an admin-only call to
+        // /Sessions may still return the empty list on a fresh server.
+        await jf.sessions.postCapabilities();
+        final sessions = await jf.sessions.list();
+        expect(sessions, isA<List<JellyfinSession>>());
+        // The token used by the test fixture should now own a session.
+        expect(
+          sessions.any((s) => (s.client ?? '').isNotEmpty),
+          isTrue,
+        );
+      });
 
-    test('playback start -> progress -> stopped round trip', () async {
-      const playSessionId = 'dart-jellyfin-it-playback';
-      await jf.playback.start(
-        itemId: trackId,
-        playSessionId: playSessionId,
-      );
-      await jf.playback.progress(
-        itemId: trackId,
-        position: const Duration(seconds: 5),
-        isPaused: false,
-        playSessionId: playSessionId,
-      );
-      await jf.playback.progress(
-        itemId: trackId,
-        position: const Duration(seconds: 10),
-        isPaused: true,
-        playSessionId: playSessionId,
-      );
-      await jf.playback.stopped(
-        itemId: trackId,
-        position: const Duration(seconds: 12),
-        playSessionId: playSessionId,
-      );
-      // No throw -> success. Jellyfin returns 204 on each report.
-    });
+      test('playback start -> progress -> stopped round trip', () async {
+        const playSessionId = 'dart-jellyfin-it-playback';
+        await jf.playback.start(
+          itemId: trackId,
+          playSessionId: playSessionId,
+        );
+        await jf.playback.progress(
+          itemId: trackId,
+          position: const Duration(seconds: 5),
+          isPaused: false,
+          playSessionId: playSessionId,
+        );
+        await jf.playback.progress(
+          itemId: trackId,
+          position: const Duration(seconds: 10),
+          isPaused: true,
+          playSessionId: playSessionId,
+        );
+        await jf.playback.stopped(
+          itemId: trackId,
+          position: const Duration(seconds: 12),
+          playSessionId: playSessionId,
+        );
+        // No throw -> success. Jellyfin returns 204 on each report.
+      });
 
-    test('reportViewing is accepted by the server', () async {
-      await jf.sessions.reportViewing(itemId: trackId);
-    });
-  }, skip: bootstrapSkipReason);
+      test('reportViewing is accepted by the server', () async {
+        await jf.sessions.reportViewing(itemId: trackId);
+      });
+    },
+    skip: bootstrapSkipReason,
+  );
 }

@@ -3,9 +3,8 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import 'jellyfin_lookup_helpers.dart';
 
 /// `/Genres*` — generic genres across the library.
 ///
@@ -56,7 +55,7 @@ class JellyfinGenresApi {
   /// `GET /Genres/{genreName}` — lookup a genre by exact name.
   /// Returns null on 404.
   Future<JellyfinItem?> byName(String name) =>
-      _byName('/Genres', name, _http);
+      lookupItemByName('/Genres', name, _http);
 
   Future<JellyfinQueryResult<JellyfinItem>> _browse(
     String path, {
@@ -110,29 +109,5 @@ class JellyfinGenresApi {
       res.data ?? const {},
       JellyfinItem.fromJson,
     );
-  }
-}
-
-/// Internal helper shared by Genres / MusicGenres / Studios / Years
-/// `byName` lookups.
-Future<JellyfinItem?> _byName(
-  String basePath,
-  String name,
-  JellyfinConnection http,
-) async {
-  final qp = <String, dynamic>{};
-  final userId = http.userId;
-  if (userId != null) qp['userId'] = userId;
-  try {
-    final res = await http.request<Map<String, dynamic>>(
-      '$basePath/${Uri.encodeComponent(name)}',
-      queryParameters: qp.isEmpty ? null : qp,
-    );
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinItem.fromJson(data);
-  } on JellyfinException catch (e) {
-    if (e.type == JellyfinErrorType.notFound) return null;
-    rethrow;
   }
 }

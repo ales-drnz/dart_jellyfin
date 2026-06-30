@@ -3,6 +3,8 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../jellyfin_connection.dart';
+import '../jellyfin_error_type.dart';
+import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 
 /// `/LiveTv/*` — live TV channels, EPG, recordings, timers.
@@ -20,6 +22,10 @@ class JellyfinLiveTvApi {
   // ─── Channels ──────────────────────────────────────────────────────
 
   /// `GET /LiveTv/Channels` — list TV channels.
+  ///
+  /// [sortBy] entries must be valid `ItemSortBy` enum members (e.g.
+  /// `'Default'`, `'SortName'`); the default is empty, omitting the
+  /// param so the server applies its native channel ordering.
   Future<JellyfinQueryResult<JellyfinItem>> channels({
     int startIndex = 0,
     int? limit,
@@ -27,7 +33,7 @@ class JellyfinLiveTvApi {
     bool? isFavorite,
     String? type, // TV | Radio
     bool enableUserData = true,
-    List<String> sortBy = const ['DefaultChannelOrder'],
+    List<String> sortBy = const [],
     bool descending = false,
   }) async {
     final qp = <String, dynamic>{
@@ -53,8 +59,11 @@ class JellyfinLiveTvApi {
     );
   }
 
-  /// `GET /LiveTv/Channels/{channelId}` — single channel + currently
-  /// airing program.
+  /// `GET /LiveTv/Channels/{channelId}` — single channel by id.
+  ///
+  /// Unlike [channels], this endpoint does not populate the
+  /// `CurrentProgram` field, so the currently airing program may be
+  /// absent from the returned item.
   Future<JellyfinItem?> channel(String channelId) async {
     final res = await _http.request<Map<String, dynamic>>(
       '/LiveTv/Channels/$channelId',
@@ -152,9 +161,12 @@ class JellyfinLiveTvApi {
   // ─── Recordings ────────────────────────────────────────────────────
 
   /// `GET /LiveTv/Recordings` — list DVR recordings.
+  ///
+  /// To filter recordings by group, use [recordingsSeries] (the
+  /// `GET /LiveTv/Recordings/Series` operation), which accepts a
+  /// `groupId`; `GET /LiveTv/Recordings` itself has no group filter.
   Future<JellyfinQueryResult<JellyfinItem>> recordings({
     String? channelId,
-    String? groupId,
     String? seriesTimerId,
     bool? isInProgress,
     int startIndex = 0,
@@ -167,7 +179,6 @@ class JellyfinLiveTvApi {
       'enableUserData': enableUserData,
     };
     if (channelId != null) qp['channelId'] = channelId;
-    if (groupId != null) qp['groupId'] = groupId;
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (isInProgress != null) qp['isInProgress'] = isInProgress;
     if (limit != null) qp['limit'] = limit;
@@ -312,7 +323,8 @@ class JellyfinLiveTvApi {
 
   /// `POST /LiveTv/ChannelMappings` — set a channel-to-EPG mapping.
   Future<Map<String, dynamic>> setChannelMapping(
-      Map<String, dynamic> body) async {
+    Map<String, dynamic> body,
+  ) async {
     final res = await _http.request<Map<String, dynamic>>(
       '/LiveTv/ChannelMappings',
       method: 'POST',
@@ -348,7 +360,10 @@ class JellyfinLiveTvApi {
   Future<List<Map<String, dynamic>>> tunerHostTypes() async {
     final res = await _http.request<List<dynamic>>('/LiveTv/TunerHosts/Types');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `POST /LiveTv/Tuners/{tunerId}/Reset` — reset a tuner.
@@ -368,7 +383,10 @@ class JellyfinLiveTvApi {
       queryParameters: {'newDevicesOnly': newDevicesOnly},
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /LiveTv/Tuners/Discvover` — typo-variant of [discoverTuners]
@@ -381,7 +399,10 @@ class JellyfinLiveTvApi {
       queryParameters: {'newDevicesOnly': newDevicesOnly},
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   // ─── Admin: listings providers ────────────────────────────────────
@@ -441,7 +462,10 @@ class JellyfinLiveTvApi {
       queryParameters: qp.isEmpty ? null : qp,
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /LiveTv/ListingProviders/SchedulesDirect/Countries` —
@@ -458,8 +482,8 @@ class JellyfinLiveTvApi {
   /// `GET /LiveTv/LiveRecordings/{recordingId}/stream` — URL for an
   /// in-progress live recording stream.
   String liveRecordingStreamUrl(String recordingId) {
-    final base = _http.baseUrl;
-    final token = _http.token ?? '';
+    final base = _requireBaseUrl();
+    final token = _requireToken();
     return '$base/LiveTv/LiveRecordings/$recordingId/stream?api_key=$token';
   }
 
@@ -469,13 +493,18 @@ class JellyfinLiveTvApi {
     required String streamId,
     required String container,
   }) {
-    final base = _http.baseUrl;
-    final token = _http.token ?? '';
+    final base = _requireBaseUrl();
+    final token = _requireToken();
     return '$base/LiveTv/LiveStreamFiles/$streamId/stream.$container?api_key=$token';
   }
 
   /// `GET /LiveTv/Recordings/Groups/{groupId}` — fetch a single
   /// recording group by id.
+  ///
+  /// Deprecated upstream: the spec declares no `200` response for this
+  /// operation (only `404`/`503`), so it will throw or yield an empty
+  /// map. The closest substitute, [recordingGroups], is itself
+  /// deprecated.
   Future<Map<String, dynamic>> recordingGroup(String groupId) async {
     final res = await _http.request<Map<String, dynamic>>(
       '/LiveTv/Recordings/Groups/$groupId',
@@ -520,13 +549,19 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Recordings/Series` — recordings grouped by series.
+  ///
+  /// [status] is a `RecordingStatus` enum member: `New`, `InProgress`,
+  /// `Completed`, `Cancelled`, `ConflictedOk`, `ConflictedNotOk` or
+  /// `Error`.
   Future<JellyfinQueryResult<JellyfinItem>> recordingsSeries({
     String? userId,
+    String? channelId,
     String? groupId,
     int? startIndex,
     int? limit,
-    bool? isActive,
-    bool? isLibraryItem,
+    String? status,
+    bool? isInProgress,
+    String? seriesTimerId,
     List<String> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
@@ -537,11 +572,13 @@ class JellyfinLiveTvApi {
     };
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
+    if (channelId != null) qp['channelId'] = channelId;
     if (groupId != null) qp['groupId'] = groupId;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
-    if (isActive != null) qp['isActive'] = isActive;
-    if (isLibraryItem != null) qp['isLibraryItem'] = isLibraryItem;
+    if (status != null) qp['status'] = status;
+    if (isInProgress != null) qp['isInProgress'] = isInProgress;
+    if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (fields.isNotEmpty) qp['fields'] = fields.join(',');
     final res = await _http.request<Map<String, dynamic>>(
       '/LiveTv/Recordings/Series',
@@ -574,5 +611,27 @@ class JellyfinLiveTvApi {
       queryParameters: qp.isEmpty ? null : qp,
     );
     return res.data ?? const {};
+  }
+
+  String _requireBaseUrl() {
+    final url = _http.baseUrl;
+    if (url == null) {
+      throw const JellyfinException(
+        'No base URL — call JellyfinClient.connect() first.',
+        type: JellyfinErrorType.state,
+      );
+    }
+    return url;
+  }
+
+  String _requireToken() {
+    final t = _http.token;
+    if (t == null) {
+      throw const JellyfinException(
+        'No token — call JellyfinClient.setSession() first.',
+        type: JellyfinErrorType.state,
+      );
+    }
+    return t;
   }
 }

@@ -24,7 +24,7 @@ class JellyfinPlaylistsApi {
     List<String> itemIds = const [],
     bool isPublic = false,
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final res = await _http.request<Map<String, dynamic>>(
       '/Playlists',
       method: 'POST',
@@ -74,7 +74,7 @@ class JellyfinPlaylistsApi {
     int? limit,
     List<String> fields = JellyfinItemsApiFieldsAdapter.musicFields,
   }) async {
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'startIndex': startIndex,
@@ -97,7 +97,7 @@ class JellyfinPlaylistsApi {
     required List<String> itemIds,
   }) async {
     if (itemIds.isEmpty) return;
-    final userId = _requireUser();
+    final userId = _http.requireUserId();
     await _http.request<void>(
       '/Playlists/$playlistId/Items',
       method: 'POST',
@@ -141,11 +141,16 @@ class JellyfinPlaylistsApi {
     );
   }
 
-  /// `GET /Playlists/{playlistId}` — fetch the playlist's metadata
-  /// (name, owner, public/private flag, item count).
+  /// `GET /Items/{playlistId}` — fetch the playlist's item metadata
+  /// (name, type, child/item count, etc.).
+  ///
+  /// Jellyfin treats playlists as items, so the full [JellyfinItem] is
+  /// served from `/Items/{id}` (a `BaseItemDto`). The `/Playlists/{id}`
+  /// endpoint returns a `PlaylistDto` (only `OpenAccess`, `Shares`,
+  /// `ItemIds`) and carries none of these fields, so it is not used here.
   Future<JellyfinItem?> byId(String playlistId) async {
     final res = await _http.request<Map<String, dynamic>>(
-      '/Playlists/$playlistId',
+      '/Items/$playlistId',
     );
     final data = res.data;
     if (data == null) return null;
@@ -191,8 +196,8 @@ class JellyfinPlaylistsApi {
   }
 
   /// `GET /Playlists/{playlistId}/Users` — list users with access to
-  /// a shared playlist. Returned as raw maps (`UserId`, `UserName`,
-  /// `CanEdit`).
+  /// a shared playlist. Returned as raw maps (`UserId`, `CanEdit`); resolve
+  /// display names separately via the users API if needed.
   Future<List<Map<String, dynamic>>> users(String playlistId) async {
     final res = await _http.request<List<dynamic>>(
       '/Playlists/$playlistId/Users',
@@ -216,8 +221,9 @@ class JellyfinPlaylistsApi {
     return res.data;
   }
 
-  /// `POST /Playlists/{playlistId}/Users/{userId}?canEdit={bool}` —
-  /// grant or update a user's access to a shared playlist.
+  /// `POST /Playlists/{playlistId}/Users/{userId}` — grant or update a
+  /// user's access to a shared playlist. The `CanEdit` flag is sent in the
+  /// JSON body (`UpdatePlaylistUserDto`), not as a query parameter.
   Future<void> setUserAccess({
     required String playlistId,
     required String userId,
@@ -226,7 +232,7 @@ class JellyfinPlaylistsApi {
     await _http.request<void>(
       '/Playlists/$playlistId/Users/$userId',
       method: 'POST',
-      queryParameters: {'canEdit': canEdit},
+      data: {'CanEdit': canEdit},
     );
   }
 
@@ -240,17 +246,6 @@ class JellyfinPlaylistsApi {
       '/Playlists/$playlistId/Users/$userId',
       method: 'DELETE',
     );
-  }
-
-  String _requireUser() {
-    final id = _http.userId;
-    if (id == null) {
-      throw const JellyfinException(
-        'No user — call JellyfinClient.setSession() with a userId first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return id;
   }
 }
 

@@ -18,29 +18,23 @@ import 'jellyfin_credentials.dart';
 /// MediaBrowser Client="Finova", Device="iPhone", DeviceId="…uuid…", Version="1.0", Token="…"
 /// ```
 ///
-/// Jellyfin also still accepts the historical `X-Emby-Authorization`
-/// header with the same payload (sans the leading `MediaBrowser`).
-/// We send both for maximum compatibility.
+/// Each value is percent-encoded with [Uri.encodeComponent] before being
+/// quoted. Jellyfin's server-side parser runs `WebUtility.UrlDecode` on every
+/// extracted value and splits the comma-separated list on unescaped `,`/`"`,
+/// so raw values would corrupt the header: a `+` (e.g. semver build metadata
+/// `1.0.0+42`) decodes to a space, and an embedded `"` desyncs the tokenizer
+/// and merges fields. Encoding round-trips cleanly through `UrlDecode` while
+/// leaving unreserved characters (letters, digits, `.`, `-`, `_`) untouched.
 abstract final class JellyfinAuthHeader {
   /// Modern `Authorization: MediaBrowser …` payload, with optional `Token`.
   static String build(JellyfinCredentials c, {String? token}) {
-    final tokenPart = token != null ? ', Token="$token"' : '';
+    final tokenPart =
+        token != null ? ', Token="${Uri.encodeComponent(token)}"' : '';
     return 'MediaBrowser '
-        'Client="${c.client}", '
-        'Device="${c.device}", '
-        'DeviceId="${c.deviceId}", '
-        'Version="${c.version}"'
-        '$tokenPart';
-  }
-
-  /// Historical `X-Emby-Authorization` payload — same fields, without
-  /// the `MediaBrowser ` prefix.
-  static String buildEmby(JellyfinCredentials c, {String? token}) {
-    final tokenPart = token != null ? ', Token="$token"' : '';
-    return 'Client="${c.client}", '
-        'Device="${c.device}", '
-        'DeviceId="${c.deviceId}", '
-        'Version="${c.version}"'
+        'Client="${Uri.encodeComponent(c.client)}", '
+        'Device="${Uri.encodeComponent(c.device)}", '
+        'DeviceId="${Uri.encodeComponent(c.deviceId)}", '
+        'Version="${Uri.encodeComponent(c.version)}"'
         '$tokenPart';
   }
 }

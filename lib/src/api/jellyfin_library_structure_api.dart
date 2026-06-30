@@ -20,7 +20,10 @@ class JellyfinLibraryStructureApi {
   Future<List<Map<String, dynamic>>> list() async {
     final res = await _http.request<List<dynamic>>('/Library/VirtualFolders');
     final list = res.data ?? const [];
-    return [for (final e in list) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in list)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `POST /Library/VirtualFolders` — create a new library.
@@ -44,7 +47,10 @@ class JellyfinLibraryStructureApi {
   }
 
   /// `DELETE /Library/VirtualFolders?name={name}` — delete a library.
-  Future<void> remove({required String name, bool refreshLibrary = false}) async {
+  Future<void> remove({
+    required String name,
+    bool refreshLibrary = false,
+  }) async {
     await _http.request<void>(
       '/Library/VirtualFolders',
       method: 'DELETE',

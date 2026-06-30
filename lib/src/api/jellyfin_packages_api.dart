@@ -21,7 +21,10 @@ class JellyfinPackagesApi {
   Future<List<Map<String, dynamic>>> list() async {
     final res = await _http.request<List<dynamic>>('/Packages');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `GET /Packages/{name}` — info for one package (releases,
@@ -70,7 +73,10 @@ class JellyfinPackagesApi {
   Future<List<Map<String, dynamic>>> repositories() async {
     final res = await _http.request<List<dynamic>>('/Repositories');
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `POST /Repositories` — replace the list of configured plugin

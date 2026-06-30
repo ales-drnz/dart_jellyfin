@@ -23,7 +23,10 @@ class JellyfinApiKeyApi {
     final res = await _http.request<Map<String, dynamic>>('/Auth/Keys');
     final items = res.data?['Items'];
     if (items is! List) return const [];
-    return [for (final e in items) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in items)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 
   /// `POST /Auth/Keys?app={app}` — create a new API key for [app].

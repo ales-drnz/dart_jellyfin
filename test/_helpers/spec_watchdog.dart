@@ -33,6 +33,7 @@ class _Endpoint {
 class JellyfinSpecDriftReport {
   final int pinnedCount;
   final int latestCount;
+
   /// Formatted lines like `"POST /Items/{id}/Refresh  (RefreshItem)"`.
   final List<String> added;
 
@@ -60,12 +61,16 @@ class JellyfinSpecDriftReport {
       return buf.toString();
     }
     buf
-      ..writeln('')
+      ..writeln()
       ..writeln('━━━ Upstream Jellyfin spec drift ━━━')
       ..writeln('  Pinned: $_pinnedPath ($pinnedCount ops)')
-      ..writeln('  Latest: ${fromCache ? 'cache' : 'fresh'} ($latestCount ops)');
+      ..writeln(
+        '  Latest: ${fromCache ? 'cache' : 'fresh'} ($latestCount ops)',
+      );
     if (added.isNotEmpty) {
-      buf.writeln('  + ${added.length} new endpoint${added.length == 1 ? '' : 's'}:');
+      buf.writeln(
+        '  + ${added.length} new endpoint${added.length == 1 ? '' : 's'}:',
+      );
       for (final line in added.take(20)) {
         buf.writeln('      $line');
       }
@@ -74,7 +79,9 @@ class JellyfinSpecDriftReport {
       }
     }
     if (removed.isNotEmpty) {
-      buf.writeln('  - ${removed.length} removed endpoint${removed.length == 1 ? '' : 's'}:');
+      buf.writeln(
+        '  - ${removed.length} removed endpoint${removed.length == 1 ? '' : 's'}:',
+      );
       for (final line in removed.take(20)) {
         buf.writeln('      $line');
       }
@@ -83,9 +90,11 @@ class JellyfinSpecDriftReport {
       }
     }
     buf
-      ..writeln('  → Refresh the pinned spec, review the diff, update wrappers.')
+      ..writeln(
+        '  → Refresh the pinned spec, review the diff, update wrappers.',
+      )
       ..writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      ..writeln('');
+      ..writeln();
     return buf.toString();
   }
 }
@@ -149,8 +158,7 @@ Future<JellyfinSpecDriftReport> runJellyfinSpecWatchdog({
   );
 }
 
-String _formatEndpoint(_Endpoint e) =>
-    '${e.method.padRight(6)} ${e.path}'
+String _formatEndpoint(_Endpoint e) => '${e.method.padRight(6)} ${e.path}'
     '${e.operationId == null ? '' : '  (${e.operationId})'}';
 
 bool _isCacheFresh(File stampFile) {

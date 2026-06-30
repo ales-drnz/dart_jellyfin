@@ -28,10 +28,17 @@ void main() {
       );
     });
 
-    test('emby variant omits MediaBrowser prefix', () {
+    test('percent-encodes values containing + , and "', () {
+      const tricky = JellyfinCredentials(
+        client: 'Finova',
+        device: 'iPhone 15, "Pro"',
+        deviceId: 'abc-uuid',
+        version: '1.0.0+42',
+      );
       expect(
-        JellyfinAuthHeader.buildEmby(c, token: 'tok'),
-        startsWith('Client="Finova"'),
+        JellyfinAuthHeader.build(tricky),
+        'MediaBrowser Client="Finova", Device="iPhone%2015%2C%20%22Pro%22", '
+        'DeviceId="abc-uuid", Version="1.0.0%2B42"',
       );
     });
   });
@@ -40,10 +47,14 @@ void main() {
     test('fromHttpStatus mapping', () {
       expect(JellyfinErrorType.fromHttpStatus(401), JellyfinErrorType.auth);
       expect(JellyfinErrorType.fromHttpStatus(404), JellyfinErrorType.notFound);
-      expect(JellyfinErrorType.fromHttpStatus(500),
-          JellyfinErrorType.serverError);
-      expect(JellyfinErrorType.fromHttpStatus(418),
-          JellyfinErrorType.badRequest);
+      expect(
+        JellyfinErrorType.fromHttpStatus(500),
+        JellyfinErrorType.serverError,
+      );
+      expect(
+        JellyfinErrorType.fromHttpStatus(418),
+        JellyfinErrorType.badRequest,
+      );
     });
   });
 

@@ -12,40 +12,44 @@ import '_fixture.dart';
 
 /// Smoke tests for [JellyfinUserApi] against a live server.
 void main() {
-  group('Jellyfin user', () {
-    late JellyfinClient jf;
-    late JellyfinBootstrapCache cache;
+  group(
+    'Jellyfin user',
+    () {
+      late JellyfinClient jf;
+      late JellyfinBootstrapCache cache;
 
-    setUpAll(() {
-      cache = JellyfinBootstrapCache.load();
-      jf = jellyfinFromCache();
-    });
+      setUpAll(() {
+        cache = JellyfinBootstrapCache.load();
+        jf = jellyfinFromCache();
+      });
 
-    test('currentUser returns the bootstrap admin', () async {
-      final user = await jf.user.currentUser();
-      expect(user.id, cache.userId);
-      expect(user.name, cache.username);
-    });
+      test('currentUser returns the bootstrap admin', () async {
+        final user = await jf.user.currentUser();
+        expect(user.id, cache.userId);
+        expect(user.name, cache.username);
+      });
 
-    test('list returns at least the admin user', () async {
-      final users = await jf.user.list();
-      expect(users.length, greaterThanOrEqualTo(1));
-      expect(users.any((u) => u.id == cache.userId), isTrue);
-    });
+      test('list returns at least the admin user', () async {
+        final users = await jf.user.list();
+        expect(users.length, greaterThanOrEqualTo(1));
+        expect(users.any((u) => u.id == cache.userId), isTrue);
+      });
 
-    test('publicUsers is callable without an active session', () async {
-      // The seeded admin user is not marked public by default, so
-      // the returned list may be empty. We only assert the call
-      // succeeds and parses into a list.
-      final list = await jf.user.publicUsers();
-      expect(list, isA<List<JellyfinUser>>());
-    });
+      test('publicUsers is callable without an active session', () async {
+        // The seeded admin user is not marked public by default, so
+        // the returned list may be empty. We only assert the call
+        // succeeds and parses into a list.
+        final list = await jf.user.publicUsers();
+        expect(list, isA<List<JellyfinUser>>());
+      });
 
-    test('authProviders is callable and returns a parseable list', () async {
-      final providers = await jf.user.authProviders();
-      expect(providers, isA<List<Map<String, dynamic>>>());
-      // Most Jellyfin builds ship at least one provider, but field
-      // names vary by version, so we don't assert on contents.
-    });
-  }, skip: bootstrapSkipReason);
+      test('authProviders is callable and returns a parseable list', () async {
+        final providers = await jf.user.authProviders();
+        expect(providers, isA<List<Map<String, dynamic>>>());
+        // Most Jellyfin builds ship at least one provider, but field
+        // names vary by version, so we don't assert on contents.
+      });
+    },
+    skip: bootstrapSkipReason,
+  );
 }

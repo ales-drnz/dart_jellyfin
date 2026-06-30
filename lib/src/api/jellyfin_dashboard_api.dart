@@ -37,6 +37,9 @@ class JellyfinDashboardApi {
       queryParameters: qp.isEmpty ? null : qp,
     );
     final l = res.data ?? const [];
-    return [for (final e in l) if (e is Map<String, dynamic>) e];
+    return [
+      for (final e in l)
+        if (e is Map<String, dynamic>) e,
+    ];
   }
 }

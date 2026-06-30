@@ -31,8 +31,8 @@ Future<void> main() async {
     );
     exit(1);
   }
-  final cache = jsonDecode(File(_cachePath).readAsStringSync())
-      as Map<String, dynamic>;
+  final cache =
+      jsonDecode(File(_cachePath).readAsStringSync()) as Map<String, dynamic>;
   final baseUrl = cache['baseUrl'] as String;
   final token = cache['token'] as String;
   final userId = cache['userId'] as String;
@@ -48,8 +48,11 @@ Future<void> main() async {
 
   Directory(_outDir).createSync(recursive: true);
 
-  Future<void> get(String name, String path,
-      [Map<String, dynamic>? qp]) async {
+  Future<void> get(
+    String name,
+    String path, [
+    Map<String, dynamic>? qp,
+  ]) async {
     try {
       final res = await dio.get<dynamic>('$baseUrl$path', queryParameters: qp);
       _save(name, res.data);
@@ -58,15 +61,33 @@ Future<void> main() async {
     }
   }
 
-  await get('items_list_audio.json', '/Items',
-      {'userId': userId, 'IncludeItemTypes': 'Audio', 'Recursive': 'true', 'Limit': 3, 'Fields': 'MediaSources,MediaStreams,Genres,Tags,ProviderIds'});
+  await get(
+    'items_list_audio.json',
+    '/Items',
+    {
+      'userId': userId,
+      'IncludeItemTypes': 'Audio',
+      'Recursive': 'true',
+      'Limit': 3,
+      'Fields': 'MediaSources,MediaStreams,Genres,Tags,ProviderIds',
+    },
+  );
   await get('user_views.json', '/UserViews', {'userId': userId});
-  await get('search_hints.json', '/Search/Hints',
-      {'userId': userId, 'searchTerm': 'Track', 'Limit': 5});
-  await get('filters2.json', '/Items/Filters2',
-      {'userId': userId, 'IncludeItemTypes': 'Audio'});
-  await get('display_preferences.json', '/DisplayPreferences/usersettings',
-      {'userId': userId, 'client': 'dart_jellyfin_capture'});
+  await get(
+    'search_hints.json',
+    '/Search/Hints',
+    {'userId': userId, 'searchTerm': 'Track', 'Limit': 5},
+  );
+  await get(
+    'filters2.json',
+    '/Items/Filters2',
+    {'userId': userId, 'IncludeItemTypes': 'Audio'},
+  );
+  await get(
+    'display_preferences.json',
+    '/DisplayPreferences/usersettings',
+    {'userId': userId, 'client': 'dart_jellyfin_capture'},
+  );
   await get('system_info.json', '/System/Info');
   await get('system_public_info.json', '/System/Info/Public');
   await get('sessions.json', '/Sessions');
@@ -81,8 +102,8 @@ Future<void> main() async {
       'Limit': 1,
     },
   );
-  final firstItem = (tracksRes.data?['Items'] as List?)?.first
-      as Map<String, dynamic>?;
+  final firstItem =
+      (tracksRes.data?['Items'] as List?)?.first as Map<String, dynamic>?;
   if (firstItem != null) {
     final id = firstItem['Id'] as String;
     await get('items_by_id_audio.json', '/Items/$id', {
@@ -99,11 +120,11 @@ Future<void> main() async {
           'DeviceProfile': {
             'Name': 'capture',
             'MaxStreamingBitrate': 140000000,
-            'CodecProfiles': [],
+            'CodecProfiles': <Map<String, dynamic>>[],
             'DirectPlayProfiles': [
               {'Container': 'mp3', 'Type': 'Audio'},
             ],
-            'TranscodingProfiles': [],
+            'TranscodingProfiles': <Map<String, dynamic>>[],
           },
         },
       );

@@ -27,47 +27,18 @@ class JellyfinMediaInfoApi {
 
   /// GET `/Items/{itemId}/PlaybackInfo`. Lightweight — server uses
   /// generic defaults instead of a device profile.
+  ///
+  /// The GET operation accepts only `itemId` and `userId`; it cannot honor
+  /// bitrate/stream pinning or live-stream auto-open. Use [postedInfo] (the
+  /// POST variant) when you need to pin a bitrate, audio/subtitle stream, or
+  /// auto-open a live stream.
   Future<JellyfinPlaybackInfo> info({
     required String itemId,
     String? userId,
-    int? maxStreamingBitrate,
-    int? startTimeTicks,
-    int? audioStreamIndex,
-    int? subtitleStreamIndex,
-    int? maxAudioChannels,
-    String? mediaSourceId,
-    String? liveStreamId,
-    bool autoOpenLiveStream = false,
-    bool enableDirectPlay = true,
-    bool enableDirectStream = true,
-    bool enableTranscoding = true,
-    bool allowVideoStreamCopy = true,
-    bool allowAudioStreamCopy = true,
   }) async {
-    final qp = <String, dynamic>{
-      'userId': userId ?? _http.userId,
-      'autoOpenLiveStream': autoOpenLiveStream,
-      'enableDirectPlay': enableDirectPlay,
-      'enableDirectStream': enableDirectStream,
-      'enableTranscoding': enableTranscoding,
-      'allowVideoStreamCopy': allowVideoStreamCopy,
-      'allowAudioStreamCopy': allowAudioStreamCopy,
-    };
-    if (maxStreamingBitrate != null) {
-      qp['maxStreamingBitrate'] = maxStreamingBitrate;
-    }
-    if (startTimeTicks != null) qp['startTimeTicks'] = startTimeTicks;
-    if (audioStreamIndex != null) qp['audioStreamIndex'] = audioStreamIndex;
-    if (subtitleStreamIndex != null) {
-      qp['subtitleStreamIndex'] = subtitleStreamIndex;
-    }
-    if (maxAudioChannels != null) qp['maxAudioChannels'] = maxAudioChannels;
-    if (mediaSourceId != null) qp['mediaSourceId'] = mediaSourceId;
-    if (liveStreamId != null) qp['liveStreamId'] = liveStreamId;
-
     final res = await _http.request<Map<String, dynamic>>(
       '/Items/$itemId/PlaybackInfo',
-      queryParameters: qp,
+      queryParameters: {'userId': userId ?? _http.userId},
     );
     return JellyfinPlaybackInfo.fromJson(res.data ?? const {});
   }
@@ -172,9 +143,10 @@ class JellyfinMediaInfoApi {
     );
   }
 
-  /// Tiny endpoint that streams `1MB` of zeros — useful for measuring
-  /// throughput when picking a streaming bitrate. The server returns
-  /// `[size]` bytes filled with `0`.
+  /// Tiny endpoint that streams zeros — useful for measuring throughput
+  /// when picking a streaming bitrate. The server returns `[size]` bytes
+  /// filled with `0`; [size] is caller-controlled and defaults to ~100 KB
+  /// (102400 bytes, the spec default), up to a spec maximum of 100000000.
   Future<int?> bitrateTestBytesLength({int size = 102400}) async {
     final res = await _http.request<List<int>>(
       '/Playback/BitrateTest',
