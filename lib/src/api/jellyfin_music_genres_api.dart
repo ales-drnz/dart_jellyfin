@@ -19,6 +19,13 @@ class JellyfinMusicGenresApi {
 
   /// `GET /MusicGenres` — music genres scoped to [parentId] and
   /// optional name range.
+  ///
+  /// The route still works, but it is hidden from the published
+  /// OpenAPI document and marked obsolete upstream in favour of
+  /// `GET /Genres`. Prefer
+  /// `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])`, which is
+  /// the supported way to get the same buckets and will outlive this
+  /// endpoint.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,
@@ -34,6 +41,7 @@ class JellyfinMusicGenresApi {
     String? nameStartsWithOrGreater,
     String? nameLessThan,
     List<String> sortBy = const [],
+    bool descending = false,
   }) async {
     final qp = <String, dynamic>{'startIndex': startIndex};
     final userId = _http.userId;
@@ -43,24 +51,27 @@ class JellyfinMusicGenresApi {
       qp['searchTerm'] = searchTerm;
     }
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
     if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
     if (nameStartsWithOrGreater != null) {
       qp['nameStartsWithOrGreater'] = nameStartsWithOrGreater;
     }
     if (nameLessThan != null) qp['nameLessThan'] = nameLessThan;
-    if (sortBy.isNotEmpty) qp['sortBy'] = sortBy.join(',');
+    if (sortBy.isNotEmpty) {
+      qp['sortBy'] = sortBy;
+      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
+    }
 
     final res = await _http.request<Map<String, dynamic>>(
       '/MusicGenres',

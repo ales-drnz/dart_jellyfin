@@ -92,6 +92,16 @@ class JellyfinConnection {
 
   /// Issues an HTTP request relative to [baseUrl] (or absolute when
   /// `absoluteUrl` is `true`), wrapping Dio failures in [JellyfinException].
+  ///
+  /// A `List` value in [queryParameters] is emitted as one repeated
+  /// query parameter per element (`ids=a&ids=b`), never as a delimited
+  /// string. Jellyfin binds array parameters with either a comma- or a
+  /// pipe-delimited model binder depending on the endpoint, and both
+  /// take repeated values verbatim without splitting — so repeating the
+  /// parameter is the one encoding that is correct everywhere, and it
+  /// also survives values that contain the delimiter. The format is set
+  /// per request so an injected [Dio] configured with a different
+  /// `listFormat` cannot silently change the wire shape.
   Future<Response<T>> request<T>(
     String path, {
     String method = 'GET',
@@ -113,6 +123,7 @@ class JellyfinConnection {
           method: method,
           headers: extraHeaders,
           responseType: responseType,
+          listFormat: ListFormat.multi,
         ),
       );
     } on DioException catch (e) {

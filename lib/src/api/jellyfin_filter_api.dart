@@ -35,7 +35,7 @@ class JellyfinFilterApi {
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (isAiring != null) qp['isAiring'] = isAiring;
     if (isMovie != null) qp['isMovie'] = isMovie;
@@ -63,9 +63,9 @@ class JellyfinFilterApi {
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
 
     final res = await _http.request<Map<String, dynamic>>(
       '/Items/Filters',

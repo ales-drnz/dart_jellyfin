@@ -42,16 +42,16 @@ class JellyfinPersonsApi {
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
+    if (filters.isNotEmpty) qp['filters'] = filters;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
-    if (personTypes.isNotEmpty) qp['personTypes'] = personTypes.join(',');
+    if (personTypes.isNotEmpty) qp['personTypes'] = personTypes;
     if (excludePersonTypes.isNotEmpty) {
-      qp['excludePersonTypes'] = excludePersonTypes.join(',');
+      qp['excludePersonTypes'] = excludePersonTypes;
     }
     if (appearsInItemId != null) qp['appearsInItemId'] = appearsInItemId;
 

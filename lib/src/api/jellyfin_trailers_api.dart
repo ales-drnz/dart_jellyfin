@@ -51,19 +51,19 @@ class JellyfinTrailersApi {
     }
     if (limit != null) qp['limit'] = limit;
     if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy.join(',');
+      qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
+    if (filters.isNotEmpty) qp['filters'] = filters;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds.join(',');
+    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(

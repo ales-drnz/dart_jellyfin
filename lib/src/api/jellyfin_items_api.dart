@@ -14,8 +14,12 @@ class JellyfinItemsApi {
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinItemsApi(this._http);
 
-  /// A reasonable default set of fields for music browsing — overview,
-  /// genres, mediastreams, mediasources, …
+  /// A ready-made `fields` set for music browsing — overview, genres,
+  /// mediastreams, mediasources, …
+  ///
+  /// Opt in explicitly: `list(fields: JellyfinItemsApi.musicFields)`.
+  /// It is not a default, because `/Items` also serves video and photo
+  /// libraries, where these fields are cost without benefit.
   static const List<String> musicFields = [
     'Overview',
     'Genres',
@@ -38,11 +42,24 @@ class JellyfinItemsApi {
   /// scope the result (e.g. `['MusicAlbum']`, `['Audio']`,
   /// `['MusicArtist']`).
   ///
-  /// `sortBy` accepts: `'SortName' | 'Album' | 'AlbumArtist' |
+  /// [sortBy] accepts: `'SortName' | 'Album' | 'AlbumArtist' |
   /// 'Artist' | 'Random' | 'DateCreated' | 'CommunityRating' |
-  /// 'PlayCount' | 'PremiereDate' | 'ProductionYear' | …`.
+  /// 'PlayCount' | 'PremiereDate' | 'ProductionYear' | …`. It is only
+  /// sent when non-empty, and [descending] travels with it — the server
+  /// ignores a sort order that has no sort column to apply it to.
   ///
   /// Filters: pass [filters] like `['IsFavorite']`.
+  ///
+  /// The narrowing parameters split into id-based and name-based pairs:
+  /// [genreIds] / [genres], [studioIds] / [studios],
+  /// [albumIds] / [albums], [artistIds] / [artists]. Prefer the id form
+  /// — ids come back from [JellyfinFilterApi.facets] and survive a
+  /// rename; the name form matches on the stored string. Every one of
+  /// them is a `List<String>`, and this wrapper does the encoding: never
+  /// pre-join them.
+  ///
+  /// [fields] defaults to the empty list, which gives the server's own
+  /// default projection. Pass [musicFields] for the music-browsing set.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     List<String> includeItemTypes = const [],
@@ -54,44 +71,70 @@ class JellyfinItemsApi {
     int? limit,
     String? searchTerm,
     List<String> filters = const [],
-    String? genreIds,
-    String? artistIds,
-    String? albumIds,
     List<String> ids = const [],
-    List<String> fields = musicFields,
+    List<String> excludeItemIds = const [],
+    List<String> genreIds = const [],
+    List<String> genres = const [],
+    List<String> artistIds = const [],
+    List<String> artists = const [],
+    List<String> albumArtistIds = const [],
+    List<String> contributingArtistIds = const [],
+    List<String> albumIds = const [],
+    List<String> albums = const [],
+    List<String> studioIds = const [],
+    List<String> studios = const [],
+    List<String> personIds = const [],
+    List<String> tags = const [],
+    List<String> officialRatings = const [],
+    List<int> years = const [],
+    String? nameStartsWith,
+    bool? isFavorite,
+    bool? isPlayed,
+    List<String> fields = const [],
     bool recursive = true,
     bool enableImages = true,
     bool enableUserData = true,
+    bool enableTotalRecordCount = true,
     int? imageTypeLimit,
   }) async {
-    final userId = _http.requireUserId();
-    final qp = <String, dynamic>{
-      'userId': userId,
-      'startIndex': startIndex,
-      'recursive': recursive,
-      'enableImages': enableImages,
-      'enableUserData': enableUserData,
-      'sortOrder': descending ? 'Descending' : 'Ascending',
-    };
+    final qp = _narrowing(
+      parentId: parentId,
+      includeItemTypes: includeItemTypes,
+      excludeItemTypes: excludeItemTypes,
+      mediaTypes: mediaTypes,
+      searchTerm: searchTerm,
+      filters: filters,
+      ids: ids,
+      excludeItemIds: excludeItemIds,
+      genreIds: genreIds,
+      genres: genres,
+      artistIds: artistIds,
+      artists: artists,
+      albumArtistIds: albumArtistIds,
+      contributingArtistIds: contributingArtistIds,
+      albumIds: albumIds,
+      albums: albums,
+      studioIds: studioIds,
+      studios: studios,
+      personIds: personIds,
+      tags: tags,
+      officialRatings: officialRatings,
+      years: years,
+      nameStartsWith: nameStartsWith,
+      isFavorite: isFavorite,
+      isPlayed: isPlayed,
+      recursive: recursive,
+      enableTotalRecordCount: enableTotalRecordCount,
+    )
+      ..['startIndex'] = startIndex
+      ..['enableImages'] = enableImages
+      ..['enableUserData'] = enableUserData;
     if (limit != null) qp['limit'] = limit;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+    if (sortBy.isNotEmpty) {
+      qp['sortBy'] = sortBy;
+      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
-    if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
-    }
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
-    if (sortBy.isNotEmpty) qp['sortBy'] = sortBy.join(',');
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      qp['searchTerm'] = searchTerm;
-    }
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
-    if (genreIds != null) qp['genreIds'] = genreIds;
-    if (artistIds != null) qp['artistIds'] = artistIds;
-    if (albumIds != null) qp['albumIds'] = albumIds;
-    if (ids.isNotEmpty) qp['ids'] = ids.join(',');
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
 
     final res = await _http.request<Map<String, dynamic>>(
@@ -104,28 +147,73 @@ class JellyfinItemsApi {
     );
   }
 
-  /// Cheaper alternative to [list] when you only need the count — sets
-  /// `Limit=0&EnableTotalRecordCount=true` so the server returns just
-  /// the total.
+  /// How many items match — without transferring them.
+  ///
+  /// Sends `limit=0&enableTotalRecordCount=true`, so the server counts
+  /// the match set and returns an empty page. Takes the same narrowing
+  /// parameters as [list] (minus paging, sorting and field selection),
+  /// so any query you can page you can also count.
   Future<int> count({
     String? parentId,
     List<String> includeItemTypes = const [],
+    List<String> excludeItemTypes = const [],
+    List<String> mediaTypes = const [],
+    String? searchTerm,
     List<String> filters = const [],
+    List<String> ids = const [],
+    List<String> excludeItemIds = const [],
+    List<String> genreIds = const [],
+    List<String> genres = const [],
+    List<String> artistIds = const [],
+    List<String> artists = const [],
+    List<String> albumArtistIds = const [],
+    List<String> contributingArtistIds = const [],
+    List<String> albumIds = const [],
+    List<String> albums = const [],
+    List<String> studioIds = const [],
+    List<String> studios = const [],
+    List<String> personIds = const [],
+    List<String> tags = const [],
+    List<String> officialRatings = const [],
+    List<int> years = const [],
+    String? nameStartsWith,
+    bool? isFavorite,
+    bool? isPlayed,
+    bool recursive = true,
   }) async {
-    final userId = _http.requireUserId();
-    final qp = <String, dynamic>{
-      'userId': userId,
-      'recursive': true,
-      'limit': 0,
-      'enableImages': false,
-      'enableUserData': false,
-      'enableTotalRecordCount': true,
-    };
-    if (parentId != null) qp['parentId'] = parentId;
-    if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
-    }
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
+    final qp = _narrowing(
+      parentId: parentId,
+      includeItemTypes: includeItemTypes,
+      excludeItemTypes: excludeItemTypes,
+      mediaTypes: mediaTypes,
+      searchTerm: searchTerm,
+      filters: filters,
+      ids: ids,
+      excludeItemIds: excludeItemIds,
+      genreIds: genreIds,
+      genres: genres,
+      artistIds: artistIds,
+      artists: artists,
+      albumArtistIds: albumArtistIds,
+      contributingArtistIds: contributingArtistIds,
+      albumIds: albumIds,
+      albums: albums,
+      studioIds: studioIds,
+      studios: studios,
+      personIds: personIds,
+      tags: tags,
+      officialRatings: officialRatings,
+      years: years,
+      nameStartsWith: nameStartsWith,
+      isFavorite: isFavorite,
+      isPlayed: isPlayed,
+      recursive: recursive,
+      enableTotalRecordCount: true,
+    )
+      ..['limit'] = 0
+      ..['enableImages'] = false
+      ..['enableUserData'] = false;
+
     final res = await _http.request<Map<String, dynamic>>(
       '/Items',
       queryParameters: qp,
@@ -136,6 +224,81 @@ class JellyfinItemsApi {
     if (v is int) return v;
     if (v is String) return int.tryParse(v) ?? 0;
     return 0;
+  }
+
+  /// Builds the `/Items` query parameters shared by [list] and [count].
+  ///
+  /// Lives in one place so the two can never drift apart: whatever
+  /// narrows a page also narrows a count. List values are handed to the
+  /// transport unjoined — see [JellyfinConnection.request].
+  Map<String, dynamic> _narrowing({
+    required String? parentId,
+    required List<String> includeItemTypes,
+    required List<String> excludeItemTypes,
+    required List<String> mediaTypes,
+    required String? searchTerm,
+    required List<String> filters,
+    required List<String> ids,
+    required List<String> excludeItemIds,
+    required List<String> genreIds,
+    required List<String> genres,
+    required List<String> artistIds,
+    required List<String> artists,
+    required List<String> albumArtistIds,
+    required List<String> contributingArtistIds,
+    required List<String> albumIds,
+    required List<String> albums,
+    required List<String> studioIds,
+    required List<String> studios,
+    required List<String> personIds,
+    required List<String> tags,
+    required List<String> officialRatings,
+    required List<int> years,
+    required String? nameStartsWith,
+    required bool? isFavorite,
+    required bool? isPlayed,
+    required bool recursive,
+    required bool enableTotalRecordCount,
+  }) {
+    final qp = <String, dynamic>{
+      'userId': _http.requireUserId(),
+      'recursive': recursive,
+      'enableTotalRecordCount': enableTotalRecordCount,
+    };
+    if (parentId != null) qp['parentId'] = parentId;
+    if (includeItemTypes.isNotEmpty) {
+      qp['includeItemTypes'] = includeItemTypes;
+    }
+    if (excludeItemTypes.isNotEmpty) {
+      qp['excludeItemTypes'] = excludeItemTypes;
+    }
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      qp['searchTerm'] = searchTerm;
+    }
+    if (filters.isNotEmpty) qp['filters'] = filters;
+    if (ids.isNotEmpty) qp['ids'] = ids;
+    if (excludeItemIds.isNotEmpty) qp['excludeItemIds'] = excludeItemIds;
+    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds;
+    if (genres.isNotEmpty) qp['genres'] = genres;
+    if (artistIds.isNotEmpty) qp['artistIds'] = artistIds;
+    if (artists.isNotEmpty) qp['artists'] = artists;
+    if (albumArtistIds.isNotEmpty) qp['albumArtistIds'] = albumArtistIds;
+    if (contributingArtistIds.isNotEmpty) {
+      qp['contributingArtistIds'] = contributingArtistIds;
+    }
+    if (albumIds.isNotEmpty) qp['albumIds'] = albumIds;
+    if (albums.isNotEmpty) qp['albums'] = albums;
+    if (studioIds.isNotEmpty) qp['studioIds'] = studioIds;
+    if (studios.isNotEmpty) qp['studios'] = studios;
+    if (personIds.isNotEmpty) qp['personIds'] = personIds;
+    if (tags.isNotEmpty) qp['tags'] = tags;
+    if (officialRatings.isNotEmpty) qp['officialRatings'] = officialRatings;
+    if (years.isNotEmpty) qp['years'] = years;
+    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
+    if (isFavorite != null) qp['isFavorite'] = isFavorite;
+    if (isPlayed != null) qp['isPlayed'] = isPlayed;
+    return qp;
   }
 
   /// Single item by id. Returns null on 404.
@@ -177,7 +340,7 @@ class JellyfinItemsApi {
     };
     if (limit != null) qp['limit'] = limit;
     if (parentId != null) qp['parentId'] = parentId;
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
     final res = await _http.request<Map<String, dynamic>>(
       '/UserItems/Resume',
       queryParameters: qp,
@@ -341,7 +504,7 @@ class JellyfinItemsApi {
     };
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (isPlayed != null) qp['isPlayed'] = isPlayed;
     final res = await _http.request<List<dynamic>>(

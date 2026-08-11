@@ -28,7 +28,7 @@ class JellyfinCollectionApi {
   }) async {
     final qp = <String, dynamic>{};
     if (name != null) qp['name'] = name;
-    if (ids.isNotEmpty) qp['ids'] = ids.join(',');
+    if (ids.isNotEmpty) qp['ids'] = ids;
     if (parentId != null) qp['parentId'] = parentId;
     if (isLocked != null) qp['isLocked'] = isLocked;
 
@@ -49,7 +49,7 @@ class JellyfinCollectionApi {
     await _http.request<void>(
       '/Collections/$collectionId/Items',
       method: 'POST',
-      queryParameters: {'ids': ids.join(',')},
+      queryParameters: {'ids': ids},
     );
   }
 
@@ -62,7 +62,7 @@ class JellyfinCollectionApi {
     await _http.request<void>(
       '/Collections/$collectionId/Items',
       method: 'DELETE',
-      queryParameters: {'ids': ids.join(',')},
+      queryParameters: {'ids': ids},
     );
   }
 }

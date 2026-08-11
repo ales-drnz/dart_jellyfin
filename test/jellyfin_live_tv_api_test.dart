@@ -121,17 +121,22 @@ void main() {
     test('serialized sortBy is a valid ItemSortBy enum member', () async {
       await client.liveTv
           .channels(sortBy: const ['SortName'], descending: true);
-      final qp = adapter.last!.queryParameters;
-      expect(qp.containsKey('sortBy'), isTrue);
-      final emitted = (qp['sortBy'] as String).split(',');
-      for (final s in emitted) {
+      final query = adapter.last!.uri.queryParametersAll;
+      expect(query.containsKey('sortBy'), isTrue);
+      for (final s in query['sortBy']!) {
         expect(
           _itemSortBy.contains(s),
           isTrue,
           reason: '"$s" is not an ItemSortBy enum member',
         );
       }
-      expect(qp['sortOrder'], 'Descending');
+      expect(adapter.last!.queryParameters['sortOrder'], 'Descending');
+    });
+
+    test('multi-column sortBy is repeated, never delimiter-joined', () async {
+      await client.liveTv.channels(sortBy: const ['SortName', 'PlayCount']);
+      final query = adapter.last!.uri.queryParametersAll;
+      expect(query['sortBy'], ['SortName', 'PlayCount']);
     });
   });
 

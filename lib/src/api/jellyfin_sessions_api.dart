@@ -70,8 +70,8 @@ class JellyfinSessionsApi {
       '/Sessions/Capabilities',
       method: 'POST',
       queryParameters: {
-        'playableMediaTypes': playableMediaTypes.join(','),
-        'supportedCommands': supportedCommands.join(','),
+        'playableMediaTypes': playableMediaTypes,
+        'supportedCommands': supportedCommands,
         'supportsMediaControl': supportsMediaControl,
         'supportsPersistentIdentifier': supportsPersistentIdentifier,
       },
@@ -125,7 +125,7 @@ class JellyfinSessionsApi {
   }) async {
     final qp = <String, dynamic>{
       'playCommand': playCommand,
-      'itemIds': itemIds.join(','),
+      'itemIds': itemIds,
     };
     if (startPositionTicks != null) {
       qp['startPositionTicks'] = startPositionTicks;

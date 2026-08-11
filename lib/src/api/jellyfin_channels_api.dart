@@ -68,11 +68,11 @@ class JellyfinChannelsApi {
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy.join(',');
+      qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (filters.isNotEmpty) qp['filters'] = filters;
+    if (fields.isNotEmpty) qp['fields'] = fields;
 
     final res = await _http.request<Map<String, dynamic>>(
       '/Channels/$channelId/Items',
@@ -97,9 +97,9 @@ class JellyfinChannelsApi {
     if (userId != null) qp['userId'] = userId;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
-    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds.join(',');
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds;
+    if (filters.isNotEmpty) qp['filters'] = filters;
+    if (fields.isNotEmpty) qp['fields'] = fields;
 
     final res = await _http.request<Map<String, dynamic>>(
       '/Channels/Items/Latest',

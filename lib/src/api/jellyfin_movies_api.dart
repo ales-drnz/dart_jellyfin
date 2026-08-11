@@ -33,7 +33,7 @@ class JellyfinMoviesApi {
     if (parentId != null) qp['parentId'] = parentId;
     if (categoryLimit != null) qp['categoryLimit'] = categoryLimit;
     if (itemLimit != null) qp['itemLimit'] = itemLimit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
 
     final res = await _http.request<List<dynamic>>(
       '/Movies/Recommendations',

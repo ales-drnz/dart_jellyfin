@@ -25,7 +25,7 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.1.0
+  dart_jellyfin: ^0.1.1
 ```
 
 ---
@@ -651,9 +651,9 @@ final page = await jellyfin.items.list(
   limit: 50,
   searchTerm: 'pink',          // optional substring filter
   filters: const ['IsFavorite'], // optional ItemFilters
-  artistIds: artistId,
-  genreIds: genreId,
-  fields: JellyfinItemsApi.musicFields, // sensible default; override as needed
+  artistIds: [artistId],
+  genreIds: [genreId],
+  fields: JellyfinItemsApi.musicFields, // opt in to the music field set
 );
 print('${page.items.length} of ${page.totalRecordCount}');
 ```
@@ -661,23 +661,43 @@ print('${page.items.length} of ${page.totalRecordCount}');
 The result is `JellyfinQueryResult<JellyfinItem>` carrying `items`,
 `totalRecordCount` and `startIndex`.
 
-**Fields preset.** `JellyfinItemsApi.musicFields` includes
-`Overview, Genres, MediaSources, MediaStreams, ProviderIds,
+**Id and name filters.** Every filter that takes more than one value is
+a `List<String>` — `ids`, `excludeItemIds`, `genreIds`, `artistIds`,
+`albumArtistIds`, `contributingArtistIds`, `albumIds`, `studioIds`,
+`personIds`, `tags`, `officialRatings`, and the name-based
+`genres`, `artists`, `albums`, `studios` (plus `years`, a `List<int>`).
+Pass the list; never join it yourself. Each element is sent as its own
+query parameter, which is the one encoding every Jellyfin endpoint reads
+correctly and the only one that survives a genre or tag containing a
+comma or a pipe.
+
+Prefer the id form over the name form where you have a choice: ids come
+back from `filter.facets()` and survive a rename.
+
+**Fields preset.** `fields` defaults to empty — the server's own
+projection. `JellyfinItemsApi.musicFields` is a ready-made set
+(`Overview, Genres, MediaSources, MediaStreams, ProviderIds,
 PrimaryImageAspectRatio, SortName, DateCreated, ChildCount, ParentId,
-Path, OriginalTitle, AlbumPrimaryImageTag`. Pass your own list when
-you need different fields, Jellyfin defaults to a very thin payload.
+Path, OriginalTitle, AlbumPrimaryImageTag`) to pass when you are
+browsing music; pass your own list for anything else.
 
 #### 4.3 Counting items
+
+`count()` takes the same narrowing parameters as `list()` — minus
+paging, sorting and field selection — so any query you can page you can
+also count:
 
 ```dart
 final count = await jellyfin.items.count(
   parentId: music.id,
   includeItemTypes: const [JellyfinItemKind.musicAlbum],
+  genreIds: [genreId],
+  searchTerm: 'pink',
 );
 ```
 
 Issues a request with `Limit=0&EnableTotalRecordCount=true` so the
-server answers with just the total.
+server answers with just the total, without transferring the items.
 
 #### 4.4 Single item
 
@@ -760,6 +780,10 @@ final page = await jellyfin.playlists.items(
   limit: 100,
 );
 ```
+
+`fields` defaults to empty (the server's own projection). Playlists hold
+video as readily as audio, so pass `JellyfinItemsApi.musicFields`
+explicitly when you want the music field set.
 
 #### 5.3 Adding and removing
 
@@ -1746,11 +1770,16 @@ final episodes = await jellyfin.tvShows.episodes(
   seriesId: someSeriesId,
   season: 2,
   fields: const ['Overview', 'PrimaryImageAspectRatio'],
+  sortBy: 'PremiereDate',
 );
 ```
 
 Use `seasonId` instead of `season` to scope by the season item id
 rather than its index number.
+
+`sortBy` here is a single sort column, not a list: this endpoint binds
+one `ItemSortBy` value and has no sort-order knob, unlike the
+multi-column `sortBy` on `items.list()`.
 
 #### 20.3 Next Up
 
@@ -1874,7 +1903,8 @@ for (final g in facets.genres) {
 }
 ```
 
-Pair the returned ids with `items.list(genreIds: ids.join(','))`.
+Pair the returned ids with `items.list(genreIds: ids)` — pass the list
+as-is, the wrapper encodes it.
 
 #### 24.2 Legacy facets
 

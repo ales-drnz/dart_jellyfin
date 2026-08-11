@@ -19,6 +19,12 @@ class JellyfinTvShowsApi {
 
   /// `/Shows/{seriesId}/Episodes` — episodes of a series, optionally
   /// scoped to a single season (by number or by season item id).
+  ///
+  /// [sortBy] is a single `ItemSortBy` value (e.g. `'PremiereDate'`),
+  /// not a list: this endpoint binds one enum, unlike the multi-column
+  /// `sortBy` on [JellyfinItemsApi.list]. It also has no sort-order
+  /// knob — pass `'Random'` for shuffled order, or reverse the returned
+  /// page yourself.
   Future<JellyfinQueryResult<JellyfinItem>> episodes({
     required String seriesId,
     int? season,
@@ -29,7 +35,7 @@ class JellyfinTvShowsApi {
     int? startIndex,
     int? limit,
     List<String> fields = const [],
-    List<String> sortBy = const [],
+    String? sortBy,
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -48,11 +54,11 @@ class JellyfinTvShowsApi {
     if (startItemId != null) qp['startItemId'] = startItemId;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
-    if (sortBy.isNotEmpty) qp['sortBy'] = sortBy.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
+    if (sortBy != null) qp['sortBy'] = sortBy;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(
@@ -86,10 +92,10 @@ class JellyfinTvShowsApi {
     if (isSpecialSeason != null) qp['isSpecialSeason'] = isSpecialSeason;
     if (isMissing != null) qp['isMissing'] = isMissing;
     if (adjacentTo != null) qp['adjacentTo'] = adjacentTo;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(
@@ -133,11 +139,11 @@ class JellyfinTvShowsApi {
     if (parentId != null) qp['parentId'] = parentId;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (nextUpDateCutoff != null) qp['nextUpDateCutoff'] = nextUpDateCutoff;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(
@@ -170,10 +176,10 @@ class JellyfinTvShowsApi {
     if (parentId != null) qp['parentId'] = parentId;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(

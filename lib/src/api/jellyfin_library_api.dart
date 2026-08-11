@@ -41,7 +41,7 @@ class JellyfinLibraryApi {
   /// [similarShows], [similarTrailers].
   Future<JellyfinQueryResult<JellyfinItem>> similarItems({
     required String itemId,
-    String? excludeArtistIds,
+    List<String> excludeArtistIds = const [],
     int? limit,
     List<String> fields = const [],
     String? userId,
@@ -282,7 +282,7 @@ class JellyfinLibraryApi {
     await _http.request<void>(
       '/Items',
       method: 'DELETE',
-      queryParameters: {'ids': ids.join(',')},
+      queryParameters: {'ids': ids},
     );
   }
 
@@ -292,7 +292,7 @@ class JellyfinLibraryApi {
 
   Future<JellyfinQueryResult<JellyfinItem>> _similar(
     String path, {
-    String? excludeArtistIds,
+    List<String> excludeArtistIds = const [],
     int? limit,
     List<String> fields = const [],
     String? userId,
@@ -300,9 +300,11 @@ class JellyfinLibraryApi {
     final qp = <String, dynamic>{};
     final uid = userId ?? _http.userId;
     if (uid != null) qp['userId'] = uid;
-    if (excludeArtistIds != null) qp['excludeArtistIds'] = excludeArtistIds;
+    if (excludeArtistIds.isNotEmpty) {
+      qp['excludeArtistIds'] = excludeArtistIds;
+    }
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     final res = await _http.request<Map<String, dynamic>>(
       path,
       queryParameters: qp.isEmpty ? null : qp,

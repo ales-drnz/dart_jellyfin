@@ -52,12 +52,12 @@ class JellyfinSearchApi {
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
 
     final res = await _http.request<Map<String, dynamic>>(
       '/Search/Hints',

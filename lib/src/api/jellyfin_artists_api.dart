@@ -186,29 +186,29 @@ class JellyfinArtistsApi {
       qp['minCommunityRating'] = minCommunityRating;
     }
     if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy.join(',');
+      qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
-    if (filters.isNotEmpty) qp['filters'] = filters.join(',');
+    if (filters.isNotEmpty) qp['filters'] = filters;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
-    if (genres.isNotEmpty) qp['genres'] = genres.join('|');
-    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds.join('|');
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
+    if (genres.isNotEmpty) qp['genres'] = genres;
+    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds;
     if (officialRatings.isNotEmpty) {
-      qp['officialRatings'] = officialRatings.join('|');
+      qp['officialRatings'] = officialRatings;
     }
-    if (tags.isNotEmpty) qp['tags'] = tags.join('|');
-    if (years.isNotEmpty) qp['years'] = years.join(',');
+    if (tags.isNotEmpty) qp['tags'] = tags;
+    if (years.isNotEmpty) qp['years'] = years;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(

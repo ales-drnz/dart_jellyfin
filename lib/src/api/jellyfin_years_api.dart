@@ -45,20 +45,20 @@ class JellyfinYearsApi {
     if (parentId != null) qp['parentId'] = parentId;
     if (limit != null) qp['limit'] = limit;
     if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy.join(',');
+      qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes.join(',');
+    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
 
     final res = await _http.request<Map<String, dynamic>>(

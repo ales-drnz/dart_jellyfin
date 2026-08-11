@@ -1,3 +1,28 @@
+## [0.1.1] - 11-08-2026
+
+### Breaking
+- `items.list()` takes `genreIds`, `artistIds` and `albumIds` as `List<String>` instead of a pre-joined `String`. Write `genreIds: ['id1', 'id2']` instead of `genreIds: 'id1,id2'`. The old form made you guess the separator, and the guess was wrong on some endpoints.
+- `items.list()` no longer defaults `fields` to the music field set — it now defaults to empty, which is the server's own projection. `/Items` also serves video and photo libraries, where those fields were cost with no benefit. Pass `fields: JellyfinItemsApi.musicFields` to get the old payload back.
+- `playlists.items()` likewise no longer defaults `fields` to the music field set. Same fix: pass `fields: JellyfinItemsApi.musicFields`.
+- `JellyfinItemsApiFieldsAdapter` is gone. It was a copy of `JellyfinItemsApi.musicFields` that could drift from the original. Use `JellyfinItemsApi.musicFields`.
+- `tvShows.episodes()` takes `sortBy` as a single `String?`, not a `List<String>`. Write `sortBy: 'PremiereDate'` instead of `sortBy: const ['PremiereDate']`. This endpoint accepts one sort column, unlike `items.list()`; a list of two never sorted by either.
+- `library.similarItems()` takes `excludeArtistIds` as `List<String>` instead of a pre-joined `String`. Write `excludeArtistIds: ['id1', 'id2']`.
+
+### Added
+- `items.list()` gained the rest of the filter panel: `excludeItemIds`, `albumArtistIds`, `contributingArtistIds`, `studioIds`, `personIds`, `tags`, `officialRatings`, `years`, `nameStartsWith`, `isFavorite`, `isPlayed`, `enableTotalRecordCount`, and the name-based counterparts `genres`, `artists`, `albums`, `studios`. All of them were reachable on the server already; none of them were reachable from this package.
+- `genres.list()` and `musicGenres.list()` gained `descending`. They accepted `sortBy` but had no way to reverse it.
+
+### Changed
+- Every multi-value query parameter is now sent as one repeated parameter per value (`genreIds=a&genreIds=b`) instead of a joined string. Jellyfin reads array parameters with a comma-delimited binder on some endpoints and a pipe-delimited one on others, and both take repeated values as-is — so this is the one encoding that is right everywhere, and it no longer breaks on a genre, tag or studio name that contains a comma or a pipe.
+- `items.count()` takes the same narrowing parameters as `items.list()`. It previously accepted only `parentId`, `includeItemTypes` and `filters`, so counting a genre- or search-scoped set meant calling `list()` and throwing the items away.
+- `items.list()` only sends a sort order when you actually asked for a sort. The server ignores an order with no column to apply it to; the other browse methods already behaved this way.
+- `musicGenres.list()` documents that `GET /MusicGenres` is hidden from the published API document and obsolete upstream. It still works. `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])` is the supported replacement.
+
+### Fixed
+- Filtering artists by genre works with more than one genre now. `artists.list()` and `artists.albumArtists()` joined `genreIds` with `|`, but that endpoint reads it comma-separated, so the whole value failed to parse and was dropped — leaving the results unfiltered rather than erroring. The 0.1.0 fix only ever worked for a single genre, where the separator never appears.
+- Sorting episodes works now. `tvShows.episodes()` sent `sortBy` comma-joined to a parameter that accepts a single value.
+- Filter values containing a comma or a pipe are no longer split into fragments. A genre named `Rock, Pop` now filters on `Rock, Pop`.
+
 ## [0.1.0] - 30-06-2026
 
 ### Deprecated

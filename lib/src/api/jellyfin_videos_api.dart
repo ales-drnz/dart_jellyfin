@@ -131,7 +131,7 @@ class JellyfinVideosApi {
     await _http.request<void>(
       '/Videos/MergeVersions',
       method: 'POST',
-      queryParameters: {'ids': ids.join(',')},
+      queryParameters: {'ids': ids},
     );
   }
 

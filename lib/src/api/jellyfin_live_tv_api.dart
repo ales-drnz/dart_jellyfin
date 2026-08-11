@@ -40,7 +40,7 @@ class JellyfinLiveTvApi {
       'userId': _http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
-      if (sortBy.isNotEmpty) 'sortBy': sortBy.join(','),
+      if (sortBy.isNotEmpty) 'sortBy': sortBy,
       'sortOrder': descending ? 'Descending' : 'Ascending',
     };
     if (limit != null) qp['limit'] = limit;
@@ -102,9 +102,9 @@ class JellyfinLiveTvApi {
       'userId': _http.userId,
       'startIndex': startIndex,
       'sortOrder': descending ? 'Descending' : 'Ascending',
-      if (sortBy.isNotEmpty) 'sortBy': sortBy.join(','),
+      if (sortBy.isNotEmpty) 'sortBy': sortBy,
     };
-    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds.join(',');
+    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds;
     if (minStartDate != null) qp['minStartDate'] = minStartDate;
     if (maxStartDate != null) qp['maxStartDate'] = maxStartDate;
     if (minEndDate != null) qp['minEndDate'] = minEndDate;
@@ -579,7 +579,7 @@ class JellyfinLiveTvApi {
     if (status != null) qp['status'] = status;
     if (isInProgress != null) qp['isInProgress'] = isInProgress;
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     final res = await _http.request<Map<String, dynamic>>(
       '/LiveTv/Recordings/Series',
       queryParameters: qp,

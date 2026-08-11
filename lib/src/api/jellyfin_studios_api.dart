@@ -44,17 +44,17 @@ class JellyfinStudiosApi {
       qp['searchTerm'] = searchTerm;
     }
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes.join(',');
+      qp['includeItemTypes'] = includeItemTypes;
     }
     if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes.join(',');
+      qp['excludeItemTypes'] = excludeItemTypes;
     }
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes.join(',');
+      qp['enableImageTypes'] = enableImageTypes;
     }
     if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
     if (nameStartsWithOrGreater != null) {

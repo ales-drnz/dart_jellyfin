@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import 'jellyfin_items_api.dart';
 
 /// `/Playlists/*`.
 class JellyfinPlaylistsApi {
@@ -68,17 +69,21 @@ class JellyfinPlaylistsApi {
   }
 
   /// Items in a playlist (`/Playlists/{id}/Items`).
+  ///
+  /// [fields] defaults to the empty list — the server's own projection.
+  /// Playlists hold video as readily as audio, so pass
+  /// [JellyfinItemsApi.musicFields] when you want the music set.
   Future<JellyfinQueryResult<JellyfinItem>> items({
     required String playlistId,
     int startIndex = 0,
     int? limit,
-    List<String> fields = JellyfinItemsApiFieldsAdapter.musicFields,
+    List<String> fields = const [],
   }) async {
     final userId = _http.requireUserId();
     final qp = <String, dynamic>{
       'userId': userId,
       'startIndex': startIndex,
-      if (fields.isNotEmpty) 'fields': fields.join(','),
+      if (fields.isNotEmpty) 'fields': fields,
     };
     if (limit != null) qp['limit'] = limit;
     final res = await _http.request<Map<String, dynamic>>(
@@ -102,7 +107,7 @@ class JellyfinPlaylistsApi {
       '/Playlists/$playlistId/Items',
       method: 'POST',
       queryParameters: {
-        'ids': itemIds.join(','),
+        'ids': itemIds,
         'userId': userId,
       },
     );
@@ -118,7 +123,7 @@ class JellyfinPlaylistsApi {
     await _http.request<void>(
       '/Playlists/$playlistId/Items',
       method: 'DELETE',
-      queryParameters: {'entryIds': entryIds.join(',')},
+      queryParameters: {'entryIds': entryIds},
     );
   }
 
@@ -247,27 +252,4 @@ class JellyfinPlaylistsApi {
       method: 'DELETE',
     );
   }
-}
-
-/// Tiny adapter so this file can reference the music-fields constant
-/// without forming a circular import with [jellyfin_items_api.dart].
-/// Keeps both file dependency directions clean.
-abstract final class JellyfinItemsApiFieldsAdapter {
-  /// Default `fields` set used when fetching music items — matches the
-  /// list in [JellyfinItemsApi] without re-importing it.
-  static const List<String> musicFields = [
-    'Overview',
-    'Genres',
-    'MediaSources',
-    'MediaStreams',
-    'ProviderIds',
-    'PrimaryImageAspectRatio',
-    'SortName',
-    'DateCreated',
-    'ChildCount',
-    'ParentId',
-    'Path',
-    'OriginalTitle',
-    'AlbumPrimaryImageTag',
-  ];
 }

@@ -31,7 +31,7 @@ class JellyfinUserViewsApi {
     if (includeExternalContent != null) {
       qp['includeExternalContent'] = includeExternalContent;
     }
-    if (presetViews.isNotEmpty) qp['presetViews'] = presetViews.join(',');
+    if (presetViews.isNotEmpty) qp['presetViews'] = presetViews;
     if (includeHidden != null) qp['includeHidden'] = includeHidden;
 
     final res = await _http.request<Map<String, dynamic>>(

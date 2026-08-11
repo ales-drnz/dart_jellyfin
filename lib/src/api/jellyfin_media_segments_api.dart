@@ -27,7 +27,7 @@ class JellyfinMediaSegmentsApi {
   }) async {
     final qp = <String, dynamic>{};
     if (includeSegmentTypes.isNotEmpty) {
-      qp['includeSegmentTypes'] = includeSegmentTypes.join(',');
+      qp['includeSegmentTypes'] = includeSegmentTypes;
     }
     final res = await _http.request<Map<String, dynamic>>(
       '/MediaSegments/$itemId',

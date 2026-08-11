@@ -33,8 +33,8 @@ class JellyfinSuggestionsApi {
     };
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    if (mediaType.isNotEmpty) qp['mediaType'] = mediaType.join(',');
-    if (type.isNotEmpty) qp['type'] = type.join(',');
+    if (mediaType.isNotEmpty) qp['mediaType'] = mediaType;
+    if (type.isNotEmpty) qp['type'] = type;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
 

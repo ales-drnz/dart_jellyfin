@@ -187,7 +187,7 @@ class JellyfinInstantMixApi {
       ...extra,
     };
     if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields.join(',');
+    if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
 
     final res = await _http.request<Map<String, dynamic>>(
