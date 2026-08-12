@@ -26,6 +26,11 @@
 ///    `test/integration/.bootstrap-cache.json` that integration
 ///    tests pick up via [bootstrapCache] in their fixtures.
 ///
+/// Run this instead of `docker compose up`, not after it. Step 2 has
+/// to happen before step 3: the compose file bind-mounts the seed
+/// directory, and a rootful Docker daemon creates a missing bind-mount
+/// source as root, which would then lock this script out of it.
+///
 /// The cache file is gitignored (see `.gitignore` at the library
 /// root). Tearing the stack down with `docker compose down` keeps
 /// the volumes; `docker compose down -v` wipes them so the next
@@ -42,6 +47,16 @@ import 'package:http/http.dart' as http;
 const String _integrationDir = 'test/integration';
 const String _envFile = '$_integrationDir/.env.test';
 const String _composeFile = '$_integrationDir/docker-compose.yml';
+
+/// Genre tag per seed track, in track order. Two distinct genres plus
+/// one untagged track is the minimum that makes a multi-genre filter
+/// falsifiable: `genreIds: [ambient, fieldRecording]` must return the
+/// first two tracks and *not* the third. A filter the server failed to
+/// parse is silently dropped and returns all three, so without the
+/// untagged track the pass and the failure look identical.
+///
+/// Exercised by `filtering_integration_test.dart`.
+const List<String?> _seedGenres = ['Ambient', 'Field Recording', null];
 const String _seedDir = '$_integrationDir/seed/jellyfin';
 const String _cacheFile = '$_integrationDir/.bootstrap-cache.json';
 
@@ -135,6 +150,42 @@ Future<void> main(List<String> args) async {
 
 // ─── Steps ──────────────────────────────────────────────────────────
 
+/// Fails early, and legibly, when the seed directory exists but isn't
+/// writable by the current user.
+///
+/// The usual cause is `docker compose up` having run first: the compose
+/// file bind-mounts `./seed/jellyfin`, and a rootful Docker daemon
+/// creates a missing bind-mount source as root. Everything after this
+/// point would then die on a bare `PathAccessException` several frames
+/// deep, which says nothing about the cause or the cure.
+void _assertWritable(Directory dir) {
+  final probe = File('${dir.path}/.write-probe');
+  try {
+    probe.writeAsStringSync('');
+    probe.deleteSync();
+  } on FileSystemException {
+    final user = Platform.environment['USER'] ?? r'$USER';
+    // Point at the parent: when a rootful daemon creates the bind-mount
+    // source, it creates the whole missing chain as root, and this is
+    // the path the integration README tells you to reclaim.
+    final reclaim = dir.parent.path;
+    stderr.writeln(
+      '\n✗ ${dir.path} exists but is not writable by the current user.\n'
+      '\n'
+      '  This usually means `docker compose up` ran before this script,\n'
+      '  and the Docker daemon created the bind-mount directory as root.\n'
+      '\n'
+      '  Hand it back, then re-run this script:\n'
+      '\n'
+      '      sudo chown -R "$user" $reclaim\n'
+      '\n'
+      '  There is no need to bring the stack up yourself — this script\n'
+      '  does it, after creating the seed directories as you.\n',
+    );
+    exit(1);
+  }
+}
+
 Future<void> _ensureSeedMedia(String dir, {required bool force}) async {
   final root = Directory(dir);
   if (root.existsSync() && !force) {
@@ -149,6 +200,7 @@ Future<void> _ensureSeedMedia(String dir, {required bool force}) async {
     }
   }
   await root.create(recursive: true);
+  _assertWritable(root);
 
   final hasFfmpeg = await _hasCommand('ffmpeg');
   if (!hasFfmpeg) {
@@ -163,6 +215,7 @@ Future<void> _ensureSeedMedia(String dir, {required bool force}) async {
   print('   ▶ ffmpeg: generating 3 silence MP3s');
   for (var i = 1; i <= 3; i++) {
     final path = '$musicDir/${i.toString().padLeft(2, '0')} - Track $i.mp3';
+    final genre = _seedGenres[i - 1];
     final r = await Process.run('ffmpeg', [
       '-y',
       '-loglevel',
@@ -187,6 +240,7 @@ Future<void> _ensureSeedMedia(String dir, {required bool force}) async {
       'track=$i',
       '-metadata',
       'date=2020',
+      if (genre != null) ...['-metadata', 'genre=$genre'],
       path,
     ]);
     if (r.exitCode != 0) {

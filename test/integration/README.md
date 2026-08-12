@@ -16,26 +16,34 @@ integration suite below is opt-in via the `integration` tag.
    you a working `docker compose`).
 2. Copy `.env.test.example` to `.env.test`. The defaults work as-is
    for Jellyfin; no external account is needed.
-3. Bring up the stack:
-
-   ```sh
-   docker compose up -d
-   ```
-
-4. (First time only) Run the bootstrap to drive the first-run wizard,
-   create the admin user, add the seed library and trigger a scan:
+3. Run the bootstrap. It generates the seed media, brings the stack
+   up, drives the first-run wizard, creates the admin user, adds the
+   library and triggers a scan:
 
    ```sh
    dart run test/integration/bootstrap.dart
    ```
 
-5. Run the integration tests:
+   Don't run `docker compose up` yourself beforehand. The compose file
+   bind-mounts `./seed/jellyfin`, and Docker creates a missing
+   bind-mount source directory as **root** — after which the bootstrap
+   can't write the seed media into it. The bootstrap creates those
+   directories as your user *before* it brings the stack up, which is
+   why the order matters. (Rootless Docker doesn't have this problem.)
+
+   If you already hit it, hand the directory back and re-run:
+
+   ```sh
+   sudo chown -R "$USER" test/integration/seed
+   ```
+
+4. Run the integration tests:
 
    ```sh
    dart test --tags integration
    ```
 
-6. Tear down when done:
+5. Tear down when done:
 
    ```sh
    docker compose down       # keeps volumes (~30s next start)

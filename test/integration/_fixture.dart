@@ -18,13 +18,49 @@ import 'package:dart_jellyfin/dart_jellyfin.dart';
 
 const String _cacheFile = 'test/integration/.bootstrap-cache.json';
 
-/// Skip reason for the integration suite when the bootstrap hasn't
-/// been run yet. Pass to `group(..., skip: bootstrapSkipReason)` so
+/// Skip reason for the integration suite, or `null` when it can
+/// actually run. Pass to `group(..., skip: bootstrapSkipReason)` so
 /// `dart test` shows a clear message instead of failing.
+///
+/// Checks two things, because the cache alone is not enough: it stays
+/// on disk after `docker compose down`, and a stale cache used to let
+/// the whole suite run against nothing and fail with a wall of
+/// `Connection refused` — noise that says nothing about the cause.
+///
+/// `skip:` is evaluated synchronously while the group is declared, so
+/// the reachability probe has to be synchronous too: hence
+/// [RawSynchronousSocket] rather than an HTTP request.
 String? get bootstrapSkipReason {
-  if (File(_cacheFile).existsSync()) return null;
-  return 'Bootstrap cache missing at $_cacheFile. '
-      'Run `dart run test/integration/bootstrap.dart` first.';
+  if (!File(_cacheFile).existsSync()) {
+    return 'Bootstrap cache missing at $_cacheFile. '
+        'Run `dart run test/integration/bootstrap.dart` first.';
+  }
+  final Uri uri;
+  try {
+    uri = Uri.parse(JellyfinBootstrapCache.load().baseUrl);
+  } on Object {
+    return 'Bootstrap cache at $_cacheFile is unreadable. '
+        'Delete it and re-run `dart run test/integration/bootstrap.dart`.';
+  }
+  if (!_isReachable(uri.host, uri.port)) {
+    return 'Jellyfin at ${uri.host}:${uri.port} is not reachable, but '
+        '$_cacheFile still exists — the stack is probably down. '
+        'Run `dart run test/integration/bootstrap.dart` to bring it '
+        'back up, or delete the cache to skip these tests.';
+  }
+  return null;
+}
+
+/// Synchronous TCP reachability probe. Returns `false` on any socket
+/// error — the caller only needs "can these tests talk to a server",
+/// and every failure mode has the same answer.
+bool _isReachable(String host, int port) {
+  try {
+    RawSynchronousSocket.connectSync(host, port).closeSync();
+    return true;
+  } on SocketException {
+    return false;
+  }
 }
 
 class JellyfinBootstrapCache {
