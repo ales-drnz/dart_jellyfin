@@ -92,7 +92,7 @@ class JellyfinHlsApi {
     String? playSessionId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (playSessionId != null) 'PlaySessionId': playSessionId,
     };
@@ -202,7 +202,7 @@ class JellyfinHlsApi {
     String? playSessionId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (playSessionId != null) 'PlaySessionId': playSessionId,
     };
@@ -223,7 +223,7 @@ class JellyfinHlsApi {
     Map<String, String> params = const {},
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
       if (maxStreamingBitrate != null)
@@ -248,7 +248,7 @@ class JellyfinHlsApi {
     required int segmentId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.aac?${_encode(qp)}';
@@ -261,7 +261,7 @@ class JellyfinHlsApi {
     required int segmentId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.mp3?${_encode(qp)}';
@@ -277,7 +277,7 @@ class JellyfinHlsApi {
     required String segmentContainer,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/$segmentId.$segmentContainer?${_encode(qp)}';
@@ -290,7 +290,7 @@ class JellyfinHlsApi {
     required String playlistId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${_encode(qp)}';
@@ -301,6 +301,14 @@ class JellyfinHlsApi {
   /// stop (defaults to the connection's device id) and the
   /// [playSessionId] of the encoding to stop. The server marks both
   /// query parameters as required, so [playSessionId] is mandatory.
+  ///
+  /// Jellyfin 12 hides every HLS controller from the OpenAPI
+  /// document; this route still answers but may be removed without
+  /// notice. `playback.stopped()` ends the session the supported way.
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API and may be removed without notice; '
+    'use playback.stopped() instead.',
+  )
   Future<void> stopEncoding({
     String? deviceId,
     required String playSessionId,
@@ -331,7 +339,7 @@ class JellyfinHlsApi {
     bool breakOnNonKeyFrames = false,
   }) {
     return <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
       if (maxStreamingBitrate != null)
@@ -368,7 +376,7 @@ class JellyfinHlsApi {
     bool breakOnNonKeyFrames = false,
   }) {
     return <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
       if (maxStreamingBitrate != null)

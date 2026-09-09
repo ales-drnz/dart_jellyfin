@@ -6,9 +6,12 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import 'jellyfin_lookup_helpers.dart';
 
-/// `/Persons*` — actors, directors, composers, etc.
+/// `/Persons*` — actors, directors, composers, artists, etc.
 ///
-/// Wraps the `Persons` OpenAPI tag (2 operations).
+/// Wraps the `Persons` OpenAPI tag (2 operations). Since Jellyfin 12
+/// music artists are people too, and `GET /Persons` is the declared
+/// successor of the `/Artists` routes; filter with
+/// `personTypes: ['Artist']` or `['AlbumArtist']`.
 class JellyfinPersonsApi {
   final JellyfinConnection _http;
 
@@ -17,10 +20,18 @@ class JellyfinPersonsApi {
 
   /// `GET /Persons` — search people; filter by [personTypes]
   /// (e.g. `['Actor', 'Director']`) or to people who appear in a
-  /// specific item via [appearsInItemId].
+  /// specific item via [appearsInItemId]. [parentId] scopes the
+  /// result to one library; [nameStartsWith], [nameStartsWithOrGreater]
+  /// and [nameLessThan] drive an alphabet picker; [startIndex] and
+  /// [limit] page it.
   Future<JellyfinQueryResult<JellyfinItem>> list({
+    int? startIndex,
     int? limit,
     String? searchTerm,
+    String? parentId,
+    String? nameStartsWith,
+    String? nameStartsWithOrGreater,
+    String? nameLessThan,
     List<String> fields = const [],
     List<String> filters = const [],
     bool? isFavorite,
@@ -38,10 +49,17 @@ class JellyfinPersonsApi {
     };
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
+    if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }
+    if (parentId != null) qp['parentId'] = parentId;
+    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
+    if (nameStartsWithOrGreater != null) {
+      qp['nameStartsWithOrGreater'] = nameStartsWithOrGreater;
+    }
+    if (nameLessThan != null) qp['nameLessThan'] = nameLessThan;
     if (fields.isNotEmpty) qp['fields'] = fields;
     if (filters.isNotEmpty) qp['filters'] = filters;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;

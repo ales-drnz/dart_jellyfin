@@ -6,7 +6,7 @@ import '../jellyfin_connection.dart';
 
 /// `/Environment` — server-host filesystem browse helpers.
 ///
-/// Wraps the `Environment` OpenAPI tag (6 operations). Admin only.
+/// Wraps the `Environment` OpenAPI tag (5 operations). Admin only.
 /// Used by the dashboard "Add library" flow to browse the server's
 /// filesystem when choosing a media folder root.
 class JellyfinEnvironmentApi {
@@ -53,18 +53,6 @@ class JellyfinEnvironmentApi {
   /// `GET /Environment/Drives` — every drive mounted on the server.
   Future<List<Map<String, dynamic>>> drives() async {
     final res = await _http.request<List<dynamic>>('/Environment/Drives');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, dynamic>) e,
-    ];
-  }
-
-  /// `GET /Environment/NetworkShares` — discovered SMB / network
-  /// shares on the server's host.
-  Future<List<Map<String, dynamic>>> networkShares() async {
-    final res =
-        await _http.request<List<dynamic>>('/Environment/NetworkShares');
     final l = res.data ?? const [];
     return [
       for (final e in l)

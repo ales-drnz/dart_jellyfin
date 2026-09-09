@@ -23,7 +23,7 @@ class JellyfinAudioApi {
   /// endpoint. The server decides whether to direct-play or transcode
   /// based on the supplied parameters.
   ///
-  /// Returns a fully signed URL with `api_key` set so `<audio>` /
+  /// Returns a fully signed URL with `ApiKey` set so `<audio>` /
   /// `Uri.parse` users don't need extra headers.
   String universalStreamUrl({
     required String itemId,
@@ -49,7 +49,7 @@ class JellyfinAudioApi {
     final qp = <String, String>{
       'UserId': _http.requireUserId(),
       'DeviceId': _http.credentials.deviceId,
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'Container': containers.join(','),
       'TranscodingContainer': transcodingContainer,
       'TranscodingProtocol': transcodingProtocol,
@@ -95,7 +95,7 @@ class JellyfinAudioApi {
     final path =
         ext.isEmpty ? '/Audio/$itemId/stream' : '/Audio/$itemId/stream.$ext';
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
     };

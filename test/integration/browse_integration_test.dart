@@ -36,7 +36,7 @@ void main() {
       test('audio.universalStreamUrl builds a signed playback URL', () {
         final url = jf.audio.universalStreamUrl(itemId: trackId);
         expect(url, contains('/Audio/$trackId/universal'));
-        expect(url, contains('api_key='));
+        expect(url, contains('ApiKey='));
         expect(url, contains('UserId='));
         expect(url, contains('DeviceId='));
       });

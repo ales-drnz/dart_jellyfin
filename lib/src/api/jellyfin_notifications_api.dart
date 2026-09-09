@@ -70,7 +70,7 @@ class JellyfinNotificationsApi {
         type: JellyfinErrorType.state,
       );
     }
-    final wsUrl = _toWs('$base/socket?api_key=$token'
+    final wsUrl = _toWs('$base/socket?ApiKey=$token'
         '&deviceId=${Uri.encodeQueryComponent(_http.credentials.deviceId)}');
 
     final WebSocketChannel channel;

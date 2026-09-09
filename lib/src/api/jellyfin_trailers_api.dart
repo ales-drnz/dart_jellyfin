@@ -7,11 +7,11 @@ import '../jellyfin_models.dart';
 
 /// `/Trailers` — server-curated trailer browsing.
 ///
-/// Wraps the `Trailers` OpenAPI tag (1 operation). The endpoint
-/// accepts the same broad set of filters as [JellyfinItemsApi.list]
-/// (search term, parent id, sort, paging) but is scoped server-side
-/// to trailer-typed items, so it's cheaper than a `Items.list(...)`
-/// with a manual type filter.
+/// Wraps the `Trailers` OpenAPI tag (1 operation). Jellyfin 12 marks
+/// `GET /Trailers` obsolete: it is a thin alias of `GET /Items` with
+/// `includeItemTypes=Trailer`, so
+/// `items.list(includeItemTypes: ['Trailer'])` takes the same filters
+/// and is the supported path.
 class JellyfinTrailersApi {
   final JellyfinConnection _http;
 
@@ -19,6 +19,11 @@ class JellyfinTrailersApi {
   JellyfinTrailersApi(this._http);
 
   /// `GET /Trailers` — list trailers visible to the current user.
+  ///
+  /// Obsolete in Jellyfin 12; still served through the 12.x cycle.
+  @Deprecated(
+    "Obsolete in Jellyfin 12; use items.list(includeItemTypes: ['Trailer']).",
+  )
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,

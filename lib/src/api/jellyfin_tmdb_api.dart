@@ -6,9 +6,12 @@ import '../jellyfin_connection.dart';
 
 /// `/Tmdb/ClientConfiguration` — TMDB client configuration.
 ///
-/// Wraps the `Tmdb` OpenAPI tag (1 operation). Returns the
-/// configuration the TMDB metadata plugin uses (image base URL,
-/// supported image sizes, …).
+/// Returns the configuration the TMDB metadata plugin uses (image
+/// base URL, supported image sizes, …).
+///
+/// The route is hidden from the Jellyfin 12 OpenAPI document. It
+/// still answers on 12.0 but may be removed in any major release
+/// without notice; there is no replacement.
 class JellyfinTmdbApi {
   final JellyfinConnection _http;
 
@@ -17,6 +20,10 @@ class JellyfinTmdbApi {
 
   /// `GET /Tmdb/ClientConfiguration` — TMDB metadata-provider
   /// configuration as a raw map.
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API and may be removed without notice; '
+    'no replacement exists.',
+  )
   Future<Map<String, dynamic>> clientConfiguration() async {
     final res = await _http.request<Map<String, dynamic>>(
       '/Tmdb/ClientConfiguration',

@@ -458,7 +458,7 @@ class JellyfinItemsApi {
   String downloadUrl(String itemId) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';
-    return '$base/Items/$itemId/Download?api_key=$token';
+    return '$base/Items/$itemId/Download?ApiKey=$token';
   }
 
   /// `GET /Items/{itemId}/File` — same as [downloadUrl] but the
@@ -467,7 +467,7 @@ class JellyfinItemsApi {
   String fileUrl(String itemId) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';
-    return '$base/Items/$itemId/File?api_key=$token';
+    return '$base/Items/$itemId/File?ApiKey=$token';
   }
 
   /// `GET /Items/{itemId}/SpecialFeatures` — bonus content (deleted

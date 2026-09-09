@@ -484,7 +484,7 @@ class JellyfinLiveTvApi {
   String liveRecordingStreamUrl(String recordingId) {
     final base = _requireBaseUrl();
     final token = _requireToken();
-    return '$base/LiveTv/LiveRecordings/$recordingId/stream?api_key=$token';
+    return '$base/LiveTv/LiveRecordings/$recordingId/stream?ApiKey=$token';
   }
 
   /// `GET /LiveTv/LiveStreamFiles/{streamId}/stream.{container}` —
@@ -495,25 +495,20 @@ class JellyfinLiveTvApi {
   }) {
     final base = _requireBaseUrl();
     final token = _requireToken();
-    return '$base/LiveTv/LiveStreamFiles/$streamId/stream.$container?api_key=$token';
-  }
-
-  /// `GET /LiveTv/Recordings/Groups/{groupId}` — fetch a single
-  /// recording group by id.
-  ///
-  /// Deprecated upstream: the spec declares no `200` response for this
-  /// operation (only `404`/`503`), so it will throw or yield an empty
-  /// map. The closest substitute, [recordingGroups], is itself
-  /// deprecated.
-  Future<Map<String, dynamic>> recordingGroup(String groupId) async {
-    final res = await _http.request<Map<String, dynamic>>(
-      '/LiveTv/Recordings/Groups/$groupId',
-    );
-    return res.data ?? const {};
+    return '$base/LiveTv/LiveStreamFiles/$streamId/stream.$container?ApiKey=$token';
   }
 
   /// `GET /LiveTv/Recordings/Groups` — list every recording group
   /// (categories the server uses to organise recordings).
+  ///
+  /// Hidden from the Jellyfin 12 OpenAPI document and marked obsolete
+  /// upstream, with no replacement. It still answers on 12.0 but may
+  /// be removed in any major release without notice. Use
+  /// [recordingFolders] or [recordings] where they fit.
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API and may be removed without notice; '
+    'use recordingFolders() or recordings() instead.',
+  )
   Future<JellyfinQueryResult<JellyfinItem>> recordingGroups({
     String? userId,
   }) async {
@@ -553,6 +548,15 @@ class JellyfinLiveTvApi {
   /// [status] is a `RecordingStatus` enum member: `New`, `InProgress`,
   /// `Completed`, `Cancelled`, `ConflictedOk`, `ConflictedNotOk` or
   /// `Error`.
+  ///
+  /// Hidden from the Jellyfin 12 OpenAPI document and marked obsolete
+  /// upstream, with no replacement. It still answers on 12.0 but may
+  /// be removed in any major release without notice. [recordings]
+  /// with `isSeries: true` covers the common case.
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API and may be removed without notice; '
+    'use recordings() instead.',
+  )
   Future<JellyfinQueryResult<JellyfinItem>> recordingsSeries({
     String? userId,
     String? channelId,

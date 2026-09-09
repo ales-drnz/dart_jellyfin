@@ -164,7 +164,8 @@ class JellyfinClient {
   /// `/UserViews` operations — per-user library shortcuts.
   late final JellyfinUserViewsApi userViews;
 
-  /// `/Persons` operations — list and fetch people.
+  /// `/Persons` operations — list and fetch people (artists included
+  /// since Jellyfin 12).
   late final JellyfinPersonsApi persons;
 
   /// `/Studios` operations — list and fetch studios.
@@ -173,7 +174,7 @@ class JellyfinClient {
   /// `/Genres` operations — list and fetch genres.
   late final JellyfinGenresApi genres;
 
-  /// `/MusicGenres` operations — list and fetch music genres.
+  /// `/MusicGenres` operations — obsolete in Jellyfin 12; use [genres].
   late final JellyfinMusicGenresApi musicGenres;
 
   /// `/Years` operations — list and fetch year groupings.
@@ -200,7 +201,7 @@ class JellyfinClient {
   /// `/System/Configuration` operations — server settings.
   late final JellyfinConfigurationApi configuration;
 
-  /// `/Environment` operations — filesystem and network probe.
+  /// `/Environment` operations — server-host filesystem browsing.
   late final JellyfinEnvironmentApi environment;
 
   /// `/Startup` operations — first-run wizard endpoints.
@@ -224,7 +225,7 @@ class JellyfinClient {
   /// `/ClientLog` operations — client-side log submission.
   late final JellyfinClientLogApi clientLog;
 
-  /// TMDB integration endpoints.
+  /// TMDB integration endpoints (hidden from the Jellyfin 12 API).
   late final JellyfinTmdbApi tmdb;
 
   /// `/RemoteImages` operations — fetch images from metadata providers.
@@ -233,7 +234,8 @@ class JellyfinClient {
   /// `/Devices` operations — list and manage registered devices.
   late final JellyfinDevicesApi devices;
 
-  /// `/Trailers` operations — list trailer items.
+  /// `/Trailers` operations — obsolete in Jellyfin 12; use
+  /// `items.list(includeItemTypes: ['Trailer'])`.
   late final JellyfinTrailersApi trailers;
 
   /// `/Notifications` operations — server notification feed.

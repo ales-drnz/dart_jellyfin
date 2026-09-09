@@ -1,3 +1,41 @@
+## [0.2.0] - 09-09-2026
+
+Targets Jellyfin `12.0` (released 8 September 2026).
+
+### Fixed
+- Every signed URL (`audio.universalStreamUrl()`, `audio.streamUrl()`, the HLS, subtitle, trickplay, video attachment, plugin image, live TV and `items.downloadUrl()` / `fileUrl()` builders) and the notifications WebSocket now carry the token as `ApiKey=…` instead of `api_key=…`. Jellyfin 12 only reads `api_key` when legacy authorization is enabled, which it no longer is by default, so on 12.0 the old URLs answered 401 and the socket handshake 403. Verified against a 12.0.0 server. If you build a stream URL by hand, switch the parameter name too.
+
+### Breaking
+- `library.criticReviews()` is gone. Jellyfin 12 removed `GET /Items/{itemId}/CriticReviews`; the call answered 404 on 12.0.
+- `environment.networkShares()` is gone. Jellyfin 12 removed `GET /Environment/NetworkShares`.
+- `liveTv.recordingGroup()` is gone. Jellyfin 12 removed `GET /LiveTv/Recordings/Groups/{groupId}`.
+- `playback.legacyStart()`, `legacyProgress()` and `legacyStopped()` are gone. They hit the `/PlayingItems/*` routes, which are hidden from the Jellyfin 12 API and may vanish without notice; `playback.start()`, `progress()` and `stopped()` send the same reports through `/Sessions/Playing`.
+- `JellyfinUser` no longer requires `hasPassword`, `hasConfiguredPassword` and `hasConfiguredEasyPassword` in its constructor. They default to `false` and are deprecated (below). Only code that builds a `JellyfinUser` by hand is affected.
+
+### Deprecated
+Everything below still works on 12.0. Jellyfin marks these routes obsolete or hides them from the API document, and its stated policy is that hidden routes may be removed in any major release without warning, so each one is `@Deprecated` with its replacement.
+- `trailers.list()` → `items.list(includeItemTypes: ['Trailer'])`.
+- `musicGenres.list()` → `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])`; `musicGenres.byName()` → `genres.byName()`.
+- `instantMix.fromMusicGenre()` and `fromMusicGenreById()` → `instantMix.fromItem(itemId: genreId)`; `instantMix.fromArtistByName()` → `fromArtist()` or `fromItem()` with the artist id.
+- `startup.configuration()`, `updateInitialConfiguration()`, `setRemoteAccess()` → the `configuration` API; `startup.firstUserAlt()` → `startup.firstUser()`.
+- `liveTv.recordingGroups()` and `recordingsSeries()` → `recordings()` / `recordingFolders()`. Hidden upstream, no direct replacement.
+- `hls.stopEncoding()` → `playback.stopped()`. Every HLS controller is hidden from the Jellyfin 12 API.
+- `tmdb.clientConfiguration()`. Hidden upstream, no replacement.
+- `JellyfinUser.hasPassword`, `hasConfiguredPassword` and `hasConfiguredEasyPassword`. Jellyfin 12 marks them obsolete; `HasPassword` no longer carries information and the EasyPassword feature was removed.
+
+### Added
+- `library.collections(itemId:)` — `GET /Items/{itemId}/Collections`, new in Jellyfin 12: every collection that includes an item, for an "Included in" row.
+- `persons.list()` gained `startIndex`, `parentId`, `nameStartsWith`, `nameStartsWithOrGreater` and `nameLessThan`. Jellyfin 12 merges artists into people and names `GET /Persons` the successor of the `/Artists` routes, so the wrapper now exposes the endpoint's full parameter set.
+
+### Changed
+- `artists.list()`, `albumArtists()` and `byName()` are marked obsolete upstream in favour of `/Persons`, but stay undeprecated here: `/Persons` has no sort or genre filter yet, so it is not an equivalent replacement. Expect them to go in Jellyfin 13.
+- Auth wording: the `Authorization: MediaBrowser` header is the only one Jellyfin 12 accepts by default (`EnableLegacyAuthorization` is off on new and upgraded installs, and the `/emby/*` and `/mediabrowser/*` prefixes are gone). The package already sent only that header since 0.1.0; docs and comments now say 12.0 instead of 10.12.
+- Integration stack defaults to the `jellyfin/jellyfin:12.0` image. Wipe old volumes (`docker compose down -v`) before the first run so the bootstrap starts from a clean 12.0 database instead of migrating a 10.11 one.
+
+### Notes
+- Jellyfin 12 changed `GET /Items` to apply `recursive` whenever filters and `includeItemTypes` are present. `items.list()` always sends `recursive` explicitly (default `true`), so results are unchanged.
+- Quick Connect is unaffected: the package already used `POST /QuickConnect/Initiate`; only the `GET` form was removed.
+
 ## [0.1.1] - 11-08-2026
 
 ### Breaking

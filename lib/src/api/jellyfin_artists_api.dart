@@ -14,6 +14,13 @@ import '../jellyfin_models.dart';
 /// targets the artist endpoints, which respect the server's
 /// canonical artist deduplication (an artist appears once even if
 /// they're credited on many tracks).
+///
+/// Jellyfin 12 merges artists into people and marks these three
+/// routes obsolete in favour of `GET /Persons` (see
+/// [JellyfinPersonsApi]). They are still served through the 12.x
+/// cycle, and `/Persons` has no sort or genre filters yet, so this
+/// package keeps them undeprecated until the replacement is
+/// equivalent. Expect them to go in 13.0.
 class JellyfinArtistsApi {
   final JellyfinConnection _http;
 

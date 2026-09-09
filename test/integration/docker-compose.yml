@@ -13,7 +13,7 @@ name: dart-jellyfin-test
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin:${JELLYFIN_IMAGE_TAG:-10.11.9}
+    image: jellyfin/jellyfin:${JELLYFIN_IMAGE_TAG:-12.0}
     container_name: dart-jellyfin-test
     ports:
       # Map host:container. Container always listens on 8096 inside.

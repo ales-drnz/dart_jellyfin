@@ -58,13 +58,13 @@ void main() {
       test('hls.audioMasterUrl builds a signed playlist URL', () {
         final url = jf.hls.audioMasterUrl(itemId: trackId);
         expect(url, contains('/Audio/$trackId/master.m3u8'));
-        expect(url, contains('api_key='));
+        expect(url, contains('ApiKey='));
       });
 
       test('hls.audioVariantUrl builds a signed playlist URL', () {
         final url = jf.hls.audioVariantUrl(itemId: trackId);
         expect(url, contains('/Audio/$trackId/main.m3u8'));
-        expect(url, contains('api_key='));
+        expect(url, contains('ApiKey='));
       });
 
       test('trickplay.tileUrl + hlsPlaylistUrl build signed image URLs', () {
@@ -74,7 +74,7 @@ void main() {
           index: 0,
         );
         expect(tile, contains('/Videos/$trackId/Trickplay/320/0.jpg'));
-        expect(tile, contains('api_key='));
+        expect(tile, contains('ApiKey='));
 
         final pl = jf.trickplay.hlsPlaylistUrl(
           itemId: trackId,
@@ -82,7 +82,7 @@ void main() {
           width: 320,
         );
         expect(pl, contains('tiles.m3u8'));
-        expect(pl, contains('api_key='));
+        expect(pl, contains('ApiKey='));
       });
 
       test('subtitles.streamUrl builds a signed sidecar URL', () {
@@ -92,7 +92,7 @@ void main() {
           index: 0,
         );
         expect(url, contains('/Subtitles/0/Stream.vtt'));
-        expect(url, contains('api_key='));
+        expect(url, contains('ApiKey='));
       });
 
       test('subtitles.fallbackFonts returns a (typically empty) list',

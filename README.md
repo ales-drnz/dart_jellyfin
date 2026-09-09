@@ -3,7 +3,7 @@
 #### Jellyfin client for Flutter and Dart.
 
 [![](https://img.shields.io/pub/v/dart_jellyfin.svg?style=for-the-badge&logo=dart&logoColor=white)](https://pub.dev/packages/dart_jellyfin)
-[![](https://img.shields.io/badge/jellyfin-v10.11.9-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
+[![](https://img.shields.io/badge/jellyfin-v12.0-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
 [![](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/github/stars/ales-drnz/dart_jellyfin?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ales-drnz/dart_jellyfin)
 [![](https://img.shields.io/discord/1485588004029333516?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/g2Qf4Mq9MP)
@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/dart_jellyfin.png" width="70" alt="logo"></td>
-<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin <code>v10.11.9</code>. It covers libraries, playlists, audio streaming, lyrics, playback reporting and search through typed Dart objects, and handles the session lifecycle for you.</td>
+<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin <code>v12.0</code>. It covers libraries, playlists, audio streaming, lyrics, playback reporting and search through typed Dart objects, and handles the session lifecycle for you.</td>
 </tr>
 </table>
 
@@ -25,7 +25,7 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.1.1
+  dart_jellyfin: ^0.2.0
 ```
 
 ---
@@ -301,6 +301,7 @@ dependencies:
 
     * [29.1 Creating a collection](#291-creating-a-collection)
     * [29.2 Adding and removing](#292-adding-and-removing)
+    * [29.3 Collections containing an item](#293-collections-containing-an-item)
 
     </details>
 
@@ -365,7 +366,7 @@ dependencies:
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/key-round.png" width="32"></td>
 <td valign="middle"><b>Both auth flows</b><br><code>user.authenticateByName()</code> for credentials, plus <code>quickConnect.initiate()</code> + <code>state()</code> + <code>user.authenticateWithQuickConnect()</code> for the Quick Connect link flow.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/wrench.png" width="32"></td>
-<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. Emitted as the single <code>Authorization: MediaBrowser</code> header. It is the only auth path Jellyfin 10.12+ honors.</td>
+<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. Emitted as the single <code>Authorization: MediaBrowser</code> header. It is the only auth path Jellyfin 12.0 accepts out of the box.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/layers.png" width="32"></td>
@@ -472,7 +473,10 @@ Authorization: MediaBrowser Client="MyApp", Device="iPhone", DeviceId="…uuid�
 After login the same line gets a `, Token="…"` suffix. Only this
 `Authorization: MediaBrowser` header is emitted; the deprecated
 `X-Emby-Authorization` and `X-MediaBrowser-Token` headers are no longer
-sent (they are off by default in Jellyfin 10.12 and removed in 10.13).
+sent. Jellyfin 12.0 rejects them by default (`EnableLegacyAuthorization`
+is off on new and upgraded installs) and the `/emby/*` and
+`/mediabrowser/*` route prefixes are gone, so this is the only header
+that works.
 
 `deviceId` MUST be a **stable per-installation UUID**. Jellyfin
 tracks sessions by it. Generate it once, persist it (SharedPreferences,
@@ -847,7 +851,7 @@ plus a `primaryImageTag` you can pass straight to `images.url(...)`.
 
 These methods primarily **build URLs**. They don't fetch the audio
 stream themselves; hand the URL to your audio engine (mpv, AVPlayer,
-ExoPlayer, …). The token is appended as `api_key=…` so segment
+ExoPlayer, …). The token is appended as `ApiKey=…` so segment
 requests work without custom headers.
 
 #### 7.1 Universal stream URL
@@ -910,7 +914,7 @@ final raw = await jellyfin.audio.lyricsRaw(track.id);
 Mirrors the `Videos` OpenAPI tag. URL builders only, like
 [`audio`](#7-audio-streaming) they don't fetch the stream themselves.
 Hand the URL to your video engine (mpv, AVPlayer, ExoPlayer, …). The
-token is appended as `api_key=…` so HLS segment requests work without
+token is appended as `ApiKey=…` so HLS segment requests work without
 custom headers.
 
 For proper direct-play vs transcoding negotiation, run
@@ -1579,11 +1583,17 @@ final fromSong   = await jellyfin.instantMix.fromSong(songId: track.id);
 final fromAlbum  = await jellyfin.instantMix.fromAlbum(albumId: album.id);
 final fromArtist = await jellyfin.instantMix.fromArtist(artistId: artist.id);
 final fromList   = await jellyfin.instantMix.fromPlaylist(playlistId: playlist.id);
-final fromGenre  = await jellyfin.instantMix.fromMusicGenre(name: 'Rock');
+final rock       = await jellyfin.genres.byName('Rock');
+final fromGenre  = await jellyfin.instantMix.fromItem(itemId: rock!.id);
 ```
 
 Each helper returns a [`JellyfinQueryResult<JellyfinItem>`], the same
 shape as `items.list()`, so the result drops straight into a UI list.
+
+> Jellyfin 12 marks the music-genre seeds (`fromMusicGenre`,
+> `fromMusicGenreById`) and the name-keyed artist seed
+> (`fromArtistByName`) obsolete. They still answer but are deprecated
+> here; `fromItem()` takes any seed id, genres included.
 
 ---
 
@@ -1930,6 +1940,13 @@ tracks). `items.list()` works for raw item browsing but uses item
 records as the unit, so the same artist can appear N times. Use
 `artists.list()` or `artists.albumArtists()` for an "Artists" tab.
 
+> Jellyfin 12 merges artists into people and marks the three
+> `/Artists` routes obsolete in favour of `persons.list()` (see
+> [31.1](#311-persons)). They keep working through the 12.x cycle,
+> and `/Persons` has no sort or genre filter yet, so these wrappers
+> stay undeprecated for now. Plan on `persons.list(personTypes:
+> ['Artist'])` for 13.0.
+
 #### 25.1 Listing artists
 
 ```dart
@@ -2162,6 +2179,22 @@ await jellyfin.collection.removeItems(
 Removed items keep existing as regular library items; only the
 collection membership is cleared.
 
+#### 29.3 Collections containing an item
+
+```dart
+final includedIn = await jellyfin.library.collections(
+  itemId: album.id,
+  limit: 20,
+);
+for (final boxSet in includedIn.items) {
+  print(boxSet.name);
+}
+```
+
+The reverse lookup, added in Jellyfin 12.0: every collection the item
+belongs to, with user data attached. Handy for an "Included in" row
+on an item page.
+
 ---
 
 ### 30. User views (alternate)
@@ -2211,7 +2244,21 @@ final one = await jellyfin.persons.byName('Benedict Cumberbatch');
 ```
 
 Pass [appearsInItemId] to scope the list to people credited on a
-specific item (e.g. cast for one movie).
+specific item (e.g. cast for one movie). `parentId` scopes it to one
+library, `startIndex` pages it, and `nameStartsWith` /
+`nameStartsWithOrGreater` / `nameLessThan` drive an alphabet picker.
+
+Since Jellyfin 12 artists are people too, and `/Persons` is the
+declared successor of the `/Artists` routes:
+
+```dart
+final artists = await jellyfin.persons.list(
+  parentId: musicLibraryId,
+  personTypes: const ['Artist'],
+  nameStartsWith: 'A',
+  limit: 50,
+);
+```
 
 #### 31.2 Studios
 
@@ -2238,13 +2285,18 @@ Generic across-library variant.
 #### 31.4 Music genres
 
 ```dart
-final musicGenres = await jellyfin.musicGenres.list(
+final musicGenres = await jellyfin.genres.list(
   parentId: musicLibraryId,
+  includeItemTypes: const ['MusicAlbum', 'Audio'],
 );
-final ambient = await jellyfin.musicGenres.byName('Ambient');
+final ambient = await jellyfin.genres.byName('Ambient');
 ```
 
-Music-specific variant. Prefer this over [genres] for music UIs.
+Jellyfin 12 folds music genres into the generic genre endpoints:
+`GET /MusicGenres` is hidden from the API document and
+`GET /MusicGenres/{name}` is obsolete. `musicGenres.list()` and
+`musicGenres.byName()` still answer but are deprecated; the `genres`
+calls above return the same buckets.
 
 #### 31.5 Years
 
@@ -2366,7 +2418,7 @@ typed sub-APIs. Pass `method: 'POST'`/`'DELETE'`, `extraHeaders`,
 
 ```dart
 final response = await jellyfin.requestBytes(
-  '${jellyfin.baseUrl}/Items/$id/Download?api_key=${jellyfin.token}',
+  '${jellyfin.baseUrl}/Items/$id/Download?ApiKey=${jellyfin.token}',
 );
 final bytes = response.data;
 ```

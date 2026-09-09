@@ -29,7 +29,7 @@ class JellyfinTrickplayApi {
     String? mediaSourceId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/$index.jpg?${_encode(qp)}';
@@ -47,7 +47,7 @@ class JellyfinTrickplayApi {
     String? mediaSourceId,
   }) {
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/tiles.m3u8?${_encode(qp)}';

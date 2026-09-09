@@ -82,10 +82,11 @@ class JellyfinConnection {
   void _applyAuthHeader() {
     // Only the `Authorization: MediaBrowser` header is sent. `build()` already
     // embeds `Token="$token"` in that header, which is the sole auth path the
-    // server honors on 10.12 (where `EnableLegacyAuthorization` defaults to
-    // false) and 10.13 (where legacy auth is removed). The deprecated
-    // `X-Emby-Authorization` and `X-MediaBrowser-Token` headers are no longer
-    // sent — they are off-by-default in 10.12 and dead weight thereafter.
+    // server honors on Jellyfin 12.0 (`EnableLegacyAuthorization` defaults to
+    // false and a migration turns it off on upgraded installs). The
+    // deprecated `X-Emby-Authorization` and `X-MediaBrowser-Token` headers
+    // are no longer sent — they are rejected by default on 12.0 and slated
+    // for removal.
     _dio.options.headers['Authorization'] =
         JellyfinAuthHeader.build(credentials, token: _token);
   }

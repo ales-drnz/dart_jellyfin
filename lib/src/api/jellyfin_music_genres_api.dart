@@ -8,9 +8,12 @@ import 'jellyfin_lookup_helpers.dart';
 
 /// `/MusicGenres*` — music-specific genres.
 ///
-/// Wraps the `MusicGenres` OpenAPI tag (2 operations). Use this for
-/// the music browsing experience; [JellyfinGenresApi] covers the
-/// generic across-library variant.
+/// Jellyfin 12 folds music genres into the generic genre endpoints:
+/// `GET /MusicGenres` is hidden from the OpenAPI document and
+/// `GET /MusicGenres/{name}` is marked obsolete. Both still answer on
+/// 12.0, but [JellyfinGenresApi] is the supported path —
+/// `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])` returns
+/// the same buckets and `genres.byName()` the same lookup.
 class JellyfinMusicGenresApi {
   final JellyfinConnection _http;
 
@@ -26,6 +29,10 @@ class JellyfinMusicGenresApi {
   /// `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])`, which is
   /// the supported way to get the same buckets and will outlive this
   /// endpoint.
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API; use '
+    "genres.list(includeItemTypes: ['MusicAlbum', 'Audio']) instead.",
+  )
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,
@@ -85,6 +92,9 @@ class JellyfinMusicGenresApi {
 
   /// `GET /MusicGenres/{genreName}` — lookup a music genre by exact
   /// name. Returns null on 404.
+  ///
+  /// Obsolete in Jellyfin 12; `genres.byName()` is the replacement.
+  @Deprecated('Obsolete in Jellyfin 12; use genres.byName() instead.')
   Future<JellyfinItem?> byName(String name) =>
       lookupItemByName('/MusicGenres', name, _http);
 }

@@ -139,15 +139,13 @@ void main() {
       expect(adapter.query['fields'], JellyfinItemsApi.musicFields);
     });
 
-    test('omits sortOrder when there is no sortBy to apply it to',
-        () async {
+    test('omits sortOrder when there is no sortBy to apply it to', () async {
       await client.items.list(parentId: 'lib-1');
       expect(adapter.query.containsKey('sortBy'), isFalse);
       expect(adapter.query.containsKey('sortOrder'), isFalse);
     });
 
-    test('multi-column sortBy is repeated and carries sortOrder',
-        () async {
+    test('multi-column sortBy is repeated and carries sortOrder', () async {
       await client.items.list(
         sortBy: const ['AlbumArtist', 'SortName'],
         descending: true,
@@ -165,8 +163,7 @@ void main() {
       });
     });
 
-    test('counts a genre- and search-scoped set without fetching it',
-        () async {
+    test('counts a genre- and search-scoped set without fetching it', () async {
       final total = await client.items.count(
         parentId: 'lib-1',
         includeItemTypes: const ['Audio'],
@@ -360,6 +357,30 @@ void main() {
     });
   });
 
+  group('JellyfinLibraryApi.collections', () {
+    test('hits /Items/{id}/Collections with paging and fields', () async {
+      await client.library.collections(
+        itemId: 'item-1',
+        startIndex: 10,
+        limit: 5,
+        fields: const ['Overview', 'ChildCount'],
+      );
+
+      expect(adapter.path, '/Items/item-1/Collections');
+      expect(adapter.query['startIndex'], ['10']);
+      expect(adapter.query['limit'], ['5']);
+      expect(adapter.query['fields'], ['Overview', 'ChildCount']);
+    });
+
+    test('sends no query at all when nothing is asked', () async {
+      await client.library.collections(itemId: 'item-1');
+      expect(adapter.path, '/Items/item-1/Collections');
+      expect(adapter.query.containsKey('startIndex'), isFalse);
+      expect(adapter.query.containsKey('limit'), isFalse);
+      expect(adapter.query.containsKey('fields'), isFalse);
+    });
+  });
+
   group('sibling browse endpoints use the same encoding', () {
     test('genres.list', () async {
       await client.genres.list(
@@ -395,6 +416,37 @@ void main() {
       );
       expect(adapter.query['personTypes'], ['Actor', 'Director']);
       expect(adapter.query['excludePersonTypes'], ['Writer']);
+    });
+
+    test('persons.list scoping and alphabet params', () async {
+      await client.persons.list(
+        parentId: 'lib-1',
+        startIndex: 20,
+        nameStartsWith: 'B',
+        nameStartsWithOrGreater: 'A',
+        nameLessThan: 'C',
+        personTypes: const ['Artist'],
+      );
+      expect(adapter.path, '/Persons');
+      expect(adapter.query['parentId'], ['lib-1']);
+      expect(adapter.query['startIndex'], ['20']);
+      expect(adapter.query['nameStartsWith'], ['B']);
+      expect(adapter.query['nameStartsWithOrGreater'], ['A']);
+      expect(adapter.query['nameLessThan'], ['C']);
+      expect(adapter.query['personTypes'], ['Artist']);
+    });
+
+    test('persons.list omits scoping params when unset', () async {
+      await client.persons.list();
+      for (final k in const [
+        'parentId',
+        'startIndex',
+        'nameStartsWith',
+        'nameStartsWithOrGreater',
+        'nameLessThan',
+      ]) {
+        expect(adapter.query.containsKey(k), isFalse, reason: k);
+      }
     });
 
     test('years.list', () async {

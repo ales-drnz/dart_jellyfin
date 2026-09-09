@@ -12,9 +12,13 @@ import '../jellyfin_models.dart';
 /// quality depends on the server's metadata + similar-artist
 /// recommendations.
 ///
-/// Maps the `InstantMix` OpenAPI tag (8 operations). Each helper
-/// returns a [JellyfinQueryResult] of [JellyfinItem] (same shape as
+/// Maps the `InstantMix` OpenAPI tag. Each helper returns a
+/// [JellyfinQueryResult] of [JellyfinItem] (same shape as
 /// `items.list()`), so the result drops straight into a UI list.
+///
+/// Jellyfin 12 marks the music-genre and artist-by-name variants
+/// obsolete: [fromItem] accepts any seed id (song, album, artist,
+/// genre, playlist) and is the one to reach for.
 class JellyfinInstantMixApi {
   final JellyfinConnection _http;
 
@@ -95,6 +99,13 @@ class JellyfinInstantMixApi {
       );
 
   /// `/MusicGenres/{name}/InstantMix` (by name).
+  ///
+  /// Obsolete in Jellyfin 12: resolve the genre with
+  /// `genres.byName()` and pass its id to [fromItem].
+  @Deprecated(
+    'Obsolete in Jellyfin 12; resolve the genre id with genres.byName() '
+    'and call fromItem() instead.',
+  )
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenre({
     required String name,
     int? limit,
@@ -113,6 +124,9 @@ class JellyfinInstantMixApi {
       );
 
   /// `/MusicGenres/InstantMix?id={genreId}` (by id).
+  ///
+  /// Obsolete in Jellyfin 12: [fromItem] takes the same genre id.
+  @Deprecated('Obsolete in Jellyfin 12; call fromItem(itemId: genreId).')
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenreById({
     required String genreId,
     int? limit,
@@ -133,6 +147,14 @@ class JellyfinInstantMixApi {
 
   /// `/Artists/InstantMix?name={name}` — alternative name-keyed
   /// entry point for the artist mix (`GetInstantMixFromArtists2`).
+  ///
+  /// Hidden from the Jellyfin 12 OpenAPI document and may be removed
+  /// without notice. Resolve the artist with `artists.byName()` and
+  /// pass its id to [fromArtist] or [fromItem].
+  @Deprecated(
+    'Hidden from the Jellyfin 12 API; resolve the artist id and call '
+    'fromArtist() or fromItem() instead.',
+  )
   Future<JellyfinQueryResult<JellyfinItem>> fromArtistByName({
     required String name,
     int? limit,

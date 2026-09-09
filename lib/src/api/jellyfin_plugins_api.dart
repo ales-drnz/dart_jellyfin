@@ -58,7 +58,7 @@ class JellyfinPluginsApi {
   String imageUrl({required String pluginId, required String version}) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';
-    return '$base/Plugins/$pluginId/$version/Image?api_key=$token';
+    return '$base/Plugins/$pluginId/$version/Image?ApiKey=$token';
   }
 
   /// `GET /Plugins/{pluginId}/Configuration` — fetch a plugin's

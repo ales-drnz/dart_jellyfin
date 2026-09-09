@@ -59,7 +59,7 @@ class JellyfinVideosApi {
     final path =
         ext.isEmpty ? '/Videos/$itemId/stream' : '/Videos/$itemId/stream.$ext';
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
@@ -121,7 +121,7 @@ class JellyfinVideosApi {
   }) {
     final base = _requireBaseUrl();
     final token = _http.token ?? '';
-    return '$base/Videos/$videoId/$mediaSourceId/Attachments/$index?api_key=$token';
+    return '$base/Videos/$videoId/$mediaSourceId/Attachments/$index?ApiKey=$token';
   }
 
   /// `POST /Videos/MergeVersions?ids={ids}` — merge several videos

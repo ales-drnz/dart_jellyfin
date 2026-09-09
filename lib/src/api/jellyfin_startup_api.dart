@@ -9,6 +9,12 @@ import '../jellyfin_connection.dart';
 /// Wraps the `Startup` OpenAPI tag (7 operations). Used only during
 /// the initial server setup flow. After [completeWizard] is called
 /// these endpoints stop accepting writes.
+///
+/// Jellyfin 12 marks the configuration-shaped routes obsolete
+/// ([configuration], [updateInitialConfiguration], [setRemoteAccess],
+/// [firstUserAlt]) in favour of `/System/Configuration`; see
+/// [JellyfinConfigurationApi]. [firstUser], [updateStartupUser] and
+/// [completeWizard] remain the supported wizard steps.
 class JellyfinStartupApi {
   final JellyfinConnection _http;
 
@@ -17,6 +23,9 @@ class JellyfinStartupApi {
 
   /// `GET /Startup/Configuration` — the wizard's current state
   /// (preferred metadata language/country, etc.).
+  ///
+  /// Obsolete in Jellyfin 12; read `configuration.get()` instead.
+  @Deprecated('Obsolete in Jellyfin 12; use configuration.get() instead.')
   Future<Map<String, dynamic>> configuration() async {
     final res = await _http.request<Map<String, dynamic>>(
       '/Startup/Configuration',
@@ -26,6 +35,9 @@ class JellyfinStartupApi {
 
   /// `POST /Startup/Configuration` — write the initial server
   /// configuration during the wizard.
+  ///
+  /// Obsolete in Jellyfin 12; write `configuration.update()` instead.
+  @Deprecated('Obsolete in Jellyfin 12; use configuration.update() instead.')
   Future<void> updateInitialConfiguration(Map<String, dynamic> body) async {
     await _http.request<void>(
       '/Startup/Configuration',
@@ -43,6 +55,9 @@ class JellyfinStartupApi {
 
   /// `GET /Startup/FirstUser` — alternate path for [firstUser]
   /// (the v2 alias preserved for older clients).
+  ///
+  /// Obsolete in Jellyfin 12; [firstUser] is the supported route.
+  @Deprecated('Obsolete in Jellyfin 12; use firstUser() instead.')
   Future<Map<String, dynamic>> firstUserAlt() async {
     final res = await _http.request<Map<String, dynamic>>('/Startup/FirstUser');
     return res.data ?? const {};
@@ -65,6 +80,12 @@ class JellyfinStartupApi {
 
   /// `POST /Startup/RemoteAccess` — opt the server in or out of
   /// remote access during the wizard.
+  ///
+  /// Obsolete in Jellyfin 12; write the network section through
+  /// `configuration.updateNamed('network', ...)` instead.
+  @Deprecated(
+    "Obsolete in Jellyfin 12; use configuration.updateNamed('network', …).",
+  )
   Future<void> setRemoteAccess(Map<String, dynamic> body) async {
     await _http.request<void>(
       '/Startup/RemoteAccess',

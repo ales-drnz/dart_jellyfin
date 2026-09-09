@@ -111,16 +111,28 @@ class JellyfinLibraryApi {
     ];
   }
 
-  /// `GET /Items/{itemId}/CriticReviews` — critic reviews for the item,
-  /// returned as a standard `BaseItemDtoQueryResult` of items (same
-  /// `{Items, TotalRecordCount}` envelope as every other item query).
-  /// Note this endpoint is effectively deprecated and returns an empty
-  /// result on modern servers.
-  Future<JellyfinQueryResult<JellyfinItem>> criticReviews({
+  /// `GET /Items/{itemId}/Collections` — every collection (box set)
+  /// that includes this item. Powers an "Included in" section on an
+  /// item page. Added in Jellyfin 12.0.
+  ///
+  /// [fields] takes `ItemFields` values to attach to each collection;
+  /// [startIndex] and [limit] page the result. The current user id is
+  /// sent automatically so the collections carry user data.
+  Future<JellyfinQueryResult<JellyfinItem>> collections({
     required String itemId,
+    int? startIndex,
+    int? limit,
+    List<String> fields = const [],
   }) async {
+    final qp = <String, dynamic>{};
+    final userId = _http.userId;
+    if (userId != null) qp['userId'] = userId;
+    if (startIndex != null) qp['startIndex'] = startIndex;
+    if (limit != null) qp['limit'] = limit;
+    if (fields.isNotEmpty) qp['fields'] = fields;
     final res = await _http.request<Map<String, dynamic>>(
-      '/Items/$itemId/CriticReviews',
+      '/Items/$itemId/Collections',
+      queryParameters: qp.isEmpty ? null : qp,
     );
     return JellyfinQueryResult.fromJson(
       res.data ?? const {},

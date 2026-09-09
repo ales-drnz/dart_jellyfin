@@ -56,7 +56,7 @@ class JellyfinSubtitlesApi {
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       if (startPositionTicks != null)
         'StartPositionTicks': '$startPositionTicks',
       if (copyTimestamps) 'CopyTimestamps': 'true',
@@ -78,7 +78,7 @@ class JellyfinSubtitlesApi {
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
-      'api_key': _requireToken(),
+      'ApiKey': _requireToken(),
       'StartPositionTicks': '$startPositionTicks',
       if (segmentLength != null) 'SegmentLength': '$segmentLength',
     };
@@ -184,7 +184,7 @@ class JellyfinSubtitlesApi {
 
   /// URL of a single fallback font, suitable for handing to libass.
   String fallbackFontUrl({required String name}) {
-    return '${_requireBaseUrl()}/FallbackFont/Fonts/$name?api_key=${_requireToken()}';
+    return '${_requireBaseUrl()}/FallbackFont/Fonts/$name?ApiKey=${_requireToken()}';
   }
 
   // ─── HLS subtitle playlist ────────────────────────────────────────
@@ -198,7 +198,7 @@ class JellyfinSubtitlesApi {
     required int segmentLength,
   }) {
     final base = _requireBaseUrl();
-    final qp = <String, String>{'api_key': _requireToken()};
+    final qp = <String, String>{'ApiKey': _requireToken()};
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/subtitles.m3u8?segmentLength=$segmentLength&${_encode(qp)}';
   }
 
