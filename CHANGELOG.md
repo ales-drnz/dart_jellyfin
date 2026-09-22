@@ -1,3 +1,8 @@
+## [0.2.1] - 22-09-2026
+
+### Changed
+- The default transport decodes JSON responses of 50 KB or more on a background isolate (`JellyfinConnection.jsonIsolateThreshold`), so large responses no longer block the caller's isolate. A `Dio` you inject keeps its own transformer.
+
 ## [0.2.0] - 09-09-2026
 
 Targets Jellyfin `12.0` (released 8 September 2026).
