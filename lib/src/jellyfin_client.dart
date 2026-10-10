@@ -457,11 +457,15 @@ class JellyfinClient {
   /// Streams a GET body as it arrives — for downloads, so a whole track
   /// never sits in memory. Write [JellyfinStreamedResponse.stream] to a
   /// file sink; cancelling the subscription closes the connection.
+  ///
+  /// A pause in the body longer than the receive timeout fails the stream
+  /// unless [stallTimeout] is `false`.
   Future<JellyfinStreamedResponse> requestStream(
     String url, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = true,
+    bool stallTimeout = true,
     JellyfinCancelToken? cancelToken,
   }) =>
       _http.requestStream(
@@ -469,6 +473,7 @@ class JellyfinClient {
         queryParameters: queryParameters,
         extraHeaders: extraHeaders,
         absoluteUrl: absoluteUrl,
+        stallTimeout: stallTimeout,
         cancelToken: cancelToken,
       );
 

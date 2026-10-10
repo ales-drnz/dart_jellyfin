@@ -296,12 +296,15 @@ class JellyfinConnection {
   ///
   /// The status is checked before this returns: a non-2xx answer throws
   /// like [request]. The returned stream fails with a [JellyfinException]
-  /// on a stall longer than the receive timeout or on cancellation.
+  /// on cancellation and, unless [stallTimeout] is `false`, on a pause in
+  /// the body longer than the receive timeout. Turn it off for event
+  /// streams that may stay quiet for minutes.
   Future<JellyfinStreamedResponse> requestStream(
     String url, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = true,
+    bool stallTimeout = true,
     JellyfinCancelToken? cancelToken,
   }) async {
     final opened = await _open(
@@ -313,6 +316,7 @@ class JellyfinConnection {
       absoluteUrl: absoluteUrl,
       cancelToken: cancelToken,
     );
+    if (!stallTimeout) opened.receiveTimeout = null;
     final res = opened.response;
     if (res.statusCode < 200 || res.statusCode >= 300) {
       final body = await _readAll(opened);
@@ -459,8 +463,10 @@ class JellyfinConnection {
 
     void arm() {
       stall?.cancel();
+      final timeout = opened.receiveTimeout;
+      if (timeout == null) return;
       stall = Timer(
-        opened.receiveTimeout,
+        timeout,
         () => fail(_timeout('The body stalled', uri)),
       );
     }
@@ -673,7 +679,7 @@ final class _Opened {
   final Uri uri;
   final Completer<void> _abort;
   final JellyfinCancelToken? token;
-  final Duration receiveTimeout;
+  Duration? receiveTimeout;
   late http.StreamedResponse response;
 
   _Opened(this.uri, this._abort, this.token, this.receiveTimeout);
