@@ -27,6 +27,11 @@ class _Shared {
   final Duration connectTimeout;
   final Duration receiveTimeout;
   final int jsonIsolateThreshold;
+
+  /// Whether bodies arrive still gzipped, for the connection to inflate
+  /// (true only for the default `dart:io` client, see
+  /// `platform.createDefaultClient`).
+  final bool inflates;
   String? baseUrl;
   String? token;
   String? userId;
@@ -38,6 +43,7 @@ class _Shared {
     required this.connectTimeout,
     required this.receiveTimeout,
     required this.jsonIsolateThreshold,
+    required this.inflates,
   });
 }
 
@@ -90,6 +96,7 @@ class JellyfinConnection {
           connectTimeout: connectTimeout,
           receiveTimeout: receiveTimeout,
           jsonIsolateThreshold: jsonIsolateThreshold,
+          inflates: httpClient == null && platform.defaultClientLeavesGzip,
         ),
         scopeToken = null {
     if (baseUrl != null) this.baseUrl = baseUrl;
@@ -210,9 +217,8 @@ class JellyfinConnection {
     final Object? decoded;
     try {
       decoded = await _decode(
-        exchange.bytes,
+        exchange,
         responseType ?? JellyfinResponseType.json,
-        exchange.headers['content-type'],
       );
     } on FormatException catch (e, st) {
       throw _parseError(e, st, exchange.uri);
@@ -261,12 +267,14 @@ class JellyfinConnection {
       cancelToken: cancelToken,
     );
     final bytes = exchange.bytes;
+    final gzipped = exchange.gzipped;
     try {
-      if (platform.canUseIsolates &&
-          bytes.length >= _shared.jsonIsolateThreshold) {
-        return await platform.runOffIsolate(() => parse(_jsonOf(bytes)));
+      if (_offIsolate(exchange)) {
+        return await platform.runOffIsolate(
+          () => parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes)),
+        );
       }
-      return parse(_jsonOf(bytes));
+      return parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes));
     } on JellyfinException {
       rethrow;
     } on FormatException catch (e, st) {
@@ -318,15 +326,22 @@ class JellyfinConnection {
     );
     if (!stallTimeout) opened.receiveTimeout = null;
     final res = opened.response;
+    final gzipped = _isGzipped(res.headers);
     if (res.statusCode < 200 || res.statusCode >= 300) {
       final body = await _readAll(opened);
-      throw _statusError(res.statusCode, res.reasonPhrase, opened.uri, body);
+      throw _statusError(
+        res.statusCode,
+        res.reasonPhrase,
+        opened.uri,
+        gzipped ? platform.gunzip(body) : body,
+      );
     }
+    final body = _guard(opened);
     return JellyfinStreamedResponse(
-      stream: _guard(opened),
+      stream: gzipped ? platform.gunzipStream(body) : body,
       statusCode: res.statusCode,
       headers: res.headers,
-      contentLength: res.contentLength,
+      contentLength: gzipped ? null : res.contentLength,
       uri: opened.uri,
     );
   }
@@ -353,10 +368,16 @@ class JellyfinConnection {
     );
     final res = opened.response;
     final bytes = await _readAll(opened);
+    final gzipped = _isGzipped(res.headers);
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw _statusError(res.statusCode, res.reasonPhrase, opened.uri, bytes);
+      throw _statusError(
+        res.statusCode,
+        res.reasonPhrase,
+        opened.uri,
+        gzipped ? platform.gunzip(bytes) : bytes,
+      );
     }
-    return _Exchange(opened.uri, res.statusCode, res.headers, bytes);
+    return _Exchange(opened.uri, res.statusCode, res.headers, bytes, gzipped);
   }
 
   /// Sends the request and waits for the response headers.
@@ -389,6 +410,7 @@ class JellyfinConnection {
       abortTrigger: abort.future,
     );
     request.headers.addAll(_baseHeaders);
+    if (_shared.inflates) request.headers['Accept-Encoding'] = 'gzip';
     _encodeBody(request, data);
     if (extraHeaders != null) request.headers.addAll(extraHeaders);
 
@@ -450,6 +472,9 @@ class JellyfinConnection {
     late final StreamController<List<int>> out;
     StreamSubscription<List<int>>? sub;
     Timer? stall;
+    // One timer per body, not one per chunk: a chunk only stamps the time,
+    // and the timer checks the stamp when it fires.
+    final sinceChunk = Stopwatch();
 
     void fail(JellyfinException e) {
       stall?.cancel();
@@ -462,13 +487,19 @@ class JellyfinConnection {
     }
 
     void arm() {
-      stall?.cancel();
       final timeout = opened.receiveTimeout;
       if (timeout == null) return;
-      stall = Timer(
-        timeout,
-        () => fail(_timeout('The body stalled', uri)),
-      );
+      sinceChunk.start();
+      void check() {
+        final idle = timeout - sinceChunk.elapsed;
+        if (idle <= Duration.zero) {
+          fail(_timeout('The body stalled', uri));
+        } else {
+          stall = Timer(idle, check);
+        }
+      }
+
+      stall = Timer(timeout, check);
     }
 
     out = StreamController<List<int>>(
@@ -480,7 +511,7 @@ class JellyfinConnection {
         arm();
         sub = opened.response.stream.listen(
           (chunk) {
-            arm();
+            sinceChunk.reset();
             out.add(chunk);
           },
           onError: (Object e, StackTrace st) =>
@@ -519,11 +550,19 @@ class JellyfinConnection {
     );
   }
 
-  Future<Object?> _decode(
-    Uint8List bytes,
-    JellyfinResponseType type,
-    String? contentType,
-  ) async {
+  Future<Object?> _decode(_Exchange exchange, JellyfinResponseType type) async {
+    final gzipped = exchange.gzipped;
+    final raw = exchange.bytes;
+    if (type == JellyfinResponseType.json &&
+        raw.isNotEmpty &&
+        _isJson(exchange.headers['content-type']) &&
+        _offIsolate(exchange)) {
+      // Inflate and decode together, away from the caller.
+      return platform.runOffIsolate(
+        () => _jsonOf(gzipped ? platform.gunzip(raw) : raw),
+      );
+    }
+    final bytes = gzipped ? platform.gunzip(raw) : raw;
     switch (type) {
       case JellyfinResponseType.bytes:
         return bytes;
@@ -531,16 +570,27 @@ class JellyfinConnection {
         return utf8.decode(bytes, allowMalformed: true);
       case JellyfinResponseType.json:
         if (bytes.isEmpty) return null;
-        if (!_isJson(contentType)) {
+        if (!_isJson(exchange.headers['content-type'])) {
           return utf8.decode(bytes, allowMalformed: true);
-        }
-        if (platform.canUseIsolates &&
-            bytes.length >= _shared.jsonIsolateThreshold) {
-          return platform.runOffIsolate(() => _jsonOf(bytes));
         }
         return _jsonOf(bytes);
     }
   }
+
+  /// Whether [exchange] is big enough to decode on another isolate. A gzip
+  /// body is judged by a conservative guess at its inflated size: JSON
+  /// lists compress about 15:1, so ×8 errs towards the isolate.
+  bool _offIsolate(_Exchange exchange) {
+    if (!platform.canUseIsolates) return false;
+    final size = exchange.bytes.length * (exchange.gzipped ? 8 : 1);
+    return size >= _shared.jsonIsolateThreshold;
+  }
+
+  /// Whether the body is still gzipped — only ever true on the default
+  /// client, which leaves bodies compressed for this connection to inflate.
+  bool _isGzipped(Map<String, String> headers) =>
+      _shared.inflates &&
+      (headers['content-encoding']?.toLowerCase().contains('gzip') ?? false);
 
   String _resolve(String path) {
     final base = baseUrl;
@@ -671,8 +721,15 @@ class JellyfinConnection {
 
 /// Decodes a JSON body; `null` when empty. Top-level so it can run on
 /// another isolate.
+///
+/// The fused UTF-8 + JSON decoder parses straight from the bytes, without
+/// first building the whole body as a `String`: about half the time of
+/// `jsonDecode(utf8.decode(bytes))` on a 1.5 MB Jellyfin page.
 Object? _jsonOf(Uint8List bytes) =>
-    bytes.isEmpty ? null : jsonDecode(utf8.decode(bytes));
+    bytes.isEmpty ? null : _utf8Json.convert(bytes);
+
+final Converter<List<int>, Object?> _utf8Json =
+    const Utf8Decoder().fuse(const JsonDecoder());
 
 /// A request whose headers have arrived.
 final class _Opened {
@@ -694,7 +751,10 @@ final class _Exchange {
   final Uri uri;
   final int statusCode;
   final Map<String, String> headers;
-  final Uint8List bytes;
 
-  _Exchange(this.uri, this.statusCode, this.headers, this.bytes);
+  /// The body as received: still gzipped when [gzipped].
+  final Uint8List bytes;
+  final bool gzipped;
+
+  _Exchange(this.uri, this.statusCode, this.headers, this.bytes, this.gzipped);
 }
