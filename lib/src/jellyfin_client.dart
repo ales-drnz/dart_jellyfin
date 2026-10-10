@@ -2,7 +2,9 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:dio/dio.dart';
+import 'dart:typed_data';
+
+import 'package:http/http.dart' as http;
 
 import 'api/jellyfin_activity_log_api.dart';
 import 'api/jellyfin_api_key_api.dart';
@@ -62,6 +64,8 @@ import 'api/jellyfin_videos_api.dart';
 import 'api/jellyfin_years_api.dart';
 import 'jellyfin_connection.dart';
 import 'jellyfin_credentials.dart';
+import 'transport/jellyfin_cancel_token.dart';
+import 'transport/jellyfin_response.dart';
 
 /// Stateful façade over the Jellyfin API.
 ///
@@ -242,19 +246,66 @@ class JellyfinClient {
   late final JellyfinNotificationsApi notifications;
 
   /// Creates a client bound to [credentials] and (optionally) a server URL.
+  ///
+  /// Pass an [httpClient] to choose the HTTP stack — for example a
+  /// `CupertinoClient` (`package:cupertino_http`) or a `CronetClient`
+  /// (`package:cronet_http`) for HTTP/2 and the system proxy, or a
+  /// `MockClient` in tests. An injected client is yours to close; the one
+  /// created when you pass none is closed by [close].
+  ///
+  /// [connectTimeout] bounds the handshake (on the default client) and,
+  /// together with [receiveTimeout], the wait for the response headers.
+  /// [receiveTimeout] also bounds every pause in a response body.
+  ///
+  /// Responses of [jsonIsolateThreshold] bytes or more are decoded, and
+  /// for the typed calls parsed into models, on a background isolate.
   JellyfinClient({
     required JellyfinCredentials credentials,
     String? baseUrl,
-    Dio? dio,
+    http.Client? httpClient,
     Duration connectTimeout = const Duration(seconds: 15),
     Duration receiveTimeout = const Duration(seconds: 30),
+    int jsonIsolateThreshold = JellyfinConnection.defaultJsonIsolateThreshold,
   }) : _http = JellyfinConnection(
           credentials: credentials,
           baseUrl: baseUrl,
-          dio: dio,
+          httpClient: httpClient,
           connectTimeout: connectTimeout,
           receiveTimeout: receiveTimeout,
+          jsonIsolateThreshold: jsonIsolateThreshold,
         ) {
+    _wire(JellyfinNotificationsApi(_http));
+  }
+
+  JellyfinClient._scoped(JellyfinClient parent, JellyfinCancelToken token)
+      : _http = JellyfinConnection.scoped(parent._http, token) {
+    _wire(parent.notifications);
+  }
+
+  /// A view of this client whose every request is cancelled by
+  /// [cancelToken].
+  ///
+  /// The view shares this client's HTTP connection pool, server and
+  /// session — `setSession`, `connect` and `close` on either affect both —
+  /// and costs nothing to create, so make one per page, filter or search
+  /// term and cancel it when that is abandoned:
+  ///
+  /// ```dart
+  /// _pageToken?.cancel();
+  /// final token = _pageToken = JellyfinCancelToken();
+  /// final albums = await jf
+  ///     .withCancelToken(token)
+  ///     .items
+  ///     .list(includeItemTypes: const ['MusicAlbum'], limit: 50);
+  /// ```
+  ///
+  /// A cancelled call throws a [JellyfinException] of type
+  /// [JellyfinErrorType.cancelled]. [notifications] is the same object as
+  /// on this client: a WebSocket is not a request and is not cancelled.
+  JellyfinClient withCancelToken(JellyfinCancelToken cancelToken) =>
+      JellyfinClient._scoped(this, cancelToken);
+
+  void _wire(JellyfinNotificationsApi notifications) {
     system = JellyfinSystemApi(_http);
     user = JellyfinUserApi(_http);
     quickConnect = JellyfinQuickConnectApi(_http);
@@ -309,7 +360,7 @@ class JellyfinClient {
     tmdb = JellyfinTmdbApi(_http);
     remoteImage = JellyfinRemoteImageApi(_http);
     devices = JellyfinDevicesApi(_http);
-    notifications = JellyfinNotificationsApi(_http);
+    this.notifications = notifications;
     trailers = JellyfinTrailersApi(_http);
   }
 
@@ -354,20 +405,28 @@ class JellyfinClient {
     _http.baseUrl = null;
   }
 
-  /// Escape hatch: issue an arbitrary request through the same Dio
-  /// instance + headers as the sub-APIs.
+  /// Closes the HTTP client this client created. Requests made afterwards
+  /// — through this client or any [withCancelToken] view — fail with
+  /// [JellyfinErrorType.state]. Does nothing to an injected `httpClient`.
+  void close() => _http.close();
+
+  /// Escape hatch: issue an arbitrary request through the same HTTP client
+  /// and headers as the sub-APIs.
   ///
   /// Use this for endpoints not yet covered by the typed sub-APIs.
   /// Throws [JellyfinException] on failure (same as every other call).
-  Future<Response<T>> request<T>(
+  ///
+  /// The body is decoded per [responseType] (JSON by default). A `List`
+  /// in [queryParameters] repeats the key once per element.
+  Future<JellyfinResponse<T>> request<T>(
     String path, {
     String method = 'GET',
     Map<String, dynamic>? queryParameters,
     Object? data,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
-    ResponseType? responseType,
-    CancelToken? cancelToken,
+    JellyfinResponseType? responseType,
+    JellyfinCancelToken? cancelToken,
   }) =>
       _http.request<T>(
         path,
@@ -380,15 +439,13 @@ class JellyfinClient {
         cancelToken: cancelToken,
       );
 
-  /// Convenience for byte-stream GETs (artwork, downloads).
-  ///
-  /// Pass a [cancelToken] to abort an in-flight download — useful for large
-  /// artwork or media transfers the caller may need to cancel.
-  Future<Response<List<int>>> requestBytes(
+  /// Convenience for byte GETs (artwork, small files). The whole body is
+  /// held in memory; use [requestStream] for media downloads.
+  Future<JellyfinResponse<Uint8List>> requestBytes(
     String url, {
     Map<String, dynamic>? queryParameters,
     bool absoluteUrl = true,
-    CancelToken? cancelToken,
+    JellyfinCancelToken? cancelToken,
   }) =>
       _http.requestBytes(
         url,
@@ -397,26 +454,47 @@ class JellyfinClient {
         cancelToken: cancelToken,
       );
 
+  /// Streams a GET body as it arrives — for downloads, so a whole track
+  /// never sits in memory. Write [JellyfinStreamedResponse.stream] to a
+  /// file sink; cancelling the subscription closes the connection.
+  Future<JellyfinStreamedResponse> requestStream(
+    String url, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? extraHeaders,
+    bool absoluteUrl = true,
+    JellyfinCancelToken? cancelToken,
+  }) =>
+      _http.requestStream(
+        url,
+        queryParameters: queryParameters,
+        extraHeaders: extraHeaders,
+        absoluteUrl: absoluteUrl,
+        cancelToken: cancelToken,
+      );
+
   // ─── Lightweight method aliases ────────────────────────────────────
 
   /// Shorthand for a `GET` [request].
-  Future<Response<T>> get<T>(
+  Future<JellyfinResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? extraHeaders,
+    JellyfinCancelToken? cancelToken,
   }) =>
       request<T>(
         path,
         queryParameters: queryParameters,
         extraHeaders: extraHeaders,
+        cancelToken: cancelToken,
       );
 
   /// Shorthand for a `POST` [request].
-  Future<Response<T>> post<T>(
+  Future<JellyfinResponse<T>> post<T>(
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
     Map<String, String>? extraHeaders,
+    JellyfinCancelToken? cancelToken,
   }) =>
       request<T>(
         path,
@@ -424,30 +502,21 @@ class JellyfinClient {
         data: data,
         queryParameters: queryParameters,
         extraHeaders: extraHeaders,
+        cancelToken: cancelToken,
       );
 
   /// Shorthand for a `DELETE` [request].
-  Future<Response<T>> delete<T>(
+  Future<JellyfinResponse<T>> delete<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? extraHeaders,
+    JellyfinCancelToken? cancelToken,
   }) =>
       request<T>(
         path,
         method: 'DELETE',
         queryParameters: queryParameters,
         extraHeaders: extraHeaders,
+        cancelToken: cancelToken,
       );
-
-  /// Alias for [requestBytes] — kept so the calling code can read like
-  /// the original Dio-based wrapper it replaced.
-  ///
-  /// Redundant: `requestBytes` already defaults to `absoluteUrl: true` and
-  /// additionally supports `queryParameters` and relative paths. Prefer
-  /// [requestBytes] directly; this alias is retained for one deprecation
-  /// cycle and will be removed in a future release.
-  @Deprecated(
-    'Use requestBytes; this alias will be removed in a future release.',
-  )
-  Future<Response<List<int>>> fetchBytes(String url) => requestBytes(url);
 }

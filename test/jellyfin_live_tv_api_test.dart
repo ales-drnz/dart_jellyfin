@@ -3,7 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 /// Query-shape assertions for `JellyfinLiveTvApi`. These run without a
-/// live server: a capturing Dio [HttpClientAdapter] intercepts each
+/// live server: a capturing `http.Client` intercepts each
 /// request and records the path + query parameters the wrapper emits,
 /// so we can pin down serialization (param names, defaults, omissions)
 /// independently of the network.
@@ -17,12 +17,10 @@
 ///   * `recordings()` has no `groupId` knob.
 library;
 
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:dart_jellyfin/dart_jellyfin.dart';
-import 'package:dio/dio.dart';
 import 'package:test/test.dart';
+
+import '_helpers/capturing_client.dart';
 
 /// `ItemSortBy` enum members accepted by `/LiveTv/Channels?sortBy=`.
 /// Mirrors the upstream Jellyfin `ItemSortBy` enum; kept here so the
@@ -62,57 +60,20 @@ const _itemSortBy = <String>{
   'SearchScore',
 };
 
-/// Captures the [RequestOptions] of the last request and replies with a
-/// canned empty `QueryResult`, so the wrapper's parsing succeeds.
-class _CapturingAdapter implements HttpClientAdapter {
-  RequestOptions? last;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    last = options;
-    return ResponseBody.fromString(
-      jsonEncode({'Items': <dynamic>[], 'TotalRecordCount': 0}),
-      200,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
 void main() {
-  late _CapturingAdapter adapter;
+  late CapturingAdapter adapter;
   late JellyfinClient client;
 
   setUp(() {
-    adapter = _CapturingAdapter();
-    final dio = Dio()..httpClientAdapter = adapter;
-    client = JellyfinClient(
-      credentials: const JellyfinCredentials(
-        client: 'Finova',
-        device: 'iPhone',
-        deviceId: 'abc-uuid',
-        version: '1.2.3',
-      ),
-      baseUrl: 'https://jf.example.test',
-      dio: dio,
-    );
-    client.connect('https://jf.example.test');
-    client.setSession(token: 'tok', userId: 'user-1');
+    adapter = CapturingAdapter();
+    client = capturingClient(adapter);
   });
 
   group('JellyfinLiveTvApi.channels', () {
     test('omits sortBy by default', () async {
       await client.liveTv.channels();
-      final qp = adapter.last!.queryParameters;
-      expect(Uri.parse(adapter.last!.path).path, '/LiveTv/Channels');
+      final qp = adapter.last!.uri.queryParameters;
+      expect(adapter.last!.uri.path, '/LiveTv/Channels');
       expect(qp.containsKey('sortBy'), isFalse);
       // The native server ordering still travels with sortOrder.
       expect(qp['sortOrder'], 'Ascending');
@@ -130,7 +91,7 @@ void main() {
           reason: '"$s" is not an ItemSortBy enum member',
         );
       }
-      expect(adapter.last!.queryParameters['sortOrder'], 'Descending');
+      expect(adapter.last!.uri.queryParameters['sortOrder'], 'Descending');
     });
 
     test('multi-column sortBy is repeated, never delimiter-joined', () async {
@@ -148,11 +109,11 @@ void main() {
         isInProgress: false,
         seriesTimerId: 'st-1',
       );
-      final qp = adapter.last!.queryParameters;
-      expect(Uri.parse(adapter.last!.path).path, '/LiveTv/Recordings/Series');
+      final qp = adapter.last!.uri.queryParameters;
+      expect(adapter.last!.uri.path, '/LiveTv/Recordings/Series');
       expect(qp['channelId'], 'ch-1');
       expect(qp['status'], 'Completed');
-      expect(qp['isInProgress'], false);
+      expect(qp['isInProgress'], 'false');
       expect(qp['seriesTimerId'], 'st-1');
       // The dropped legacy knobs must never be serialized.
       expect(qp.containsKey('isActive'), isFalse);
@@ -163,8 +124,8 @@ void main() {
   group('JellyfinLiveTvApi.recordings', () {
     test('does not serialize a groupId param', () async {
       await client.liveTv.recordings(channelId: 'ch-1');
-      final qp = adapter.last!.queryParameters;
-      expect(Uri.parse(adapter.last!.path).path, '/LiveTv/Recordings');
+      final qp = adapter.last!.uri.queryParameters;
+      expect(adapter.last!.uri.path, '/LiveTv/Recordings');
       expect(qp['channelId'], 'ch-1');
       expect(qp.containsKey('groupId'), isFalse);
     });

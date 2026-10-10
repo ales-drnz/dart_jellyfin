@@ -2,11 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:dio/dio.dart' show ResponseType;
-
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
+import '../transport/jellyfin_response.dart';
 
 /// Subtitle endpoints — `Subtitle` OpenAPI tag.
 ///
@@ -212,7 +211,7 @@ class JellyfinSubtitlesApi {
     try {
       final res = await _http.request<List<int>>(
         '/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format',
-        responseType: ResponseType.bytes,
+        responseType: JellyfinResponseType.bytes,
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;
@@ -238,7 +237,7 @@ class JellyfinSubtitlesApi {
     try {
       final res = await _http.request<List<int>>(
         '/Videos/$itemId/$mediaSourceId/Subtitles/$index/$ticks/Stream.$format',
-        responseType: ResponseType.bytes,
+        responseType: JellyfinResponseType.bytes,
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;

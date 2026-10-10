@@ -2,71 +2,140 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:dio/dio.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'jellyfin_auth_header.dart';
 import 'jellyfin_credentials.dart';
 import 'jellyfin_error_type.dart';
 import 'jellyfin_exception.dart';
+import 'transport/jellyfin_cancel_token.dart';
+import 'transport/jellyfin_response.dart';
+import 'transport/platform_io.dart'
+    if (dart.library.js_interop) 'transport/platform_web.dart' as platform;
+
+/// What a connection and every scoped view of it share (see
+/// [JellyfinConnection.scoped]): the HTTP client, the server URL and the
+/// session.
+class _Shared {
+  final http.Client client;
+  final bool ownsClient;
+  final Duration connectTimeout;
+  final Duration receiveTimeout;
+  final int jsonIsolateThreshold;
+  String? baseUrl;
+  String? token;
+  String? userId;
+  bool closed = false;
+
+  _Shared({
+    required this.client,
+    required this.ownsClient,
+    required this.connectTimeout,
+    required this.receiveTimeout,
+    required this.jsonIsolateThreshold,
+  });
+}
 
 /// Internal HTTP transport shared by every sub-API. Not exported.
+///
+/// Built on `package:http`, so the app can hand in any [http.Client] — a
+/// native one (`cupertino_http`, `cronet_http`) for HTTP/2 and the system
+/// proxy, or a `MockClient` in tests.
 class JellyfinConnection {
-  final Dio _dio;
+  final _Shared _shared;
 
   /// Client identity sent on every request via the auth header.
   final JellyfinCredentials credentials;
 
-  String? _baseUrl;
-  String? _token;
+  /// Cancels every request issued through this connection that does not
+  /// bring its own token. `null` on the root connection.
+  final JellyfinCancelToken? scopeToken;
 
-  /// Authenticated user id, or `null` if no session is active.
-  String? userId;
-
-  /// Responses at least this large are JSON-decoded on a background
-  /// isolate instead of the caller's.
+  /// Responses at least this large are decoded — and, for the typed calls,
+  /// parsed into models — on a background isolate instead of the caller's.
   ///
-  /// Dio's default [FusedTransformer] never uses an isolate
-  /// (`contentLengthIsolateThreshold: -1`), so every response was decoded on
-  /// the isolate that awaited it — in a Flutter app, the UI thread. Below
-  /// the threshold the isolate hop costs more than the decode it saves.
-  static const jsonIsolateThreshold = 50 * 1024;
+  /// Below the threshold the isolate hop costs more than the decode it
+  /// saves. In a Flutter app the caller's isolate is the UI thread, so
+  /// above it this is the difference between a smooth list and a dropped
+  /// frame. Override per client with the `jsonIsolateThreshold` argument.
+  static const int defaultJsonIsolateThreshold = 50 * 1024;
+
+  /// The default threshold. Kept under its 0.2 name.
+  static const int jsonIsolateThreshold = defaultJsonIsolateThreshold;
 
   /// Creates a connection bound to [credentials] and an optional [baseUrl].
   ///
-  /// A [dio] you inject keeps its own transformer; the default one decodes
-  /// large responses off-isolate (see [jsonIsolateThreshold]).
+  /// Without an [httpClient], one is created (and closed by [close]) with
+  /// [connectTimeout] applied to the handshake. An injected client is never
+  /// closed by this connection.
+  ///
+  /// [receiveTimeout] bounds the wait for the response headers and every
+  /// pause between two chunks of the body — not the whole transfer, so a
+  /// long download that keeps flowing never times out.
   JellyfinConnection({
     required this.credentials,
     String? baseUrl,
-    Dio? dio,
+    http.Client? httpClient,
     Duration connectTimeout = const Duration(seconds: 15),
     Duration receiveTimeout = const Duration(seconds: 30),
-  }) : _dio = dio ??
-            (Dio()
-              ..transformer = FusedTransformer(
-                contentLengthIsolateThreshold: jsonIsolateThreshold,
-              )) {
-    _dio.options.connectTimeout = connectTimeout;
-    _dio.options.receiveTimeout = receiveTimeout;
-    _dio.options.headers['Accept'] = 'application/json';
+    int jsonIsolateThreshold = defaultJsonIsolateThreshold,
+  })  : _shared = _Shared(
+          client: httpClient ?? platform.createDefaultClient(connectTimeout),
+          ownsClient: httpClient == null,
+          connectTimeout: connectTimeout,
+          receiveTimeout: receiveTimeout,
+          jsonIsolateThreshold: jsonIsolateThreshold,
+        ),
+        scopeToken = null {
     if (baseUrl != null) this.baseUrl = baseUrl;
-    _applyAuthHeader();
   }
 
-  /// The response transformer in use. For tests.
+  /// A view of [parent] whose requests are cancelled by [cancelToken].
+  ///
+  /// The view shares [parent]'s client, credentials, base URL and session:
+  /// a later `setSession` or `connect` on either is seen by both. A token
+  /// passed to an individual [request] still wins.
+  JellyfinConnection.scoped(
+    JellyfinConnection parent,
+    JellyfinCancelToken cancelToken,
+  )   : _shared = parent._shared,
+        credentials = parent.credentials,
+        scopeToken = cancelToken;
+
+  /// Effective isolate threshold for this connection. For tests.
   @visibleForTesting
-  Transformer get transformer => _dio.transformer;
+  int get effectiveJsonIsolateThreshold => _shared.jsonIsolateThreshold;
 
   /// Server root URL without a trailing slash, or `null` if not connected.
-  String? get baseUrl => _baseUrl;
+  String? get baseUrl => _shared.baseUrl;
+
+  /// Sets the server root URL, stripping a trailing `/` if present.
+  set baseUrl(String? value) {
+    _shared.baseUrl = value != null && value.endsWith('/')
+        ? value.substring(0, value.length - 1)
+        : value;
+  }
 
   /// Current access token, or `null` if no session is active.
-  String? get token => _token;
+  String? get token => _shared.token;
+
+  /// Sets the access token sent in the auth header.
+  set token(String? value) => _shared.token = value;
+
+  /// Authenticated user id, or `null` if no session is active.
+  String? get userId => _shared.userId;
+
+  /// Sets the authenticated user id.
+  set userId(String? value) => _shared.userId = value;
 
   /// `true` when [baseUrl], [token], and [userId] are all set.
   bool get isAuthenticated =>
-      _baseUrl != null && _token != null && userId != null;
+      baseUrl != null && token != null && userId != null;
 
   /// Returns the authenticated [userId], or throws a [JellyfinException] of
   /// type [JellyfinErrorType.state] when no session user is set.
@@ -84,99 +153,542 @@ class JellyfinConnection {
     return id;
   }
 
-  /// Sets the server root URL, stripping a trailing `/` if present.
-  set baseUrl(String? value) {
-    if (value == null) {
-      _baseUrl = null;
-      return;
-    }
-    _baseUrl =
-        value.endsWith('/') ? value.substring(0, value.length - 1) : value;
+  /// Closes the HTTP client if this connection created it. Requests made
+  /// afterwards fail with [JellyfinErrorType.state].
+  void close() {
+    if (_shared.closed) return;
+    _shared.closed = true;
+    if (_shared.ownsClient) _shared.client.close();
   }
 
-  /// Sets the access token and refreshes the cached auth headers.
-  set token(String? value) {
-    _token = value;
-    _applyAuthHeader();
-  }
-
-  void _applyAuthHeader() {
-    // Only the `Authorization: MediaBrowser` header is sent. `build()` already
-    // embeds `Token="$token"` in that header, which is the sole auth path the
-    // server honors on Jellyfin 12.0 (`EnableLegacyAuthorization` defaults to
-    // false and a migration turns it off on upgraded installs). The
-    // deprecated `X-Emby-Authorization` and `X-MediaBrowser-Token` headers
-    // are no longer sent — they are rejected by default on 12.0 and slated
-    // for removal.
-    _dio.options.headers['Authorization'] =
-        JellyfinAuthHeader.build(credentials, token: _token);
-  }
+  /// Headers sent on every request.
+  ///
+  /// Only the `Authorization: MediaBrowser` header carries the session. It
+  /// embeds `Token="…"`, the sole auth path Jellyfin 12 honours by default
+  /// (`EnableLegacyAuthorization` is off, and the `X-Emby-Authorization` /
+  /// `X-MediaBrowser-Token` headers are rejected).
+  Map<String, String> get _baseHeaders => {
+        'Accept': 'application/json',
+        'Authorization': JellyfinAuthHeader.build(credentials, token: token),
+      };
 
   /// Issues an HTTP request relative to [baseUrl] (or absolute when
-  /// `absoluteUrl` is `true`), wrapping Dio failures in [JellyfinException].
+  /// `absoluteUrl` is `true`) and decodes the body per [responseType].
   ///
-  /// A `List` value in [queryParameters] is emitted as one repeated
-  /// query parameter per element (`ids=a&ids=b`), never as a delimited
-  /// string. Jellyfin binds array parameters with either a comma- or a
-  /// pipe-delimited model binder depending on the endpoint, and both
-  /// take repeated values verbatim without splitting — so repeating the
-  /// parameter is the one encoding that is correct everywhere, and it
-  /// also survives values that contain the delimiter. The format is set
-  /// per request so an injected [Dio] configured with a different
-  /// `listFormat` cannot silently change the wire shape.
-  Future<Response<T>> request<T>(
+  /// Throws a [JellyfinException] on any failure: transport, timeout,
+  /// cancellation, a non-2xx status, or a body that is not a [T].
+  ///
+  /// A `List` value in [queryParameters] is emitted as one repeated query
+  /// parameter per element (`ids=a&ids=b`), never as a delimited string.
+  /// Jellyfin binds array parameters with either a comma- or a
+  /// pipe-delimited model binder depending on the endpoint, and both take
+  /// repeated values verbatim without splitting — so repeating the
+  /// parameter is the one encoding that is correct everywhere, and it also
+  /// survives values that contain the delimiter.
+  ///
+  /// [data] is sent as JSON when it is a `Map`, a `List` of maps or a
+  /// `String`, and as raw bytes when it is a `List<int>`.
+  Future<JellyfinResponse<T>> request<T>(
     String path, {
     String method = 'GET',
     Map<String, dynamic>? queryParameters,
     Object? data,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
-    ResponseType? responseType,
-    CancelToken? cancelToken,
+    JellyfinResponseType? responseType,
+    JellyfinCancelToken? cancelToken,
   }) async {
-    final url = absoluteUrl ? path : _resolve(path);
+    final exchange = await _exchange(
+      path,
+      method: method,
+      queryParameters: queryParameters,
+      data: data,
+      extraHeaders: extraHeaders,
+      absoluteUrl: absoluteUrl,
+      cancelToken: cancelToken,
+    );
+    final Object? decoded;
     try {
-      return await _dio.request<T>(
-        url,
-        data: data,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
-        options: Options(
-          method: method,
-          headers: extraHeaders,
-          responseType: responseType,
-          listFormat: ListFormat.multi,
-        ),
+      decoded = await _decode(
+        exchange.bytes,
+        responseType ?? JellyfinResponseType.json,
+        exchange.headers['content-type'],
       );
-    } on DioException catch (e) {
-      throw JellyfinException.fromDio(e, path: url);
+    } on FormatException catch (e, st) {
+      throw _parseError(e, st, exchange.uri);
+    }
+    if (decoded != null && decoded is! T) {
+      throw JellyfinException(
+        'Expected a $T body, got ${decoded.runtimeType}',
+        type: JellyfinErrorType.parse,
+        statusCode: exchange.statusCode,
+        path: exchange.uri.toString(),
+      );
+    }
+    return JellyfinResponse<T>(
+      data: decoded as T?,
+      statusCode: exchange.statusCode,
+      headers: exchange.headers,
+      uri: exchange.uri,
+    );
+  }
+
+  /// Like [request], but decodes the JSON body *and* runs [parse] over it —
+  /// both on a background isolate when the body is at least
+  /// [effectiveJsonIsolateThreshold] bytes.
+  ///
+  /// [parse] receives the decoded JSON (`null` for an empty body). It runs
+  /// on another isolate, so it must not capture anything that cannot be
+  /// sent there — pass a static `fromJson` tear-off or a closure over plain
+  /// values, never one that reaches the connection or a sub-API.
+  Future<R> requestJson<R>(
+    String path,
+    R Function(Object? json) parse, {
+    String method = 'GET',
+    Map<String, dynamic>? queryParameters,
+    Object? data,
+    Map<String, String>? extraHeaders,
+    bool absoluteUrl = false,
+    JellyfinCancelToken? cancelToken,
+  }) async {
+    final exchange = await _exchange(
+      path,
+      method: method,
+      queryParameters: queryParameters,
+      data: data,
+      extraHeaders: extraHeaders,
+      absoluteUrl: absoluteUrl,
+      cancelToken: cancelToken,
+    );
+    final bytes = exchange.bytes;
+    try {
+      if (platform.canUseIsolates &&
+          bytes.length >= _shared.jsonIsolateThreshold) {
+        return await platform.runOffIsolate(() => parse(_jsonOf(bytes)));
+      }
+      return parse(_jsonOf(bytes));
+    } on JellyfinException {
+      rethrow;
+    } on FormatException catch (e, st) {
+      throw _parseError(e, st, exchange.uri);
+    } on TypeError catch (e, st) {
+      throw _parseError(e, st, exchange.uri);
     }
   }
 
-  /// Convenience for byte-stream GETs (artwork, downloads).
-  Future<Response<List<int>>> requestBytes(
+  /// Convenience for byte GETs (artwork, small files). The whole body is
+  /// held in memory; use [requestStream] for media.
+  Future<JellyfinResponse<Uint8List>> requestBytes(
     String url, {
     Map<String, dynamic>? queryParameters,
     bool absoluteUrl = true,
-    CancelToken? cancelToken,
+    JellyfinCancelToken? cancelToken,
   }) =>
-      request<List<int>>(
+      request<Uint8List>(
         url,
         queryParameters: queryParameters,
         absoluteUrl: absoluteUrl,
-        responseType: ResponseType.bytes,
+        responseType: JellyfinResponseType.bytes,
         cancelToken: cancelToken,
       );
 
+  /// Opens a GET whose body is delivered as it arrives, for downloads.
+  ///
+  /// The status is checked before this returns: a non-2xx answer throws
+  /// like [request]. The returned stream fails with a [JellyfinException]
+  /// on a stall longer than the receive timeout or on cancellation.
+  Future<JellyfinStreamedResponse> requestStream(
+    String url, {
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? extraHeaders,
+    bool absoluteUrl = true,
+    JellyfinCancelToken? cancelToken,
+  }) async {
+    final opened = await _open(
+      url,
+      method: 'GET',
+      queryParameters: queryParameters,
+      data: null,
+      extraHeaders: extraHeaders,
+      absoluteUrl: absoluteUrl,
+      cancelToken: cancelToken,
+    );
+    final res = opened.response;
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      final body = await _readAll(opened);
+      throw _statusError(res.statusCode, res.reasonPhrase, opened.uri, body);
+    }
+    return JellyfinStreamedResponse(
+      stream: _guard(opened),
+      statusCode: res.statusCode,
+      headers: res.headers,
+      contentLength: res.contentLength,
+      uri: opened.uri,
+    );
+  }
+
+  // ─── Internals ─────────────────────────────────────────────────────
+
+  Future<_Exchange> _exchange(
+    String path, {
+    required String method,
+    required Map<String, dynamic>? queryParameters,
+    required Object? data,
+    required Map<String, String>? extraHeaders,
+    required bool absoluteUrl,
+    required JellyfinCancelToken? cancelToken,
+  }) async {
+    final opened = await _open(
+      path,
+      method: method,
+      queryParameters: queryParameters,
+      data: data,
+      extraHeaders: extraHeaders,
+      absoluteUrl: absoluteUrl,
+      cancelToken: cancelToken,
+    );
+    final res = opened.response;
+    final bytes = await _readAll(opened);
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw _statusError(res.statusCode, res.reasonPhrase, opened.uri, bytes);
+    }
+    return _Exchange(opened.uri, res.statusCode, res.headers, bytes);
+  }
+
+  /// Sends the request and waits for the response headers.
+  Future<_Opened> _open(
+    String path, {
+    required String method,
+    required Map<String, dynamic>? queryParameters,
+    required Object? data,
+    required Map<String, String>? extraHeaders,
+    required bool absoluteUrl,
+    required JellyfinCancelToken? cancelToken,
+  }) async {
+    if (_shared.closed) {
+      throw const JellyfinException(
+        'JellyfinClient.close() has been called.',
+        type: JellyfinErrorType.state,
+      );
+    }
+    final uri = buildUri(
+      absoluteUrl ? path : _resolve(path),
+      queryParameters,
+    );
+    final token = cancelToken ?? scopeToken;
+    if (token != null && token.isCancelled) throw _cancelled(uri);
+
+    final abort = Completer<void>();
+    final request = http.AbortableRequest(
+      method,
+      uri,
+      abortTrigger: abort.future,
+    );
+    request.headers.addAll(_baseHeaders);
+    _encodeBody(request, data);
+    if (extraHeaders != null) request.headers.addAll(extraHeaders);
+
+    final opened = _Opened(uri, abort, token, _shared.receiveTimeout);
+    final headers = Completer<http.StreamedResponse>();
+    void lose(JellyfinException e) {
+      if (headers.isCompleted) return;
+      opened.abort();
+      headers.completeError(e, e.stackTrace);
+    }
+
+    final timer = Timer(
+      _shared.connectTimeout + _shared.receiveTimeout,
+      () => lose(_timeout('No response within the timeout', uri)),
+    );
+    if (token != null) {
+      unawaited(token.whenCancelled.then((_) => lose(_cancelled(uri))));
+    }
+    try {
+      final sent = _shared.client.send(request).then(
+        (res) {
+          if (headers.isCompleted) {
+            // Lost the race to a timeout or a cancellation: drop the body.
+            unawaited(res.stream.listen(null).cancel());
+          } else {
+            headers.complete(res);
+          }
+        },
+        onError: (Object e, StackTrace st) =>
+            lose(_transportError(e, st, uri, token)),
+      );
+      unawaited(sent);
+    } catch (e, st) {
+      lose(_transportError(e, st, uri, token));
+    }
+    try {
+      opened.response = await headers.future;
+      return opened;
+    } finally {
+      timer.cancel();
+    }
+  }
+
+  /// Reads the whole body of [opened], honouring the inactivity timeout and
+  /// the cancel token.
+  Future<Uint8List> _readAll(_Opened opened) async {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in _guard(opened)) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+
+  /// The body of [opened] as a stream that fails with a [JellyfinException]
+  /// on a stall, a cancellation or a transport error.
+  Stream<List<int>> _guard(_Opened opened) {
+    final uri = opened.uri;
+    final token = opened.token;
+    late final StreamController<List<int>> out;
+    StreamSubscription<List<int>>? sub;
+    Timer? stall;
+
+    void fail(JellyfinException e) {
+      stall?.cancel();
+      opened.abort();
+      unawaited(sub?.cancel());
+      if (!out.isClosed) {
+        out.addError(e, e.stackTrace);
+        unawaited(out.close());
+      }
+    }
+
+    void arm() {
+      stall?.cancel();
+      stall = Timer(
+        opened.receiveTimeout,
+        () => fail(_timeout('The body stalled', uri)),
+      );
+    }
+
+    out = StreamController<List<int>>(
+      onListen: () {
+        if (token != null) {
+          if (token.isCancelled) return fail(_cancelled(uri));
+          token.whenCancelled.then((_) => fail(_cancelled(uri)));
+        }
+        arm();
+        sub = opened.response.stream.listen(
+          (chunk) {
+            arm();
+            out.add(chunk);
+          },
+          onError: (Object e, StackTrace st) =>
+              fail(_transportError(e, st, uri, token)),
+          onDone: () {
+            stall?.cancel();
+            unawaited(out.close());
+          },
+        );
+      },
+      onPause: () => sub?.pause(),
+      onResume: () => sub?.resume(),
+      onCancel: () {
+        stall?.cancel();
+        opened.abort();
+        return sub?.cancel();
+      },
+    );
+    return out.stream;
+  }
+
+  void _encodeBody(http.Request request, Object? data) {
+    if (data == null) return;
+    if (data is List<int>) {
+      request.bodyBytes = data;
+      return;
+    }
+    if (data is Map || data is List || data is String) {
+      request.headers['Content-Type'] = 'application/json';
+      request.bodyBytes = utf8.encode(data is String ? data : jsonEncode(data));
+      return;
+    }
+    throw JellyfinException(
+      'Cannot send a ${data.runtimeType} body',
+      type: JellyfinErrorType.state,
+    );
+  }
+
+  Future<Object?> _decode(
+    Uint8List bytes,
+    JellyfinResponseType type,
+    String? contentType,
+  ) async {
+    switch (type) {
+      case JellyfinResponseType.bytes:
+        return bytes;
+      case JellyfinResponseType.plain:
+        return utf8.decode(bytes, allowMalformed: true);
+      case JellyfinResponseType.json:
+        if (bytes.isEmpty) return null;
+        if (!_isJson(contentType)) {
+          return utf8.decode(bytes, allowMalformed: true);
+        }
+        if (platform.canUseIsolates &&
+            bytes.length >= _shared.jsonIsolateThreshold) {
+          return platform.runOffIsolate(() => _jsonOf(bytes));
+        }
+        return _jsonOf(bytes);
+    }
+  }
+
   String _resolve(String path) {
-    if (_baseUrl == null) {
+    final base = baseUrl;
+    if (base == null) {
       throw const JellyfinException(
         'JellyfinClient.connect() has not been called — no base URL is set.',
         type: JellyfinErrorType.state,
       );
     }
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    if (!path.startsWith('/')) return '$_baseUrl/$path';
-    return '$_baseUrl$path';
+    if (!path.startsWith('/')) return '$base/$path';
+    return '$base$path';
   }
+
+  /// Appends [queryParameters] to [url] the way the 0.2 transport did, so
+  /// the wire shape is unchanged: keys and string values are
+  /// form-encoded (`encodeQueryComponent`), a list repeats its key once per
+  /// element, and a `null` value sends the bare key.
+  @visibleForTesting
+  static Uri buildUri(String url, Map<String, dynamic>? queryParameters) {
+    final qp = queryParameters;
+    if (qp == null || qp.isEmpty) return Uri.parse(url).normalizePath();
+    final parts = <String>[];
+    void add(String key, Object? value) {
+      if (value == null) {
+        parts.add(key);
+      } else if (value is String) {
+        parts.add('$key=${Uri.encodeQueryComponent(value)}');
+      } else {
+        parts.add('$key=$value');
+      }
+    }
+
+    qp.forEach((k, v) {
+      final key = Uri.encodeQueryComponent(k);
+      if (v is Iterable) {
+        for (final e in v) {
+          add(key, e);
+        }
+      } else {
+        add(key, v);
+      }
+    });
+    final sep = url.contains('?') ? '&' : '?';
+    return Uri.parse('$url$sep${parts.join('&')}').normalizePath();
+  }
+
+  static bool _isJson(String? contentType) {
+    if (contentType == null) return false;
+    final mime = contentType.split(';').first.trim().toLowerCase();
+    return mime == 'application/json' ||
+        mime == 'text/json' ||
+        mime.endsWith('+json');
+  }
+
+  JellyfinException _statusError(
+    int status,
+    String? reason,
+    Uri uri,
+    Uint8List body,
+  ) {
+    final text = body.isEmpty
+        ? ''
+        : ': ${utf8.decode(body.length > 512 ? body.sublist(0, 512) : body, allowMalformed: true)}';
+    return JellyfinException(
+      'HTTP $status${reason == null || reason.isEmpty ? '' : ' $reason'}$text',
+      type: JellyfinErrorType.fromHttpStatus(status),
+      statusCode: status,
+      path: uri.toString(),
+    );
+  }
+
+  JellyfinException _transportError(
+    Object e,
+    StackTrace st,
+    Uri uri,
+    JellyfinCancelToken? token,
+  ) {
+    if (e is JellyfinException) return e;
+    if (e is http.RequestAbortedException || (token?.isCancelled ?? false)) {
+      return _cancelled(uri);
+    }
+    if (e is TimeoutException) return _timeout('$e', uri, e, st);
+    final text = '$e';
+    final type = text.contains('timed out')
+        ? JellyfinErrorType.timeout
+        : e is http.ClientException
+            ? JellyfinErrorType.connection
+            : JellyfinErrorType.unknown;
+    return JellyfinException(
+      text,
+      type: type,
+      path: uri.toString(),
+      cause: e,
+      stackTrace: st,
+    );
+  }
+
+  JellyfinException _parseError(Object e, StackTrace st, Uri uri) =>
+      JellyfinException(
+        'Could not decode the response: $e',
+        type: JellyfinErrorType.parse,
+        path: uri.toString(),
+        cause: e,
+        stackTrace: st,
+      );
+
+  static JellyfinException _timeout(
+    String message,
+    Uri uri, [
+    Object? cause,
+    StackTrace? st,
+  ]) =>
+      JellyfinException(
+        message,
+        type: JellyfinErrorType.timeout,
+        path: uri.toString(),
+        cause: cause,
+        stackTrace: st ?? StackTrace.current,
+      );
+
+  static JellyfinException _cancelled(Uri uri) => JellyfinException(
+        'Request cancelled',
+        type: JellyfinErrorType.cancelled,
+        path: uri.toString(),
+      );
+}
+
+/// Decodes a JSON body; `null` when empty. Top-level so it can run on
+/// another isolate.
+Object? _jsonOf(Uint8List bytes) =>
+    bytes.isEmpty ? null : jsonDecode(utf8.decode(bytes));
+
+/// A request whose headers have arrived.
+final class _Opened {
+  final Uri uri;
+  final Completer<void> _abort;
+  final JellyfinCancelToken? token;
+  final Duration receiveTimeout;
+  late http.StreamedResponse response;
+
+  _Opened(this.uri, this._abort, this.token, this.receiveTimeout);
+
+  void abort() {
+    if (!_abort.isCompleted) _abort.complete();
+  }
+}
+
+/// A finished request with its whole body.
+final class _Exchange {
+  final Uri uri;
+  final int statusCode;
+  final Map<String, String> headers;
+  final Uint8List bytes;
+
+  _Exchange(this.uri, this.statusCode, this.headers, this.bytes);
 }

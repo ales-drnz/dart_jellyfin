@@ -19,7 +19,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
 
 const _cachePath = 'test/integration/.bootstrap-cache.json';
 const _outDir = 'test/fixtures/captured';
@@ -37,14 +37,15 @@ Future<void> main() async {
   final token = cache['token'] as String;
   final userId = cache['userId'] as String;
 
-  final dio = Dio()
-    ..options.headers['Accept'] = 'application/json'
-    ..options.headers['Authorization'] = 'MediaBrowser '
+  final headers = {
+    'Accept': 'application/json',
+    'Authorization': 'MediaBrowser '
         'Client="dart_jellyfin_capture", '
         'Device="capture-tool", '
         'DeviceId="dart-jellyfin-capture", '
         'Version="0.0.1", '
-        'Token="$token"';
+        'Token="$token"',
+  };
 
   Directory(_outDir).createSync(recursive: true);
 
@@ -53,12 +54,15 @@ Future<void> main() async {
     String path, [
     Map<String, dynamic>? qp,
   ]) async {
-    try {
-      final res = await dio.get<dynamic>('$baseUrl$path', queryParameters: qp);
-      _save(name, res.data);
-    } on DioException catch (e) {
-      stderr.writeln('  ✗ $name ($path) — ${e.response?.statusCode}');
+    final uri = Uri.parse('$baseUrl$path').replace(
+      queryParameters: qp?.map((k, v) => MapEntry(k, '$v')),
+    );
+    final res = await http.get(uri, headers: headers);
+    if (res.statusCode != 200) {
+      stderr.writeln('  ✗ $name ($path) — ${res.statusCode}');
+      return;
     }
+    _save(name, jsonDecode(res.body));
   }
 
   await get(
@@ -93,17 +97,19 @@ Future<void> main() async {
   await get('sessions.json', '/Sessions');
 
   // Now hit per-item endpoints using the first audio track.
-  final tracksRes = await dio.get<Map<String, dynamic>>(
-    '$baseUrl/Items',
-    queryParameters: {
-      'userId': userId,
-      'IncludeItemTypes': 'Audio',
-      'Recursive': 'true',
-      'Limit': 1,
-    },
+  final tracksRes = await http.get(
+    Uri.parse('$baseUrl/Items').replace(
+      queryParameters: {
+        'userId': userId,
+        'IncludeItemTypes': 'Audio',
+        'Recursive': 'true',
+        'Limit': '1',
+      },
+    ),
+    headers: headers,
   );
-  final firstItem =
-      (tracksRes.data?['Items'] as List?)?.first as Map<String, dynamic>?;
+  final tracks = jsonDecode(tracksRes.body) as Map<String, dynamic>;
+  final firstItem = (tracks['Items'] as List?)?.first as Map<String, dynamic>?;
   if (firstItem != null) {
     final id = firstItem['Id'] as String;
     await get('items_by_id_audio.json', '/Items/$id', {
@@ -111,26 +117,27 @@ Future<void> main() async {
       'Fields':
           'MediaSources,MediaStreams,Genres,Tags,ProviderIds,ParentId,People',
     });
-    try {
-      final pi = await dio.post<Map<String, dynamic>>(
-        '$baseUrl/Items/$id/PlaybackInfo',
-        queryParameters: {'userId': userId},
-        data: {
-          'UserId': userId,
-          'DeviceProfile': {
-            'Name': 'capture',
-            'MaxStreamingBitrate': 140000000,
-            'CodecProfiles': <Map<String, dynamic>>[],
-            'DirectPlayProfiles': [
-              {'Container': 'mp3', 'Type': 'Audio'},
-            ],
-            'TranscodingProfiles': <Map<String, dynamic>>[],
-          },
+    final pi = await http.post(
+      Uri.parse('$baseUrl/Items/$id/PlaybackInfo')
+          .replace(queryParameters: {'userId': userId}),
+      headers: {...headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'UserId': userId,
+        'DeviceProfile': {
+          'Name': 'capture',
+          'MaxStreamingBitrate': 140000000,
+          'CodecProfiles': <Map<String, dynamic>>[],
+          'DirectPlayProfiles': [
+            {'Container': 'mp3', 'Type': 'Audio'},
+          ],
+          'TranscodingProfiles': <Map<String, dynamic>>[],
         },
-      );
-      _save('playback_info.json', pi.data);
-    } on DioException catch (e) {
-      stderr.writeln('  ✗ playback_info.json — ${e.response?.statusCode}');
+      }),
+    );
+    if (pi.statusCode == 200) {
+      _save('playback_info.json', jsonDecode(pi.body));
+    } else {
+      stderr.writeln('  ✗ playback_info.json — ${pi.statusCode}');
     }
     await get('user_data.json', '/UserItems/$id/UserData');
     await get('media_segments.json', '/MediaSegments/$id');

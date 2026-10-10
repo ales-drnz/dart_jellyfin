@@ -2,12 +2,11 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:dio/dio.dart' show ResponseType;
-
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../transport/jellyfin_response.dart';
 
 /// Audio streaming, lyrics, instant mix.
 ///
@@ -127,7 +126,7 @@ class JellyfinAudioApi {
     try {
       final res = await _http.request<List<int>>(
         '/Audio/$itemId/Lyrics',
-        responseType: ResponseType.bytes,
+        responseType: JellyfinResponseType.bytes,
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;

@@ -2,8 +2,6 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:dio/dio.dart';
-
 import 'jellyfin_error_type.dart';
 
 /// Exception thrown by [JellyfinClient] for any failed operation.
@@ -20,7 +18,7 @@ class JellyfinException implements Exception {
   /// Request path/URL that triggered the failure, when known.
   final String? path;
 
-  /// Underlying error (typically the originating [DioException]).
+  /// Underlying error (for example the transport's `ClientException`).
   final Object? cause;
 
   /// The originating stack trace, when captured. Preserves the async stack
@@ -36,34 +34,6 @@ class JellyfinException implements Exception {
     this.cause,
     this.stackTrace,
   });
-
-  /// Converts a Dio failure into a [JellyfinException] with a mapped [type].
-  /// A response-body decode failure (Dio surfaces a [FormatException] under
-  /// [DioExceptionType.unknown]) maps to [JellyfinErrorType.parse].
-  factory JellyfinException.fromDio(DioException e, {String? path}) {
-    final code = e.response?.statusCode;
-    final type = switch (e.type) {
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        JellyfinErrorType.timeout,
-      DioExceptionType.connectionError => JellyfinErrorType.connection,
-      DioExceptionType.badResponse when code != null =>
-        JellyfinErrorType.fromHttpStatus(code),
-      DioExceptionType.cancel => JellyfinErrorType.cancelled,
-      DioExceptionType.unknown when e.error is FormatException =>
-        JellyfinErrorType.parse,
-      _ => JellyfinErrorType.unknown,
-    };
-    return JellyfinException(
-      e.message ?? 'Jellyfin request failed',
-      type: type,
-      statusCode: code,
-      path: path ?? e.requestOptions.path,
-      cause: e,
-      stackTrace: e.stackTrace,
-    );
-  }
 
   /// Whether [type] is an authentication/authorization failure.
   bool get isAuthError => type.isAuthError;
