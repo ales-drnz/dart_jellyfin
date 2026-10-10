@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Movies/*` — movie-specific browsing.
 ///
@@ -35,14 +36,10 @@ class JellyfinMoviesApi {
     if (itemLimit != null) qp['itemLimit'] = itemLimit;
     if (fields.isNotEmpty) qp['fields'] = fields;
 
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Movies/Recommendations',
       queryParameters: qp,
+      listOf(JellyfinMovieRecommendation.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinMovieRecommendation.fromJson(e),
-    ];
   }
 }

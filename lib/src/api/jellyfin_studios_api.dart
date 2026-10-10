@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_lookup_helpers.dart';
 
 /// `/Studios*` — production studios and labels.
@@ -62,13 +63,10 @@ class JellyfinStudiosApi {
     }
     if (nameLessThan != null) qp['nameLessThan'] = nameLessThan;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Studios',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

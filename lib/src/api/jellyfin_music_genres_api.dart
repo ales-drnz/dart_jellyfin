@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_lookup_helpers.dart';
 
 /// `/MusicGenres*` — music-specific genres.
@@ -80,13 +81,10 @@ class JellyfinMusicGenresApi {
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/MusicGenres',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Channels` — plugin-provided IPTV / online-source channels.
 ///
@@ -39,13 +40,10 @@ class JellyfinChannelsApi {
     }
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Channels',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -74,13 +72,10 @@ class JellyfinChannelsApi {
     if (filters.isNotEmpty) qp['filters'] = filters;
     if (fields.isNotEmpty) qp['fields'] = fields;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Channels/$channelId/Items',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -101,13 +96,10 @@ class JellyfinChannelsApi {
     if (filters.isNotEmpty) qp['filters'] = filters;
     if (fields.isNotEmpty) qp['fields'] = fields;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Channels/Items/Latest',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

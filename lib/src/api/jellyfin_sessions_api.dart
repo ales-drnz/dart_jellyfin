@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Sessions/*` — list active sessions, send remote-control commands,
 /// register your own client as a cast target.
@@ -37,15 +38,11 @@ class JellyfinSessionsApi {
       qp['activeWithinSeconds'] = activeWithinSeconds;
     }
     if (deviceId != null) qp['deviceId'] = deviceId;
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Sessions',
       queryParameters: qp.isEmpty ? null : qp,
+      listOf(JellyfinSession.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinSession.fromJson(e),
-    ];
   }
 
   // ─── Capabilities (register this client as a cast target) ──────────

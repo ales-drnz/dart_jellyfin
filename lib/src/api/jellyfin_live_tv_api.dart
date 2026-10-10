@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/LiveTv/*` — live TV channels, EPG, recordings, timers.
 ///
@@ -49,13 +50,10 @@ class JellyfinLiveTvApi {
     }
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (type != null) qp['type'] = type;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Channels',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -116,13 +114,10 @@ class JellyfinLiveTvApi {
     if (isSports != null) qp['isSports'] = isSports;
     if (hasAired != null) qp['hasAired'] = hasAired;
     if (limit != null) qp['limit'] = limit;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Programs',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -148,13 +143,10 @@ class JellyfinLiveTvApi {
     if (isSports != null) qp['isSports'] = isSports;
     if (isNews != null) qp['isNews'] = isNews;
     if (isKids != null) qp['isKids'] = isKids;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Programs/Recommended',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -182,13 +174,10 @@ class JellyfinLiveTvApi {
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (isInProgress != null) qp['isInProgress'] = isInProgress;
     if (limit != null) qp['limit'] = limit;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Recordings',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -225,13 +214,10 @@ class JellyfinLiveTvApi {
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (isActive != null) qp['isActive'] = isActive;
     if (isScheduled != null) qp['isScheduled'] = isScheduled;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Timers',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      (e) => e,
+      queryResultOf((e) => e),
     );
   }
 
@@ -263,13 +249,10 @@ class JellyfinLiveTvApi {
       'sortOrder': descending ? 'Descending' : 'Ascending',
     };
     if (sortBy != null) qp['sortBy'] = sortBy;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/SeriesTimers',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      (e) => e,
+      queryResultOf((e) => e),
     );
   }
 
@@ -515,13 +498,10 @@ class JellyfinLiveTvApi {
     final qp = <String, dynamic>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Recordings/Groups',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -533,13 +513,10 @@ class JellyfinLiveTvApi {
     final qp = <String, dynamic>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Recordings/Folders',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -584,13 +561,10 @@ class JellyfinLiveTvApi {
     if (isInProgress != null) qp['isInProgress'] = isInProgress;
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (fields.isNotEmpty) qp['fields'] = fields;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/LiveTv/Recordings/Series',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

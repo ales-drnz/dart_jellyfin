@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/{ItemType}/{id}/InstantMix` — server-side radio.
 ///
@@ -212,13 +213,10 @@ class JellyfinInstantMixApi {
     if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       path,
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 }

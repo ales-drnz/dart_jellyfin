@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Users/*` endpoints — authentication + profile.
 class JellyfinUserApi {
@@ -74,12 +75,7 @@ class JellyfinUserApi {
   /// Public users (`/Users/Public`) — does not require authentication,
   /// returns the avatars + names for the server's login picker.
   Future<List<JellyfinUser>> publicUsers() async {
-    final res = await _http.request<List<dynamic>>('/Users/Public');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinUser.fromJson(e),
-    ];
+    return _http.requestJson('/Users/Public', listOf(JellyfinUser.fromJson));
   }
 
   /// List all users (admin only).
@@ -87,18 +83,14 @@ class JellyfinUserApi {
   /// Pass [isHidden] / [isDisabled] to filter the result to users whose
   /// hidden/disabled flag matches; leave them null to return every user.
   Future<List<JellyfinUser>> list({bool? isHidden, bool? isDisabled}) async {
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Users',
       queryParameters: {
         if (isHidden != null) 'isHidden': isHidden,
         if (isDisabled != null) 'isDisabled': isDisabled,
       },
+      listOf(JellyfinUser.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinUser.fromJson(e),
-    ];
   }
 
   /// `GET /Users/{userId}` — fetch a single user by id (admin only).

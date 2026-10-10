@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Items` — the backbone of Jellyfin browsing.
 class JellyfinItemsApi {
@@ -137,13 +138,10 @@ class JellyfinItemsApi {
     if (fields.isNotEmpty) qp['fields'] = fields;
     if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Items',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -341,13 +339,10 @@ class JellyfinItemsApi {
     if (limit != null) qp['limit'] = limit;
     if (parentId != null) qp['parentId'] = parentId;
     if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/UserItems/Resume',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -368,13 +363,10 @@ class JellyfinItemsApi {
   /// the server schedules ahead of this item).
   Future<JellyfinQueryResult<JellyfinItem>> intros(String itemId) async {
     final userId = _http.requireUserId();
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Items/$itemId/Intros',
       queryParameters: {'userId': userId},
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -382,15 +374,11 @@ class JellyfinItemsApi {
   /// attached to the item (returned as a flat list).
   Future<List<JellyfinItem>> localTrailers(String itemId) async {
     final userId = _http.requireUserId();
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Items/$itemId/LocalTrailers',
       queryParameters: {'userId': userId},
+      listOf(JellyfinItem.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
-    ];
   }
 
   /// `POST /Items/{itemId}/Refresh` — trigger a metadata + image
@@ -474,15 +462,11 @@ class JellyfinItemsApi {
   /// scenes, behind-the-scenes, etc.) attached to a movie or show.
   Future<List<JellyfinItem>> specialFeatures(String itemId) async {
     final userId = _http.requireUserId();
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Items/$itemId/SpecialFeatures',
       queryParameters: {'userId': userId},
+      listOf(JellyfinItem.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
-    ];
   }
 
   /// Latest additions (`/Items/Latest`).
@@ -507,14 +491,10 @@ class JellyfinItemsApi {
       qp['includeItemTypes'] = includeItemTypes;
     }
     if (isPlayed != null) qp['isPlayed'] = isPlayed;
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Items/Latest',
       queryParameters: qp,
+      listOf(JellyfinItem.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
-    ];
   }
 }

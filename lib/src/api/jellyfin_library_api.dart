@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/UserViews` and library-level helpers.
 class JellyfinLibraryApi {
@@ -100,15 +101,11 @@ class JellyfinLibraryApi {
     final qp = <String, dynamic>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/Items/$itemId/Ancestors',
       queryParameters: qp.isEmpty ? null : qp,
+      listOf(JellyfinItem.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) JellyfinItem.fromJson(e),
-    ];
   }
 
   /// `GET /Items/{itemId}/Collections` — every collection (box set)
@@ -130,13 +127,10 @@ class JellyfinLibraryApi {
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (fields.isNotEmpty) qp['fields'] = fields;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Items/$itemId/Collections',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -198,13 +192,10 @@ class JellyfinLibraryApi {
   }) async {
     final qp = <String, dynamic>{};
     if (isHidden != null) qp['isHidden'] = isHidden;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Library/MediaFolders',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -317,13 +308,10 @@ class JellyfinLibraryApi {
     }
     if (limit != null) qp['limit'] = limit;
     if (fields.isNotEmpty) qp['fields'] = fields;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       path,
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -334,13 +322,10 @@ class JellyfinLibraryApi {
     final qp = <String, dynamic>{'inheritFromParent': inheritFromParent};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       path,
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

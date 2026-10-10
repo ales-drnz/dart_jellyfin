@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Shows/*` — TV-series-specific browsing.
 ///
@@ -61,13 +62,10 @@ class JellyfinTvShowsApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Shows/$seriesId/Episodes',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -98,13 +96,10 @@ class JellyfinTvShowsApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Shows/$seriesId/Seasons',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -146,13 +141,10 @@ class JellyfinTvShowsApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Shows/NextUp',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
@@ -182,13 +174,10 @@ class JellyfinTvShowsApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Shows/Upcoming',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 }

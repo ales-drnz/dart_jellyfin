@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Playlists/*`.
@@ -86,13 +87,10 @@ class JellyfinPlaylistsApi {
       if (fields.isNotEmpty) 'fields': fields,
     };
     if (limit != null) qp['limit'] = limit;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Playlists/$playlistId/Items',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

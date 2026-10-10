@@ -115,6 +115,9 @@ JellyfinClient jellyfinFromCache() {
       deviceId: 'dart-jellyfin-integration',
       version: '0.0.1',
     ),
+    // Every response goes through the isolate path, so real payloads prove
+    // that each typed parser can be sent there.
+    jsonIsolateThreshold: 0,
   );
   if (!File(_cacheFile).existsSync()) return client;
   final cache = JellyfinBootstrapCache.load();

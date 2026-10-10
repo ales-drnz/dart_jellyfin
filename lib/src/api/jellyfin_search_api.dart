@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Search/Hints` — fast, type-as-you-go search.
 class JellyfinSearchApi {
@@ -59,14 +60,10 @@ class JellyfinSearchApi {
     }
     if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Search/Hints',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinSearchHint.fromJson,
-      itemsKey: 'SearchHints',
+      queryResultOf(JellyfinSearchHint.fromJson, itemsKey: 'SearchHints'),
     );
   }
 }

@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Items/Suggestions` — server-curated picks for the current user.
 ///
@@ -38,13 +39,10 @@ class JellyfinSuggestionsApi {
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Items/Suggestions',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 }

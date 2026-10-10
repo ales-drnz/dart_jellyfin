@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/MediaSegments/*` — skip-intro/recap/outro markers.
 ///
@@ -29,13 +30,10 @@ class JellyfinMediaSegmentsApi {
     if (includeSegmentTypes.isNotEmpty) {
       qp['includeSegmentTypes'] = includeSegmentTypes;
     }
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/MediaSegments/$itemId',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinMediaSegment.fromJson,
+      queryResultOf(JellyfinMediaSegment.fromJson),
     );
   }
 }

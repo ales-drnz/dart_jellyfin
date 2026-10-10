@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/UserViews` — alternate "views" endpoints.
 ///
@@ -34,13 +35,10 @@ class JellyfinUserViewsApi {
     if (presetViews.isNotEmpty) qp['presetViews'] = presetViews;
     if (includeHidden != null) qp['includeHidden'] = includeHidden;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/UserViews',
       queryParameters: qp.isEmpty ? null : qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinView.fromJson,
+      queryResultOf(JellyfinView.fromJson),
     );
   }
 

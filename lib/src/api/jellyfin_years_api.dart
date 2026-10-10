@@ -6,6 +6,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Years*` — release-year browse buckets.
 ///
@@ -61,13 +62,10 @@ class JellyfinYearsApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Years',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 

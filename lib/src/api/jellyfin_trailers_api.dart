@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Trailers` — server-curated trailer browsing.
 ///
@@ -71,13 +72,10 @@ class JellyfinTrailersApi {
       qp['enableImageTypes'] = enableImageTypes;
     }
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Trailers',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 }

@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_lookup_helpers.dart';
 
 /// `/Persons*` — actors, directors, composers, artists, etc.
@@ -73,13 +74,10 @@ class JellyfinPersonsApi {
     }
     if (appearsInItemId != null) qp['appearsInItemId'] = appearsInItemId;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Persons',
       queryParameters: qp,
-    );
-    return JellyfinQueryResult.fromJson(
-      res.data ?? const {},
-      JellyfinItem.fromJson,
+      queryResultOf(JellyfinItem.fromJson),
     );
   }
 
