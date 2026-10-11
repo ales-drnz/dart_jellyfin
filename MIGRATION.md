@@ -10,10 +10,21 @@
 | `jf.request(path, cancelToken: CancelToken())` | `jf.request(path, cancelToken: JellyfinCancelToken())` — or `jf.withCancelToken(token).items…` for every call |
 | `on DioException` / `JellyfinException.fromDio` | `on JellyfinException` only; `e.isNetworkFailure`, `e.isTransient`, `e.isNotFound`, `e.isCancelled` |
 | `jf.fetchBytes(url)` | `jf.requestBytes(url)` |
+| `jf.items.byId(id)`, `jf.playlists.delete(id)`, `jf.userData.setFavorite(id, true)`, … | `jf.items.byId(itemId: id)`, `jf.playlists.delete(playlistId: id)`, `jf.userData.setFavorite(itemId: id, isFavorite: true)` — every id, name and key is a named parameter |
+| `includeItemTypes: ['MusicAlbum']`, `fields: ['Genres']`, `sortBy: ['SortName']` | `includeItemTypes: [JellyfinItemKind.musicAlbum]`, `fields: [JellyfinItemField.genres]`, `sortBy: [JellyfinSortField.sortName]` — a value this package lacks: `JellyfinItemKind('Kind')` |
+| `List<String> fields = JellyfinItemsApi.musicFields` | `List<JellyfinItemField> fields = JellyfinItemsApi.musicFields` |
+| `playlists.removeItems(entryIds: [item.playlistItemId!])` | unchanged; a stored string is `JellyfinPlaylistEntryId(id)` |
 | `(await jf.library.counts())['SongCount']` | `(await jf.library.counts()).songCount` |
+| `system.endpointInfo()` / `utcTime()` → maps | `JellyfinEndpointInfo` / `JellyfinUtcTime` (`.raw` keeps the map) |
+| `scheduledTasks.byId(id)`, `devices.info(id)`, `syncPlay.group(id)` | answer `null` when there is no such thing |
+| `item.raw['People']`, `raw['RecursiveItemCount']`, `raw['AlbumCount']` | `item.people`, `item.recursiveItemCount`, `item.albumCount` (the `ItemCounts` field, sent flat) |
+| hand-built `/Audio/{id}/stream?audioCodec=aac&maxStreamingBitrate=…` | `jf.audio.transcodedStreamUrl(itemId:, audioCodec: 'aac', container: 'm4a', audioBitRate: …, playSessionId: …)` — that route reads `audioBitRate`, not `maxStreamingBitrate` |
+| `audio.lyricsRaw(id)` | `(await audio.lyrics(itemId: id))?.toLrc(enhanced: true)` (deprecated: no route serves the file) |
+| `e.isRetriable` | `e.isNetworkFailure` (or `e.isTransient` to include 5xx and 429) |
+| `class FakeClient implements JellyfinClient` | add the new members (`close`, `withCancelToken`, `requestStream`, …) or use `noSuchMethod` |
 | `scheduledTasks`, `devices`, `activityLog.entries`, `images.listItemImages`, `lyrics.searchRemote`, `syncPlay.list/group`, `playlists.users` → maps | typed models (`.raw` keeps the map); `activityLog.entries()` is a `JellyfinQueryResult` |
 | `playback.progress(playMethod: 'Transcode', repeatMode: 'RepeatAll')` | `playback.progress(method: JellyfinPlayMethod.transcode, repeat: JellyfinRepeatMode.all)` (Strings still work, deprecated) |
-| `item.raw['PlaylistItemId']` | `item.playlistItemId` |
+| `item.raw['PlaylistItemId']` | `item.playlistItemId` (a `JellyfinPlaylistEntryId`) |
 | hand-built `/Items/{id}/Images/Primary?maxWidth=…&format=Jpg` | `jf.images.url(itemId: id, tag: item.artworkVersion, maxWidth: 512, maxHeight: 512, quality: 85, format: JellyfinImagesApi.formatJpg)` |
 | hand-built `/Audio/{id}/main.m3u8?…&deviceId=…&container=ts` | `jf.hls.audioVariantUrl(itemId: id, playSessionId: ps, segmentContainer: 'ts', …)` — `container` is not read by that route, and the device id must be the auth header's |
 | `raw['a']['b']` (dynamic access) | `(raw['a'] as Map<String, Object?>)['b']` |
@@ -40,11 +51,9 @@ token.cancel();
 // One library's artists: parentId on /Items does not scope MusicArtist.
 final artists = await jf.artists.albumArtists(parentId: musicLibraryId);
 
-// Genres: /Genres ids are the /MusicGenres ids, and filter music.
-final genres = await jf.genres.list(
-  parentId: musicLibraryId,
-  includeItemTypes: const [JellyfinItemKind.musicAlbum, JellyfinItemKind.audio],
-);
+// Genres: scoped to the music library, /Genres answers the /MusicGenres
+// ids — the ones an instant mix accepts (unscoped ids give an empty mix).
+final genres = await jf.genres.list(parentId: musicLibraryId);
 final mix = await jf.instantMix.fromItem(itemId: genres.items.first.id, limit: 50);
 
 // Word-by-word lyrics, without converting by hand.
@@ -56,6 +65,18 @@ final version = track.artworkVersion;
 
 // Loudness normalisation.
 final gainDb = track.normalizationGain ?? track.albumNormalizationGain;
+
+// Live updates, typed.
+final socket = await jf.notifications.connect();
+socket.events().listen((event) {
+  switch (event) {
+    case JellyfinUserDataChangedEvent(:final changes):
+      for (final c in changes) cache.updateUserData(c.itemId, c.userData);
+    case JellyfinLibraryChangedEvent(:final itemsRemoved):
+      cache.dropAll(itemsRemoved);
+    case _:
+  }
+});
 ```
 
 See `CHANGELOG.md` for everything verified on Jellyfin 12.0 / 12.2 along
