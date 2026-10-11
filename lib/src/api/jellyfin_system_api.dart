@@ -65,13 +65,13 @@ class JellyfinSystemApi {
   }
 
   /// `GET /System/Logs/Log?name={name}` — fetch one log file as
-  /// plain text.
+  /// plain text; `''` for an empty file.
   Future<String?> logFile(String name) async {
     final res = await _http.request<String>(
       '/System/Logs/Log',
       queryParameters: {'name': name},
     );
-    return res.data;
+    return res.data ?? '';
   }
 
   /// `GET /System/Ping` — lightweight reachability check that

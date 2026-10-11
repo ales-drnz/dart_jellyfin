@@ -596,8 +596,11 @@ final class JellyfinItem {
   /// Jellyfin keeps the measured loudness (LUFS) to itself — no DTO in the
   /// 12.x API carries it, nor any loudness field on `MediaSourceInfo` or
   /// `MediaStream` — and exposes only this gain. It survives a transcode
-  /// that drops the file's ReplayGain tags. Null until the server's
-  /// "audio normalization" task has run on the item.
+  /// that drops the file's ReplayGain tags.
+  ///
+  /// Null unless the library has `EnableLUFSScan` on (a library option,
+  /// off by default) and the server's "Audio Normalization" scheduled task
+  /// has since run on the item.
   final double? normalizationGain;
 
   /// Album-level gain in dB (`AlbumNormalizationGain`), inherited from the
@@ -774,8 +777,10 @@ final class JellyfinItem {
   /// recomputes whenever the picture changes. Put it in an artwork cache
   /// key — and pass it as `tag` to [JellyfinImagesApi.url] — so a cover
   /// replaced on the server is fetched again. Needs no `fields`: the
-  /// server always sends `ImageTags` and, on tracks, `AlbumPrimaryImageTag`
-  /// (verified on 12.0).
+  /// server sends `ImageTags` and, on tracks, `AlbumPrimaryImageTag`
+  /// unasked (verified on 12.0). With `enableImages: false` it leaves out
+  /// `ImageTags` but still sends `AlbumPrimaryImageTag` (12.2), so a
+  /// track's version stays and an album's is null.
   String? get artworkVersion => primaryImageTag ?? albumPrimaryImageTag;
 }
 

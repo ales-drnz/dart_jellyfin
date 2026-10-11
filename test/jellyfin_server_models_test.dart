@@ -178,4 +178,26 @@ void main() {
     expect(adapter.path, '/Playlists/p/Users');
     expect((perm.userId, perm.canEdit), ('u2', true));
   });
+
+  test('text endpoints answer an empty body as an empty string', () async {
+    // 12.2 answers /Branding/Css with 200, text/css and no body when no
+    // custom CSS is set; 0.2 returned '' there.
+    adapter.respond = (_) => CannedResponse(
+          200,
+          const [],
+          contentType: 'text/css; charset=utf-8',
+        );
+    expect(await client.branding.css(), '');
+    expect(adapter.path, '/Branding/Css');
+    expect(await client.branding.cssFile(), '');
+    expect(adapter.path, '/Branding/Css.css');
+    expect(await client.system.logFile('empty.log'), '');
+
+    adapter.respond = (_) => CannedResponse(
+          200,
+          'body { color: red; }'.codeUnits,
+          contentType: 'text/css; charset=utf-8',
+        );
+    expect(await client.branding.css(), 'body { color: red; }');
+  });
 }

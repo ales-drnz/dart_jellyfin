@@ -104,7 +104,7 @@ class JellyfinPlaybackApi {
   /// [playSessionId] is still wanted.
   ///
   /// When it matters, measured on Jellyfin 12.0 with an HLS audio
-  /// transcode (`hls.audioVariantUrl`):
+  /// transcode (`hls.audioVariantUrl`), not re-measured on 12.2:
   ///
   /// * The job is filed under the `DeviceId` of the stream URL. The
   ///   library's URL builders use the auth header's device id, so the job

@@ -23,16 +23,18 @@ class JellyfinBrandingApi {
     return res.data ?? const {};
   }
 
-  /// `GET /Branding/Css` — server's custom CSS as plain text.
+  /// `GET /Branding/Css` — server's custom CSS as plain text, `''` when
+  /// none is set (the server answers 200 with an empty body).
   Future<String?> css() async {
     final res = await _http.request<String>('/Branding/Css');
-    return res.data;
+    return res.data ?? '';
   }
 
   /// `GET /Branding/Css.css` — same as [css] but served with a
-  /// `.css` filename so browsers honour it as a stylesheet.
+  /// `.css` filename so browsers honour it as a stylesheet. `''` when no
+  /// custom CSS is set.
   Future<String?> cssFile() async {
     final res = await _http.request<String>('/Branding/Css.css');
-    return res.data;
+    return res.data ?? '';
   }
 }

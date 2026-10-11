@@ -782,7 +782,8 @@ These answer typed models: `JellyfinItemCounts`, `JellyfinEndpointInfo`,
 `JellyfinUtcTime`, `JellyfinScheduledTask`, `JellyfinDevice` and a
 `JellyfinQueryResult<JellyfinActivityLogEntry>`. Like every model, each
 keeps the decoded body in `raw`. The "Audio Normalization" scheduled
-task is the one that fills `JellyfinItem.normalizationGain`. Admin-only
+task is the one that fills `JellyfinItem.normalizationGain`, for the
+libraries that have the `EnableLUFSScan` option on. Admin-only
 setup endpoints (Live TV tuners, plugins, packages, localization) still
 answer maps.
 
@@ -845,12 +846,15 @@ back from `filter.facets()` and survive a rename.
 **Fields.** `fields` defaults to empty — the server's own projection.
 Two presets are ready-made; see [4.7](#47-field-presets).
 
-**Artists are not scoped by `parentId`.** With
-`includeItemTypes: [JellyfinItemKind.musicArtist]`, `/Items` ignores
-`parentId` and answers the artists of every library (verified with two
-music libraries). List one library's artists with
-`artists.albumArtists(parentId: …)` or `artists.list(parentId: …)`,
-which do honour it. Albums and tracks are scoped as expected.
+**Artists are not scoped by a library's id.** With
+`includeItemTypes: [JellyfinItemKind.musicArtist]` and a library's id as
+`parentId`, `/Items` answers the artists of every library (verified with
+two music libraries on 12.0, and with a non-music library's id on 12.2).
+Below a library root `parentId` does apply, but artists are not stored
+under albums, so an album's id answers no artists. List one library's
+artists with `artists.albumArtists(parentId: …)` or
+`artists.list(parentId: …)`, which do honour it. Albums and tracks are
+scoped as expected.
 
 **Totals cost a second query.** `enableTotalRecordCount` (default
 `true`) makes the server count the whole result set for
@@ -947,7 +951,9 @@ build. `MediaSources` and `MediaStreams` are most of both. Neither preset
 is a default, because `/Items` also serves video and photo libraries.
 
 Image tags (`ImageTags`, `AlbumPrimaryImageTag`) are not fields: the
-server always sends them, so covers work with either preset. 0.2 listed
+server sends them unasked, so covers work with either preset. Only
+`enableImages: false` drops `ImageTags` (`AlbumPrimaryImageTag` stays,
+12.2). 0.2 listed
 `AlbumPrimaryImageTag` in `musicFields`; the server ignored it.
 
 With `Genres` requested, `JellyfinItem.genreItems` carries each genre's
@@ -960,7 +966,8 @@ id and name (`JellyfinNameGuidPair`), the ids `items.list(genreIds:)` and
 (with `ItemCounts`: the server sends them flat on the item, no
 `ItemCounts` object), `normalizationGain` and
 `albumNormalizationGain` (dB, filled by the server's "Audio
-Normalization" task; Jellyfin exposes no LUFS value), and
+Normalization" task in libraries with `EnableLUFSScan` on; Jellyfin
+exposes no LUFS value), and
 `artworkItemId` / `artworkVersion`, the id whose cover to show and the
 image tag to put in a cache key:
 
@@ -1729,9 +1736,10 @@ Tells the server the transcode of a play session is still wanted.
 await jellyfin.playback.ping(playSessionId: 'my-uuid');
 ```
 
-Measured on Jellyfin 12.0 with an HLS audio transcode: the job is filed
-under the stream URL's `DeviceId` (the auth header's, in every builder
-here), so ping, `progress` and `stopped` reach it. A paused session that
+Measured on Jellyfin 12.0 (not re-measured on 12.2) with an HLS audio
+transcode: the job is filed under the stream URL's `DeviceId` (the auth
+header's, in every builder here), so ping, `progress` and `stopped` reach
+it. A paused session that
 sent one `progress` with `isPaused: true` kept its job for the 130 s
 observed without pings, and `stopped` ends it. A player that sends
 `progress` every ~10 s needs no ping; ping covers stretches with nothing

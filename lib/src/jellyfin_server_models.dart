@@ -133,7 +133,8 @@ final class JellyfinItemCounts {
 }
 
 /// A scheduled task (`TaskInfo`) — library scans, "Audio Normalization"
-/// (which fills `JellyfinItem.normalizationGain`), image extraction, …
+/// (which fills `JellyfinItem.normalizationGain` in libraries with
+/// `EnableLUFSScan` on), image extraction, …
 final class JellyfinScheduledTask {
   /// Task id, for `scheduledTasks.start` / `stop`.
   final String id;

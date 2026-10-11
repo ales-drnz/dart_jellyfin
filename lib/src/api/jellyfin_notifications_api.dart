@@ -51,9 +51,10 @@ class JellyfinNotificationsApi {
   /// is live and [isConnected] is only `true` (and the keep-alive timer
   /// only armed) once the connection is actually open.
   ///
-  /// [keepAliveInterval] sets the server-side timeout. The server
-  /// closes the socket after ~60 s of silence; the default 30 s
-  /// keep-alive is safely under that.
+  /// [keepAliveInterval] is how often this client sends a `KeepAlive`
+  /// frame; it does not change any timeout on the server. The server
+  /// closes the socket after ~60 s of silence, so keep it well under
+  /// that — the default 30 s is.
   Future<Stream<JellyfinNotification>> connect({
     Duration keepAliveInterval = const Duration(seconds: 30),
   }) async {
