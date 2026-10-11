@@ -136,6 +136,14 @@ class JellyfinPlaylistsApi {
   }
 
   /// Rename a playlist.
+  ///
+  /// Jellyfin 12.2 loses a rename that arrives within about half a second
+  /// of a write that changed the playlist's entries — [create] with
+  /// `itemIds`, [addItems] — and still answers success: the server saves
+  /// the entry change to the playlist file after answering, over the new
+  /// name. Measured: 10 of 10 renames sent at once after an add were lost,
+  /// none of 16 with a gap of 0.5–4 s, none sent on their own. Name the
+  /// playlist in [create], or leave a gap.
   Future<void> rename({
     required String playlistId,
     required String name,
@@ -188,9 +196,12 @@ class JellyfinPlaylistsApi {
   }
 
   /// `POST /Playlists/{playlistId}/Items/{itemId}/Move/{newIndex}` —
-  /// reorder one item. [playlistItemId] is the playlist entry id
-  /// (NOT the underlying item id), available on the `PlaylistItemId`
-  /// field of each entry from [items].
+  /// reorder one entry. [playlistItemId] is the entry's
+  /// [JellyfinItem.playlistItemId] — on 12.2 the item id, so with a track
+  /// listed twice the first copy moves (verified).
+  ///
+  /// Jellyfin 12.2 can answer before the new order is visible: a read
+  /// right after may still show the old one for a moment.
   Future<void> moveItem({
     required String playlistId,
     required String playlistItemId,

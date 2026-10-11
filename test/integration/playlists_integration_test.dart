@@ -57,11 +57,22 @@ void main() {
           // Rename, then verify by fetching as an item (Jellyfin's
           // `/Playlists/{id}` returns a PlaylistDto without a Name field;
           // the rename surfaces on the `/Items/{id}` view).
+          // Jellyfin 12.2 loses a rename sent within ~0.5 s of a write that
+          // changed the entries (measured: 10/10 lost at once, 0/16 with a
+          // gap of 0.5–4 s) — see JellyfinPlaylistsApi.rename. This test
+          // is not about that race, so it waits it out.
+          await Future<void>.delayed(const Duration(seconds: 1));
           await jf.playlists.rename(
             playlistId: created.id,
             name: 'dart_jellyfin smoke playlist (renamed)',
           );
-          final fetched = await jf.items.byId(created.id);
+          // 12.2 can answer the rename before a read sees it: poll briefly.
+          JellyfinItem? fetched;
+          for (var i = 0; i < 20; i++) {
+            fetched = await jf.items.byId(created.id);
+            if (fetched?.name.contains('renamed') ?? false) break;
+            await Future<void>.delayed(const Duration(milliseconds: 250));
+          }
           expect(fetched, isNotNull);
           expect(fetched!.name, contains('renamed'));
 

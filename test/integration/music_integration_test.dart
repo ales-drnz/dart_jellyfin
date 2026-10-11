@@ -45,6 +45,27 @@ void main() {
             .items;
       });
 
+      test('JellyfinPaging walks the tracks two at a time', () async {
+        var requests = 0;
+        final all = await JellyfinPaging.items(
+          (start, size) async {
+            requests++;
+            return (await jf.items.list(
+              parentId: album.id,
+              includeItemTypes: const [JellyfinItemKind.audio],
+              sortBy: const ['IndexNumber'],
+              enableTotalRecordCount: false,
+              startIndex: start,
+              limit: size,
+            ))
+                .items;
+          },
+          pageSize: 2,
+        ).toList();
+        expect(all.map((t) => t.id), tracks.map((t) => t.id));
+        expect(requests, 2);
+      });
+
       test('server and housekeeping answers are typed', () async {
         final counts = await jf.library.counts();
         expect(counts.songCount, tracks.length);
