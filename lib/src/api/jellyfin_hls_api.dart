@@ -164,6 +164,9 @@ class JellyfinHlsApi {
   String videoMasterUrl({
     required String itemId,
     String? mediaSourceId,
+    @Deprecated(
+      'Video routes do not read it; cap with videoBitRate and audioBitRate',
+    )
     int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
@@ -210,6 +213,9 @@ class JellyfinHlsApi {
   String videoVariantUrl({
     required String itemId,
     String? mediaSourceId,
+    @Deprecated(
+      'Video routes do not read it; cap with videoBitRate and audioBitRate',
+    )
     int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
@@ -272,6 +278,9 @@ class JellyfinHlsApi {
   String videoLiveUrl({
     required String itemId,
     String? mediaSourceId,
+    @Deprecated(
+      'Video routes do not read it; cap with videoBitRate and audioBitRate',
+    )
     int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
@@ -307,7 +316,6 @@ class JellyfinHlsApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.aac?${_encode(qp)}';
   }
@@ -320,7 +328,6 @@ class JellyfinHlsApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.mp3?${_encode(qp)}';
   }
@@ -336,7 +343,6 @@ class JellyfinHlsApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/$segmentId.$segmentContainer?${_encode(qp)}';
   }
@@ -349,7 +355,6 @@ class JellyfinHlsApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      'DeviceId': _http.credentials.deviceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${_encode(qp)}';
   }
@@ -451,12 +456,12 @@ class JellyfinHlsApi {
     String? tag,
     bool breakOnNonKeyFrames = false,
   }) {
+    // maxStreamingBitrate is accepted for compatibility and not sent: the
+    // video HLS routes do not read it (absent from every API document).
     return <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-      if (maxStreamingBitrate != null)
-        'MaxStreamingBitrate': '$maxStreamingBitrate',
       if (videoCodec != null) 'VideoCodec': videoCodec,
       if (audioCodec != null) 'AudioCodec': audioCodec,
       if (videoBitRate != null) 'VideoBitRate': '$videoBitRate',

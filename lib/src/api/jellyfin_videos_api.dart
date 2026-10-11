@@ -38,6 +38,9 @@ class JellyfinVideosApi {
     required String itemId,
     String? container,
     String? mediaSourceId,
+    @Deprecated(
+      'Video routes do not read it; cap with videoBitRate and audioBitRate',
+    )
     int? maxStreamingBitrate,
     int? audioStreamIndex,
     int? subtitleStreamIndex,
@@ -66,8 +69,6 @@ class JellyfinVideosApi {
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-      if (maxStreamingBitrate != null)
-        'MaxStreamingBitrate': '$maxStreamingBitrate',
       if (audioStreamIndex != null) 'AudioStreamIndex': '$audioStreamIndex',
       if (subtitleStreamIndex != null)
         'SubtitleStreamIndex': '$subtitleStreamIndex',

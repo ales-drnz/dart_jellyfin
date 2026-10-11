@@ -67,21 +67,23 @@ class JellyfinSubtitlesApi {
   }
 
   /// Same as [streamUrl] but the server returns a sub-segment of the
-  /// subtitle stream, starting at a tick offset. Used when seeking
-  /// during transcoded playback.
+  /// subtitle stream, from [startPositionTicks] to [endPositionTicks].
+  /// Used when seeking during transcoded playback.
   String streamWithTicksUrl({
     required String itemId,
     required String mediaSourceId,
     required int index,
     required int startPositionTicks,
     String format = formatVtt,
+    int? endPositionTicks,
+    @Deprecated('Not read by this route; use endPositionTicks')
     int? segmentLength,
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'StartPositionTicks': '$startPositionTicks',
-      if (segmentLength != null) 'SegmentLength': '$segmentLength',
+      if (endPositionTicks != null) 'EndPositionTicks': '$endPositionTicks',
     };
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/$startPositionTicks/Stream.$format?${_encode(qp)}';
   }

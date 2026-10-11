@@ -28,9 +28,15 @@ class JellyfinLiveTvApi {
   /// [sortBy] entries must be valid `ItemSortBy` enum members (e.g.
   /// `'Default'`, `'SortName'`); the default is empty, omitting the
   /// param so the server applies its native channel ordering.
+  ///
+  /// There is no server-side search: `/LiveTv/Channels` has no
+  /// `searchTerm` (in 10.11 or 12.x), so the parameter of that name, which
+  /// earlier versions sent and the server ignored, is deprecated and no
+  /// longer sent. Filter the answer by name instead.
   Future<JellyfinQueryResult<JellyfinItem>> channels({
     int startIndex = 0,
     int? limit,
+    @Deprecated('Ignored by the server; filter the answer by name')
     String? searchTerm,
     bool? isFavorite,
     String? type, // TV | Radio
@@ -46,9 +52,6 @@ class JellyfinLiveTvApi {
       'sortOrder': descending ? 'Descending' : 'Ascending',
     };
     if (limit != null) qp['limit'] = limit;
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      qp['searchTerm'] = searchTerm;
-    }
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     if (type != null) qp['type'] = type;
     return _http.requestJson(
