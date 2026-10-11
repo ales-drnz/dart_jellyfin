@@ -349,7 +349,9 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}` always returns the full `BaseItemDto`; it has
   /// no `fields` parameter, so none is sent. Use [list] with
   /// `ids: [itemId]` if you need server-side field selection.
-  Future<JellyfinItem?> byId(String itemId) async {
+  Future<JellyfinItem?> byId({
+    required String itemId,
+  }) async {
     final userId = _http.requireUserId();
     try {
       final res = await _http.request<Map<String, Object?>>(
@@ -406,7 +408,9 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/Intros` — pre-roll items (intros/trailers
   /// the server schedules ahead of this item).
-  Future<JellyfinQueryResult<JellyfinItem>> intros(String itemId) async {
+  Future<JellyfinQueryResult<JellyfinItem>> intros({
+    required String itemId,
+  }) async {
     final userId = _http.requireUserId();
     return _http.requestJson(
       '/Items/$itemId/Intros',
@@ -417,7 +421,9 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/LocalTrailers` — every local trailer file
   /// attached to the item (returned as a flat list).
-  Future<List<JellyfinItem>> localTrailers(String itemId) async {
+  Future<List<JellyfinItem>> localTrailers({
+    required String itemId,
+  }) async {
     final userId = _http.requireUserId();
     return _http.requestJson(
       '/Items/$itemId/LocalTrailers',
@@ -477,7 +483,9 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/MetadataEditor` — info needed to populate
   /// the "Edit metadata" UI (available genres, tags, lock options).
-  Future<Map<String, Object?>> metadataEditorInfo(String itemId) async {
+  Future<Map<String, Object?>> metadataEditorInfo({
+    required String itemId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/MetadataEditor',
     );
@@ -489,7 +497,9 @@ class JellyfinItemsApi {
   /// Returns the URL string; pass it to `downloadToFile`
   /// (`package:dart_jellyfin/io.dart`) or [JellyfinClient.requestStream] to
   /// stream it to disk.
-  String downloadUrl(String itemId) {
+  String downloadUrl({
+    required String itemId,
+  }) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';
     return '$base/Items/$itemId/Download?ApiKey=$token';
@@ -498,7 +508,9 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/File` — same as [downloadUrl] but the
   /// upstream operation is `GetFile`. Some clients honour
   /// `Content-Disposition` here for original filename.
-  String fileUrl(String itemId) {
+  String fileUrl({
+    required String itemId,
+  }) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';
     return '$base/Items/$itemId/File?ApiKey=$token';
@@ -506,7 +518,9 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/SpecialFeatures` — bonus content (deleted
   /// scenes, behind-the-scenes, etc.) attached to a movie or show.
-  Future<List<JellyfinItem>> specialFeatures(String itemId) async {
+  Future<List<JellyfinItem>> specialFeatures({
+    required String itemId,
+  }) async {
     final userId = _http.requireUserId();
     return _http.requestJson(
       '/Items/$itemId/SpecialFeatures',

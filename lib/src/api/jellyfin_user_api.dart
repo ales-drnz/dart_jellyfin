@@ -97,7 +97,9 @@ class JellyfinUserApi {
 
   /// `GET /Users/{userId}` — fetch a single user by id (admin only).
   /// Returns null on 404.
-  Future<JellyfinUser?> byId(String userId) async {
+  Future<JellyfinUser?> byId({
+    required String userId,
+  }) async {
     try {
       final res = await _http.request<Map<String, Object?>>(
         '/Users/$userId',
@@ -199,14 +201,18 @@ class JellyfinUserApi {
   }
 
   /// `DELETE /Users/{userId}` — delete a user (admin only).
-  Future<void> delete(String userId) async {
+  Future<void> delete({
+    required String userId,
+  }) async {
     await _http.request<void>('/Users/$userId', method: 'DELETE');
   }
 
   /// `POST /Users/ForgotPassword?enteredUsername={u}` — start the
   /// forgot-password flow. Returns the server's response (which
   /// includes the action — usually `ContactAdmin` or `PinCode`).
-  Future<Map<String, Object?>> forgotPassword(String username) async {
+  Future<Map<String, Object?>> forgotPassword({
+    required String username,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Users/ForgotPassword',
       method: 'POST',
@@ -218,7 +224,9 @@ class JellyfinUserApi {
   /// `POST /Users/ForgotPassword/Pin?pin={code}` — submit the PIN
   /// returned by [forgotPassword] (server places it in a known file
   /// on disk for the admin to read).
-  Future<Map<String, Object?>> forgotPasswordPin(String pin) async {
+  Future<Map<String, Object?>> forgotPasswordPin({
+    required String pin,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Users/ForgotPassword/Pin',
       method: 'POST',

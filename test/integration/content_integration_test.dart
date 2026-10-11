@@ -129,7 +129,8 @@ void main() {
 
       test('itemLookup.externalIdInfos returns the configured external sources',
           () async {
-        final infos = await jf.itemLookup.externalIdInfos(trackIds.first);
+        final infos =
+            await jf.itemLookup.externalIdInfos(itemId: trackIds.first);
         expect(infos, isA<List<Map<String, dynamic>>>());
       });
     },

@@ -696,7 +696,7 @@ print('Open Jellyfin elsewhere → Settings → Quick Connect → enter ${init.c
 // 2. Poll until the user authorises.
 while (true) {
   await Future<void>.delayed(const Duration(seconds: 2));
-  final state = await jellyfin.quickConnect.state(init.secret);
+  final state = await jellyfin.quickConnect.state(secret: init.secret);
   if (state.authenticated) break;
 }
 
@@ -709,7 +709,7 @@ To approve a code from an already-authenticated device (the
 "authorise other device" side):
 
 ```dart
-await jellyfin.quickConnect.authorize('ABC123');
+await jellyfin.quickConnect.authorize(code: 'ABC123');
 ```
 
 #### 2.3 Current user
@@ -883,7 +883,7 @@ server answers with just the total, without transferring the items.
 #### 4.4 Single item
 
 ```dart
-final item = await jellyfin.items.byId('12345');
+final item = await jellyfin.items.byId(itemId: '12345');
 if (item != null) {
   print(item.name);
   print(item.mediaSources.first.bitrate);
@@ -1069,7 +1069,7 @@ no way to address one copy of a duplicate.
 
 ```dart
 await jellyfin.playlists.rename(playlistId: '123', name: 'New name');
-await jellyfin.playlists.delete('123');
+await jellyfin.playlists.delete(playlistId: '123');
 ```
 
 Jellyfin 12.2 loses a rename sent within about half a second of a write
@@ -1160,7 +1160,7 @@ final (url, ext) = jellyfin.audio.directStreamUrl(
 #### 7.3 Lyrics
 
 ```dart
-final lyrics = await jellyfin.audio.lyrics(track.id);
+final lyrics = await jellyfin.audio.lyrics(itemId: track.id);
 if (lyrics == null) { /* no lyrics on server */ }
 else if (lyrics.hasCues) {
   print(lyrics.toLrc(enhanced: true)); // ELRC: per-word <mm:ss.cc> times
@@ -1236,7 +1236,7 @@ transcode whose query string came from
 Movies split across multiple files (CD1, CD2, parts and halves):
 
 ```dart
-final parts = await jellyfin.videos.additionalParts(movieId);
+final parts = await jellyfin.videos.additionalParts(itemId: movieId);
 for (final p in parts) {
   print('${p['Name']} (${p['Id']})');
 }
@@ -1882,11 +1882,11 @@ await jellyfin.sessions.displayContent(
 #### 16.1 Favorites
 
 ```dart
-await jellyfin.userData.markFavorite(track.id);
-await jellyfin.userData.unmarkFavorite(track.id);
+await jellyfin.userData.markFavorite(itemId: track.id);
+await jellyfin.userData.unmarkFavorite(itemId: track.id);
 
 // Convenience toggle:
-await jellyfin.userData.setFavorite(track.id, true);
+await jellyfin.userData.setFavorite(itemId: track.id, isFavorite: true);
 ```
 
 Each call returns a fresh `JellyfinUserData` with the new state.
@@ -1894,8 +1894,8 @@ Each call returns a fresh `JellyfinUserData` with the new state.
 #### 16.2 Played flag
 
 ```dart
-await jellyfin.userData.markPlayed(track.id);
-await jellyfin.userData.markUnplayed(track.id);
+await jellyfin.userData.markPlayed(itemId: track.id);
+await jellyfin.userData.markUnplayed(itemId: track.id);
 ```
 
 #### 16.3 Reading and writing the record
@@ -1905,7 +1905,7 @@ Both calls return the freshest `JellyfinUserData` (`isFavorite`,
 fetch and write the whole record:
 
 ```dart
-final data = await jellyfin.userData.get(itemId);
+final data = await jellyfin.userData.get(itemId: itemId);
 print('position=${data.playbackPositionTicks} count=${data.playCount}');
 
 // Reset the resume position, keep the rest.
@@ -1959,7 +1959,7 @@ final fromSong   = await jellyfin.instantMix.fromSong(songId: track.id);
 final fromAlbum  = await jellyfin.instantMix.fromAlbum(albumId: album.id);
 final fromArtist = await jellyfin.instantMix.fromArtist(artistId: artist.id);
 final fromList   = await jellyfin.instantMix.fromPlaylist(playlistId: playlist.id);
-final rock       = await jellyfin.musicGenres.byName('Rock');
+final rock       = await jellyfin.musicGenres.byName(name: 'Rock');
 final fromGenre  = await jellyfin.instantMix.fromItem(itemId: rock!.id);
 ```
 
@@ -1999,7 +1999,7 @@ for (final ch in channels.items) {
   print('${ch.indexNumber} ${ch.name}');
 }
 
-final ch = await jellyfin.liveTv.channel(channelId);
+final ch = await jellyfin.liveTv.channel(channelId: channelId);
 // ch.raw['CurrentProgram'] carries the now-airing show.
 ```
 
@@ -2036,8 +2036,8 @@ for (final rec in recordings.items) {
   print('${rec.name} - ${rec.runTimeTicks} ticks');
 }
 
-final detail = await jellyfin.liveTv.recording(recordingId);
-await jellyfin.liveTv.deleteRecording(recordingId);
+final detail = await jellyfin.liveTv.recording(recordingId: recordingId);
+await jellyfin.liveTv.deleteRecording(recordingId: recordingId);
 ```
 
 #### 18.4 Timers
@@ -2056,7 +2056,7 @@ await jellyfin.liveTv.createTimer(
   },
 );
 
-await jellyfin.liveTv.deleteTimer(timerId);
+await jellyfin.liveTv.deleteTimer(timerId: timerId);
 
 // Recurring rules:
 final series = await jellyfin.liveTv.seriesTimers();
@@ -2372,7 +2372,7 @@ the right call for an "Artists" library tab.
 #### 25.3 Lookup by name
 
 ```dart
-final ai = await jellyfin.artists.byName('Aphex Twin');
+final ai = await jellyfin.artists.byName(name: 'Aphex Twin');
 if (ai != null) {
   print(ai.id);
 }
@@ -2451,11 +2451,11 @@ deleting the attached one, and searching remote lyric providers.
 #### 27.1 Reading attached lyrics
 
 ```dart
-final lyrics = await jellyfin.lyrics.forItem(track.id);
+final lyrics = await jellyfin.lyrics.forItem(itemId: track.id);
 print(lyrics?.toLrc());
 ```
 
-Mirror of `jellyfin.audio.lyrics(itemId)`. Use whichever entry point
+Mirror of `jellyfin.audio.lyrics(itemId: itemId)`. Use whichever entry point
 is closer to the call site.
 
 #### 27.2 Uploading a file
@@ -2474,13 +2474,13 @@ The server picks the parser from the file extension.
 #### 27.3 Deleting
 
 ```dart
-await jellyfin.lyrics.delete(track.id);
+await jellyfin.lyrics.delete(itemId: track.id);
 ```
 
 #### 27.4 Remote search and download
 
 ```dart
-final hits = await jellyfin.lyrics.searchRemote(track.id);
+final hits = await jellyfin.lyrics.searchRemote(itemId: track.id);
 for (final hit in hits) {
   print('${hit.providerName}: ${hit.id} (${hit.lyrics?.lines.length} lines)');
 }
@@ -2538,7 +2538,7 @@ final latest = await jellyfin.channels.latest(
 #### 28.4 Channel features
 
 ```dart
-final feats = await jellyfin.channels.features(channelId);
+final feats = await jellyfin.channels.features(channelId: channelId);
 print(feats['SupportsContentDownloading']);
 
 final all = await jellyfin.channels.allFeatures();
@@ -2643,7 +2643,7 @@ final actors = await jellyfin.persons.list(
   searchTerm: 'cumberbatch',
   limit: 20,
 );
-final one = await jellyfin.persons.byName('Benedict Cumberbatch');
+final one = await jellyfin.persons.byName(name: 'Benedict Cumberbatch');
 ```
 
 Pass `appearsInItemId` to scope the list to people credited on a
@@ -2670,7 +2670,7 @@ final studios = await jellyfin.studios.list(
   parentId: movieLibraryId,
   nameStartsWith: 'A',
 );
-final pixar = await jellyfin.studios.byName('Pixar');
+final pixar = await jellyfin.studios.byName(name: 'Pixar');
 ```
 
 #### 31.3 Genres
@@ -2680,7 +2680,7 @@ final genres = await jellyfin.genres.list(
   parentId: movieLibraryId,
   includeItemTypes: const ['Movie'],
 );
-final action = await jellyfin.genres.byName('Action');
+final action = await jellyfin.genres.byName(name: 'Action');
 ```
 
 Generic across-library variant.
@@ -2689,7 +2689,7 @@ Generic across-library variant.
 
 ```dart
 final musicGenres = await jellyfin.genres.list(parentId: musicLibraryId);
-final ambient = await jellyfin.musicGenres.byName('Ambient');
+final ambient = await jellyfin.musicGenres.byName(name: 'Ambient');
 ```
 
 Jellyfin keeps two items per genre name: a generic `Genre` and, for
@@ -2719,7 +2719,7 @@ final yrs = await jellyfin.years.list(
   sortBy: const ['ProductionYear'],
   descending: true,
 );
-final y1999 = await jellyfin.years.byYear(1999);
+final y1999 = await jellyfin.years.byYear(year: 1999);
 ```
 
 ---

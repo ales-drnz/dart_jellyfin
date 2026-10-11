@@ -85,7 +85,9 @@ class JellyfinGenresApi {
   /// genre use [JellyfinMusicGenresApi.byName], or
   /// `list(parentId: musicLibraryId, searchTerm: name)` and keep the
   /// exact match — `searchTerm` also matches parts of names.
-  Future<JellyfinItem?> byName(String name) =>
+  Future<JellyfinItem?> byName({
+    required String name,
+  }) =>
       lookupItemByName('/Genres', name, _http);
 
   Future<JellyfinQueryResult<JellyfinItem>> _browse(

@@ -65,9 +65,15 @@ void main() {
           // A lost rename reads back fine at first; the old name returns
           // when the server saves the entry change, within about a second.
           // So look again after that.
-          expect((await jf.items.byId(created.id))!.name, contains('renamed'));
+          expect(
+            (await jf.items.byId(itemId: created.id))!.name,
+            contains('renamed'),
+          );
           await Future<void>.delayed(const Duration(seconds: 2));
-          expect((await jf.items.byId(created.id))!.name, contains('renamed'));
+          expect(
+            (await jf.items.byId(itemId: created.id))!.name,
+            contains('renamed'),
+          );
 
           var entries = await jf.playlists.items(playlistId: created.id);
           expect(entries.items.length, greaterThanOrEqualTo(2));
@@ -97,12 +103,12 @@ void main() {
           entries = await jf.playlists.items(playlistId: created.id);
           expect(entries.items.length, trackIds.length - 1);
         } finally {
-          await jf.playlists.delete(created.id);
+          await jf.playlists.delete(playlistId: created.id);
         }
 
         // A deleted playlist is a 404 on 12.2.
         await expectLater(
-          jf.playlists.byId(created.id),
+          jf.playlists.byId(playlistId: created.id),
           throwsA(
             isA<JellyfinException>()
                 .having((e) => e.type, 'type', JellyfinErrorType.notFound),
@@ -114,10 +120,10 @@ void main() {
         final created = await jf.playlists.create(
           name: 'dart_jellyfin idempotency probe',
         );
-        await jf.playlists.delete(created.id);
+        await jf.playlists.delete(playlistId: created.id);
 
         await expectLater(
-          jf.playlists.delete(created.id),
+          jf.playlists.delete(playlistId: created.id),
           throwsA(
             isA<JellyfinException>()
                 .having((e) => e.type, 'type', JellyfinErrorType.notFound),

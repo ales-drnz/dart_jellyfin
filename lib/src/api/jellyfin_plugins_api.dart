@@ -28,18 +28,26 @@ class JellyfinPluginsApi {
 
   /// `DELETE /Plugins/{pluginId}` — uninstall every version of a
   /// plugin.
-  Future<void> uninstall(String pluginId) async {
+  Future<void> uninstall({
+    required String pluginId,
+  }) async {
     await _http.request<void>('/Plugins/$pluginId', method: 'DELETE');
   }
 
   /// `DELETE /Plugins/{pluginId}/{version}` — uninstall a specific
   /// version.
-  Future<void> uninstallVersion(String pluginId, String version) async {
+  Future<void> uninstallVersion({
+    required String pluginId,
+    required String version,
+  }) async {
     await _http.request<void>('/Plugins/$pluginId/$version', method: 'DELETE');
   }
 
   /// `POST /Plugins/{pluginId}/{version}/Enable`.
-  Future<void> enable(String pluginId, String version) async {
+  Future<void> enable({
+    required String pluginId,
+    required String version,
+  }) async {
     await _http.request<void>(
       '/Plugins/$pluginId/$version/Enable',
       method: 'POST',
@@ -47,7 +55,10 @@ class JellyfinPluginsApi {
   }
 
   /// `POST /Plugins/{pluginId}/{version}/Disable`.
-  Future<void> disable(String pluginId, String version) async {
+  Future<void> disable({
+    required String pluginId,
+    required String version,
+  }) async {
     await _http.request<void>(
       '/Plugins/$pluginId/$version/Disable',
       method: 'POST',
@@ -64,7 +75,9 @@ class JellyfinPluginsApi {
 
   /// `GET /Plugins/{pluginId}/Configuration` — fetch a plugin's
   /// current configuration document.
-  Future<Map<String, Object?>> configuration(String pluginId) async {
+  Future<Map<String, Object?>> configuration({
+    required String pluginId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Plugins/$pluginId/Configuration',
     );
@@ -85,7 +98,9 @@ class JellyfinPluginsApi {
   }
 
   /// `POST /Plugins/{pluginId}/Manifest` — get the plugin's manifest.
-  Future<Map<String, Object?>> manifest(String pluginId) async {
+  Future<Map<String, Object?>> manifest({
+    required String pluginId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Plugins/$pluginId/Manifest',
       method: 'POST',

@@ -277,7 +277,9 @@ class JellyfinLibraryApi {
 
   /// `DELETE /Items/{itemId}` — remove an item (and any files on
   /// disk if the user's policy allows). Admin or owner.
-  Future<void> deleteItem(String itemId) async {
+  Future<void> deleteItem({
+    required String itemId,
+  }) async {
     await _http.request<void>(
       '/Items/$itemId',
       method: 'DELETE',
@@ -285,7 +287,9 @@ class JellyfinLibraryApi {
   }
 
   /// `DELETE /Items?ids=...` — bulk delete.
-  Future<void> deleteItems(List<String> ids) async {
+  Future<void> deleteItems({
+    required List<String> ids,
+  }) async {
     await _http.request<void>(
       '/Items',
       method: 'DELETE',

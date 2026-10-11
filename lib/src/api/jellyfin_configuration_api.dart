@@ -36,7 +36,9 @@ class JellyfinConfigurationApi {
 
   /// `GET /System/Configuration/{key}` — one named configuration
   /// document (used by plugins for per-plugin settings).
-  Future<Map<String, Object?>> getNamed(String key) async {
+  Future<Map<String, Object?>> getNamed({
+    required String key,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/System/Configuration/${Uri.encodeComponent(key)}',
     );
@@ -44,7 +46,10 @@ class JellyfinConfigurationApi {
   }
 
   /// `POST /System/Configuration/{key}` — write a named document.
-  Future<void> updateNamed(String key, Map<String, Object?> body) async {
+  Future<void> updateNamed({
+    required String key,
+    required Map<String, Object?> body,
+  }) async {
     await _http.request<void>(
       '/System/Configuration/${Uri.encodeComponent(key)}',
       method: 'POST',

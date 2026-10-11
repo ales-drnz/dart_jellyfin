@@ -240,7 +240,10 @@ class JellyfinSyncPlayApi {
   }
 
   /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id.
-  Future<JellyfinSyncPlayGroup?> group(String id) => _http.requestJson(
+  Future<JellyfinSyncPlayGroup?> group({
+    required String id,
+  }) =>
+      _http.requestJson(
         '/SyncPlay/$id',
         objectOf(JellyfinSyncPlayGroup.fromJson),
       );

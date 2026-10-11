@@ -106,6 +106,8 @@ class JellyfinMusicGenresApi {
   /// empty mix. Should the route go, `genres.list(parentId:
   /// musicLibraryId, searchTerm: name)` finds the same item among partial
   /// matches.
-  Future<JellyfinItem?> byName(String name) =>
+  Future<JellyfinItem?> byName({
+    required String name,
+  }) =>
       lookupItemByName('/MusicGenres', name, _http);
 }

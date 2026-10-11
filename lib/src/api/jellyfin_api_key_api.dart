@@ -31,7 +31,9 @@ class JellyfinApiKeyApi {
   }
 
   /// `POST /Auth/Keys?app={app}` — create a new API key for [app].
-  Future<void> create(String app) async {
+  Future<void> create({
+    required String app,
+  }) async {
     await _http.request<void>(
       '/Auth/Keys',
       method: 'POST',
@@ -40,7 +42,9 @@ class JellyfinApiKeyApi {
   }
 
   /// `DELETE /Auth/Keys/{key}` — revoke an API key by its value.
-  Future<void> revoke(String key) async {
+  Future<void> revoke({
+    required String key,
+  }) async {
     await _http.request<void>('/Auth/Keys/$key', method: 'DELETE');
   }
 }

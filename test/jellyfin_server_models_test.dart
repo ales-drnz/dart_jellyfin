@@ -134,7 +134,7 @@ void main() {
             'Size': 191845,
           },
         ]);
-    final img = (await client.images.listItemImages('al')).single;
+    final img = (await client.images.listItemImages(itemId: 'al')).single;
     expect(adapter.path, '/Items/al/Images');
     expect(
       (img.type, img.tag, img.width, img.size),
@@ -168,13 +168,13 @@ void main() {
               {'UserId': 'u2', 'CanEdit': true},
             ]),
         };
-    final remote = (await client.lyrics.searchRemote('t')).single;
+    final remote = (await client.lyrics.searchRemote(itemId: 't')).single;
     expect(remote.providerName, 'LrcLib');
     expect(remote.lyrics!.lines.single.text, 'x');
     final group = (await client.syncPlay.list()).single;
     expect(group.participants, ['a', 'b']);
     expect(group.state, 'Playing');
-    final perm = (await client.playlists.users('p')).single;
+    final perm = (await client.playlists.users(playlistId: 'p')).single;
     expect(adapter.path, '/Playlists/p/Users');
     expect((perm.userId, perm.canEdit), ('u2', true));
   });
@@ -191,7 +191,7 @@ void main() {
     expect(adapter.path, '/Branding/Css');
     expect(await client.branding.cssFile(), '');
     expect(adapter.path, '/Branding/Css.css');
-    expect(await client.system.logFile('empty.log'), '');
+    expect(await client.system.logFile(name: 'empty.log'), '');
 
     adapter.respond = (_) => CannedResponse(
           200,

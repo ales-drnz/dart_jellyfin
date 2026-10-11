@@ -173,7 +173,9 @@ class JellyfinPlaylistsApi {
   /// Jellyfin 12.2 deletes the playlist but then saves the pending entry
   /// change, which writes its `playlist.xml` back to disk, an orphan a
   /// later library scan may bring back.
-  Future<void> delete(String playlistId) async {
+  Future<void> delete({
+    required String playlistId,
+  }) async {
     await _settle(playlistId);
     await _http.request<void>('/Items/$playlistId', method: 'DELETE');
     _entryWrites.remove(playlistId);
@@ -215,7 +217,9 @@ class JellyfinPlaylistsApi {
   /// served from `/Items/{id}` (a `BaseItemDto`). The `/Playlists/{id}`
   /// endpoint returns a `PlaylistDto` (only `OpenAccess`, `Shares`,
   /// `ItemIds`) and carries none of these fields, so it is not used here.
-  Future<JellyfinItem?> byId(String playlistId) async {
+  Future<JellyfinItem?> byId({
+    required String playlistId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Items/$playlistId',
     );
@@ -275,7 +279,9 @@ class JellyfinPlaylistsApi {
   /// a shared playlist, as [JellyfinPlaylistUserPermission]s (user id and
   /// `canEdit`); resolve display names separately via the users API if
   /// needed.
-  Future<List<JellyfinPlaylistUserPermission>> users(String playlistId) =>
+  Future<List<JellyfinPlaylistUserPermission>> users({
+    required String playlistId,
+  }) =>
       _http.requestJson(
         '/Playlists/$playlistId/Users',
         listOf(JellyfinPlaylistUserPermission.fromJson),

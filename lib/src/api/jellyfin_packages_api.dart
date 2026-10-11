@@ -64,7 +64,9 @@ class JellyfinPackagesApi {
 
   /// `DELETE /Packages/Installing/{packageId}` — cancel an in-flight
   /// install.
-  Future<void> cancelInstall(String packageId) async {
+  Future<void> cancelInstall({
+    required String packageId,
+  }) async {
     await _http.request<void>(
       '/Packages/Installing/$packageId',
       method: 'DELETE',

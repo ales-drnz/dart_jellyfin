@@ -34,7 +34,10 @@ class JellyfinScheduledTasksApi {
   }
 
   /// `GET /ScheduledTasks/{taskId}` — one task's full status.
-  Future<JellyfinScheduledTask?> byId(String taskId) => _http.requestJson(
+  Future<JellyfinScheduledTask?> byId({
+    required String taskId,
+  }) =>
+      _http.requestJson(
         '/ScheduledTasks/$taskId',
         objectOf(JellyfinScheduledTask.fromJson),
       );
@@ -53,7 +56,9 @@ class JellyfinScheduledTasksApi {
   }
 
   /// `POST /ScheduledTasks/Running/{taskId}` — start the task now.
-  Future<void> start(String taskId) async {
+  Future<void> start({
+    required String taskId,
+  }) async {
     await _http.request<void>(
       '/ScheduledTasks/Running/$taskId',
       method: 'POST',
@@ -62,7 +67,9 @@ class JellyfinScheduledTasksApi {
 
   /// `DELETE /ScheduledTasks/Running/{taskId}` — stop a currently
   /// running task.
-  Future<void> stop(String taskId) async {
+  Future<void> stop({
+    required String taskId,
+  }) async {
     await _http.request<void>(
       '/ScheduledTasks/Running/$taskId',
       method: 'DELETE',

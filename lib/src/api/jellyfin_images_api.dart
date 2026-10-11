@@ -433,7 +433,9 @@ class JellyfinImagesApi {
   /// `GET /Items/{itemId}/Images` — list every image the item has,
   /// each entry returned as a raw map (ImageType, ImageTag, Path,
   /// Width, Height, …).
-  Future<List<JellyfinImageInfo>> listItemImages(String itemId) =>
+  Future<List<JellyfinImageInfo>> listItemImages({
+    required String itemId,
+  }) =>
       _http.requestJson(
         '/Items/$itemId/Images',
         listOf(JellyfinImageInfo.fromJson),

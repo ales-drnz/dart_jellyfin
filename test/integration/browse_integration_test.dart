@@ -59,20 +59,20 @@ void main() {
 
       test('userData favorite + played round trip', () async {
         // Mark favourite, verify, then unmark.
-        final fav = await jf.userData.markFavorite(trackId);
+        final fav = await jf.userData.markFavorite(itemId: trackId);
         expect(fav.isFavorite, isTrue);
 
-        final unfav = await jf.userData.unmarkFavorite(trackId);
+        final unfav = await jf.userData.unmarkFavorite(itemId: trackId);
         expect(unfav.isFavorite, isFalse);
 
         // Same for played.
-        final played = await jf.userData.markPlayed(trackId);
+        final played = await jf.userData.markPlayed(itemId: trackId);
         expect(played.played, isTrue);
-        final unplayed = await jf.userData.markUnplayed(trackId);
+        final unplayed = await jf.userData.markUnplayed(itemId: trackId);
         expect(unplayed.played, isFalse);
 
         // get() reflects current state.
-        final current = await jf.userData.get(trackId);
+        final current = await jf.userData.get(itemId: trackId);
         expect(current.isFavorite, isFalse);
         expect(current.played, isFalse);
       });
@@ -137,7 +137,7 @@ void main() {
           () async {
         // Our seed uses ffmpeg-generated silence with no lyrics; the API
         // should return null (or an empty payload) rather than throw.
-        final ly = await jf.lyrics.forItem(trackId);
+        final ly = await jf.lyrics.forItem(itemId: trackId);
         expect(ly, anyOf(isNull, isA<JellyfinLyrics>()));
       });
     },

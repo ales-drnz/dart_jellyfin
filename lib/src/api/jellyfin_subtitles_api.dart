@@ -166,7 +166,9 @@ class JellyfinSubtitlesApi {
 
   /// `GET /Providers/Subtitles/Subtitles/{id}` — fetch a remote
   /// subtitle preview by id (without installing it on any item).
-  Future<Map<String, Object?>?> getRemote(String id) async {
+  Future<Map<String, Object?>?> getRemote({
+    required String id,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Providers/Subtitles/Subtitles/$id',
     );

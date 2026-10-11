@@ -43,7 +43,9 @@ class JellyfinQuickConnectApi {
   ///
   /// Once `authenticated` flips to true, call
   /// [JellyfinUserApi.authenticateWithQuickConnect] with the same secret.
-  Future<JellyfinQuickConnectState> state(String secret) async {
+  Future<JellyfinQuickConnectState> state({
+    required String secret,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/QuickConnect/Connect',
       queryParameters: {'secret': secret},
@@ -53,7 +55,9 @@ class JellyfinQuickConnectApi {
 
   /// Approve a code from an already-authenticated device — i.e. the
   /// "authorise other device" flow.
-  Future<bool> authorize(String code) async {
+  Future<bool> authorize({
+    required String code,
+  }) async {
     final res = await _http.request<Object?>(
       '/QuickConnect/Authorize',
       method: 'POST',

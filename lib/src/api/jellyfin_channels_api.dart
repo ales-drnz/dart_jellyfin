@@ -106,7 +106,9 @@ class JellyfinChannelsApi {
 
   /// `GET /Channels/{channelId}/Features` — feature flags for one
   /// channel (supports search, item sort, deletion, etc.).
-  Future<Map<String, Object?>> features(String channelId) async {
+  Future<Map<String, Object?>> features({
+    required String channelId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Channels/$channelId/Features',
     );

@@ -91,7 +91,9 @@ class JellyfinVideosApi {
   }
 
   /// "Additional parts" — multi-file movies (CD1/CD2, parts/halves).
-  Future<List<Map<String, Object?>>> additionalParts(String itemId) async {
+  Future<List<Map<String, Object?>>> additionalParts({
+    required String itemId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Videos/$itemId/AdditionalParts',
       queryParameters: {'userId': _http.userId},
@@ -108,7 +110,9 @@ class JellyfinVideosApi {
   /// alternate-source versions linked to this video. Keeps the
   /// primary file; only the links to the alternates are dropped.
   /// Admin / library editor.
-  Future<void> deleteAlternateSources(String itemId) async {
+  Future<void> deleteAlternateSources({
+    required String itemId,
+  }) async {
     await _http.request<void>(
       '/Videos/$itemId/AlternateSources',
       method: 'DELETE',

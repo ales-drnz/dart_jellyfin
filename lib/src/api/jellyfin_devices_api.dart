@@ -30,7 +30,9 @@ class JellyfinDevicesApi {
   }
 
   /// `DELETE /Devices?id={id}` — revoke a device (logs it out).
-  Future<void> delete(String id) async {
+  Future<void> delete({
+    required String id,
+  }) async {
     await _http.request<void>(
       '/Devices',
       method: 'DELETE',
@@ -39,7 +41,10 @@ class JellyfinDevicesApi {
   }
 
   /// `GET /Devices/Info?id={id}` — full info for one device.
-  Future<JellyfinDevice?> info(String id) => _http.requestJson(
+  Future<JellyfinDevice?> info({
+    required String id,
+  }) =>
+      _http.requestJson(
         '/Devices/Info',
         queryParameters: {'id': id},
         objectOf(JellyfinDevice.fromJson),
@@ -47,7 +52,9 @@ class JellyfinDevicesApi {
 
   /// `GET /Devices/Options?id={id}` — per-device admin options
   /// (custom name, …).
-  Future<Map<String, Object?>> options(String id) async {
+  Future<Map<String, Object?>> options({
+    required String id,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Devices/Options',
       queryParameters: {'id': id},

@@ -48,7 +48,7 @@ final genres = await jf.genres.list(
 final mix = await jf.instantMix.fromItem(itemId: genres.items.first.id, limit: 50);
 
 // Word-by-word lyrics, without converting by hand.
-final lrc = (await jf.lyrics.forItem(trackId))?.toLrc(enhanced: true);
+final lrc = (await jf.lyrics.forItem(itemId: trackId))?.toLrc(enhanced: true);
 
 // Cover and its cache version.
 final cover = track.artworkItemId;

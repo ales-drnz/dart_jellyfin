@@ -64,7 +64,7 @@ void main() {
           limit: 1,
         );
         final id = list.items.first.id;
-        final item = await jf.items.byId(id);
+        final item = await jf.items.byId(itemId: id);
         expect(item, isNotNull);
         expect(item!.id, id);
         expect(item.type, anyOf('Audio', JellyfinItemKind.audio));

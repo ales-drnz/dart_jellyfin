@@ -58,7 +58,9 @@ class JellyfinRemoteImageApi {
 
   /// `GET /Items/{itemId}/RemoteImages/Providers` — list providers
   /// that can supply remote images for this item.
-  Future<List<Map<String, Object?>>> providers(String itemId) async {
+  Future<List<Map<String, Object?>>> providers({
+    required String itemId,
+  }) async {
     final res = await _http.request<List<Object?>>(
       '/Items/$itemId/RemoteImages/Providers',
     );

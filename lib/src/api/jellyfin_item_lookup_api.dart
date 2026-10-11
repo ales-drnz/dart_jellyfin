@@ -26,7 +26,9 @@ class JellyfinItemLookupApi {
   /// `GET /Items/{itemId}/ExternalIdInfos` — providers that can
   /// supply external ids for this item kind (IMDB, TMDB, MusicBrainz,
   /// …). Each entry is a raw map describing one provider.
-  Future<List<Map<String, Object?>>> externalIdInfos(String itemId) async {
+  Future<List<Map<String, Object?>>> externalIdInfos({
+    required String itemId,
+  }) async {
     final res = await _http.request<List<Object?>>(
       '/Items/$itemId/ExternalIdInfos',
     );

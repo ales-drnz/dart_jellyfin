@@ -148,7 +148,9 @@ class JellyfinArtistsApi {
 
   /// `/Artists/{name}` — lookup by exact artist name. Returns null on
   /// 404 (no artist matches the name).
-  Future<JellyfinItem?> byName(String name) async {
+  Future<JellyfinItem?> byName({
+    required String name,
+  }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;

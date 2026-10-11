@@ -28,7 +28,10 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> markFavorite(String itemId, {String? userId}) async {
+  Future<JellyfinUserData> markFavorite({
+    required String itemId,
+    String? userId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/UserFavoriteItems/$itemId',
       method: 'POST',
@@ -41,8 +44,8 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> unmarkFavorite(
-    String itemId, {
+  Future<JellyfinUserData> unmarkFavorite({
+    required String itemId,
     String? userId,
   }) async {
     final res = await _http.request<Map<String, Object?>>(
@@ -55,14 +58,14 @@ class JellyfinUserDataApi {
 
   /// Convenience wrapper — calls [markFavorite] or [unmarkFavorite] based on
   /// [isFavorite]. [userId] is threaded through to the underlying call.
-  Future<JellyfinUserData> setFavorite(
-    String itemId,
-    bool isFavorite, {
+  Future<JellyfinUserData> setFavorite({
+    required String itemId,
+    required bool isFavorite,
     String? userId,
   }) =>
       isFavorite
-          ? markFavorite(itemId, userId: userId)
-          : unmarkFavorite(itemId, userId: userId);
+          ? markFavorite(itemId: itemId, userId: userId)
+          : unmarkFavorite(itemId: itemId, userId: userId);
 
   /// Mark an item as played.
   ///
@@ -70,8 +73,8 @@ class JellyfinUserDataApi {
   /// another device); the server uses the current time when omitted.
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> markPlayed(
-    String itemId, {
+  Future<JellyfinUserData> markPlayed({
+    required String itemId,
     DateTime? datePlayed,
     String? userId,
   }) async {
@@ -92,7 +95,10 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> markUnplayed(String itemId, {String? userId}) async {
+  Future<JellyfinUserData> markUnplayed({
+    required String itemId,
+    String? userId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/UserPlayedItems/$itemId',
       method: 'DELETE',
@@ -106,7 +112,10 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> get(String itemId, {String? userId}) async {
+  Future<JellyfinUserData> get({
+    required String itemId,
+    String? userId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/UserData',
       queryParameters: _userQuery(userId),
@@ -137,7 +146,10 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> clearRating(String itemId, {String? userId}) async {
+  Future<JellyfinUserData> clearRating({
+    required String itemId,
+    String? userId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/Rating',
       method: 'DELETE',

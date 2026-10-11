@@ -34,7 +34,9 @@ class JellyfinLyricsApi {
   /// Returns `null` on 404, matching [JellyfinAudioApi.lyrics]: Jellyfin
   /// answers 404 both for a track without lyrics and for an id that names
   /// no item.
-  Future<JellyfinLyrics?> forItem(String itemId) async {
+  Future<JellyfinLyrics?> forItem({
+    required String itemId,
+  }) async {
     try {
       final res = await _http.request<Map<String, Object?>>(
         '/Audio/$itemId/Lyrics',
@@ -77,7 +79,9 @@ class JellyfinLyricsApi {
 
   /// `DELETE /Audio/{itemId}/Lyrics` — remove the lyrics currently
   /// attached to the track.
-  Future<void> delete(String itemId) async {
+  Future<void> delete({
+    required String itemId,
+  }) async {
     await _http.request<void>(
       '/Audio/$itemId/Lyrics',
       method: 'DELETE',
@@ -88,7 +92,9 @@ class JellyfinLyricsApi {
   /// configured lyric provider plugins for matches against this
   /// track. Each result map carries an `Id` to feed into
   /// [downloadRemote].
-  Future<List<JellyfinRemoteLyric>> searchRemote(String itemId) =>
+  Future<List<JellyfinRemoteLyric>> searchRemote({
+    required String itemId,
+  }) =>
       _http.requestJson(
         '/Audio/$itemId/RemoteSearch/Lyrics',
         listOf(JellyfinRemoteLyric.fromJson),
@@ -112,7 +118,9 @@ class JellyfinLyricsApi {
 
   /// `GET /Providers/Lyrics/{lyricId}` — preview a remote lyric
   /// result without attaching it. Same id as [downloadRemote].
-  Future<JellyfinLyrics?> previewRemote(String lyricId) async {
+  Future<JellyfinLyrics?> previewRemote({
+    required String lyricId,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Providers/Lyrics/$lyricId',
     );

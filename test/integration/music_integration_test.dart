@@ -76,7 +76,7 @@ void main() {
         final tasks = await jf.scheduledTasks.list();
         final norm = tasks.firstWhere((t) => t.key == 'AudioNormalization');
         expect(norm.id, isNotEmpty);
-        expect((await jf.scheduledTasks.byId(norm.id))!.key, norm.key);
+        expect((await jf.scheduledTasks.byId(taskId: norm.id))!.key, norm.key);
 
         // Devices are the ones that hold access tokens: the cached token was
         // issued to the bootstrap's device, not to this client's.
@@ -88,14 +88,14 @@ void main() {
         expect(log.totalRecordCount, greaterThan(0));
         expect(log.items.first.type, isNotEmpty);
 
-        final images = await jf.images.listItemImages(album.id);
+        final images = await jf.images.listItemImages(itemId: album.id);
         if (album.primaryImageTag != null) {
           final primary = images.firstWhere((i) => i.type == 'Primary');
           expect(primary.tag, album.primaryImageTag);
           expect(primary.width, greaterThan(0));
         }
         expect(
-          await jf.lyrics.searchRemote(tracks.first.id),
+          await jf.lyrics.searchRemote(itemId: tracks.first.id),
           isA<List<JellyfinRemoteLyric>>(),
         );
         expect(await jf.syncPlay.list(), isA<List<JellyfinSyncPlayGroup>>());
@@ -156,7 +156,7 @@ void main() {
           final left = await jf.playlists.items(playlistId: playlist.id);
           expect(left.items.map((e) => e.id), [tracks[1].id]);
         } finally {
-          await jf.playlists.delete(playlist.id);
+          await jf.playlists.delete(playlistId: playlist.id);
         }
       });
 
@@ -187,7 +187,7 @@ void main() {
         ))
             .items
             .firstWhere((g) => g.name == music.name);
-        final byName = await jf.genres.byName(music.name);
+        final byName = await jf.genres.byName(name: music.name);
         expect(unscoped.type, 'Genre');
         expect(byName!.id, unscoped.id);
         expect(unscoped.id, isNot(music.id));
@@ -206,7 +206,7 @@ void main() {
         final mix = await jf.instantMix.fromItem(itemId: unscoped.id);
         expect(mix.items, isEmpty);
 
-        final exact = await jf.musicGenres.byName(music.name);
+        final exact = await jf.musicGenres.byName(name: music.name);
         expect(exact!.id, music.id);
       });
 
@@ -299,7 +299,7 @@ void main() {
           // lyric already.
           JellyfinLyrics? read;
           for (var i = 0; i < 20 && read == null; i++) {
-            read = await jf.lyrics.forItem(track.id);
+            read = await jf.lyrics.forItem(itemId: track.id);
             if (read == null) {
               await Future<void>.delayed(const Duration(milliseconds: 500));
             }
@@ -316,7 +316,7 @@ void main() {
             startsWith('[00:01.00]<00:01.00>Hello <00:01.50>world'),
           );
         } finally {
-          await jf.lyrics.delete(track.id);
+          await jf.lyrics.delete(itemId: track.id);
         }
       });
 

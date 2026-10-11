@@ -73,6 +73,8 @@ class JellyfinStudiosApi {
 
   /// `GET /Studios/{name}` — lookup a studio by exact name. Returns
   /// null on 404.
-  Future<JellyfinItem?> byName(String name) =>
+  Future<JellyfinItem?> byName({
+    required String name,
+  }) =>
       lookupItemByName('/Studios', name, _http);
 }

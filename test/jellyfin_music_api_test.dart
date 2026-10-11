@@ -57,7 +57,7 @@ void main() {
 
     test('forItem keeps cues and metadata', () async {
       adapter.respond = (_) => CannedResponse.json(payload);
-      final lyrics = (await client.lyrics.forItem('t1'))!;
+      final lyrics = (await client.lyrics.forItem(itemId: 't1'))!;
       expect(adapter.path, '/Audio/t1/Lyrics');
       expect(lyrics.hasCues, isTrue);
       expect(lyrics.isSynced, isTrue);
@@ -109,12 +109,12 @@ void main() {
 
     test('audio.lyrics is null on 404 and rethrows other errors', () async {
       adapter.respond = (_) => CannedResponse(404, const []);
-      expect(await client.audio.lyrics('none'), isNull);
+      expect(await client.audio.lyrics(itemId: 'none'), isNull);
       expect(adapter.path, '/Audio/none/Lyrics');
 
       adapter.respond = (_) => CannedResponse(500, const []);
       await expectLater(
-        client.audio.lyrics('t1'),
+        client.audio.lyrics(itemId: 't1'),
         throwsA(
           isA<JellyfinException>().having(
             (e) => e.type,
@@ -132,7 +132,7 @@ void main() {
             contentType: 'application/json; charset=utf-8',
           );
       // ignore: deprecated_member_use_from_same_package
-      expect(await client.audio.lyricsRaw('t1'), contains('Perché sì'));
+      expect(await client.audio.lyricsRaw(itemId: 't1'), contains('Perché sì'));
     });
   });
 
@@ -197,7 +197,7 @@ void main() {
       adapter.respond = (_) => CannedResponse(204, const []);
       await client.playlists.addItems(playlistId: 'p', itemIds: ['a']);
       expect(
-        await timed(() => client.playlists.delete('p')),
+        await timed(() => client.playlists.delete(playlistId: 'p')),
         greaterThanOrEqualTo(settle * 0.9),
       );
       expect(adapter.last!.method, 'DELETE');

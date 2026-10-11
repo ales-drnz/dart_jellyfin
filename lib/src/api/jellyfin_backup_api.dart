@@ -37,7 +37,9 @@ class JellyfinBackupApi {
 
   /// `GET /Backup/Manifest?path={path}` — read the manifest of a
   /// specific backup file.
-  Future<Map<String, Object?>> manifest(String path) async {
+  Future<Map<String, Object?>> manifest({
+    required String path,
+  }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Backup/Manifest',
       queryParameters: {'path': path},

@@ -71,7 +71,9 @@ class JellyfinYearsApi {
   }
 
   /// `GET /Years/{year}` — lookup a single year. Returns null on 404.
-  Future<JellyfinItem?> byYear(int year) async {
+  Future<JellyfinItem?> byYear({
+    required int year,
+  }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
