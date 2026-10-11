@@ -1056,8 +1056,7 @@ await jellyfin.playlists.removeItems(
 on items read from `playlists.items()`. On Jellyfin 12.2 it equals the
 item id (verified): with a track listed twice, removing its entry
 removes **every** copy and moving it moves the first. The server offers
-no way to address one copy of a duplicate. After `moveItem`, a read
-right away can still show the old order for a moment.
+no way to address one copy of a duplicate.
 
 #### 5.4 Renaming and deleting
 
@@ -1067,9 +1066,17 @@ await jellyfin.playlists.delete('123');
 ```
 
 Jellyfin 12.2 loses a rename sent within about half a second of a write
-that changed the entries (`create` with `itemIds`, `addItems`) and still
-answers success: the server saves the entry change over the new name.
-Name the playlist in `create()`, or leave a gap.
+that changed the entries and still answers success: the server saves the
+entry change over the new name, a moment after a read has shown the new
+one. `playlists` remembers when it last changed each playlist's entries
+(`create` with `itemIds`, `addItems`, `removeItems`, `moveItem`,
+`update` with `ids`), and `rename` / `update` wait until
+`JellyfinPlaylistsApi.renameSettle` (1 s) has passed since; with no
+recent write they are sent at once. `delete` waits too: a delete right
+after an entry write removes the playlist, then the pending save writes
+its `playlist.xml` back to disk, where a later library scan may find
+it. Only writes through the same client are known: a change from another
+app or another `JellyfinClient` can still win.
 
 `playlists.users()` lists who can access a shared playlist as
 `JellyfinPlaylistUserPermission` (`userId`, `canEdit`).

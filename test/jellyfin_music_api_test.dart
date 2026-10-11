@@ -136,6 +136,84 @@ void main() {
     });
   });
 
+  group('playlist rename after an entry write', () {
+    const settle = JellyfinPlaylistsApi.renameSettle;
+
+    Future<Duration> timed(Future<void> Function() call) async {
+      final sw = Stopwatch()..start();
+      await call();
+      return sw.elapsed;
+    }
+
+    test('waits out renameSettle after addItems', () async {
+      adapter.respond = (_) => CannedResponse(204, const []);
+      await client.playlists.addItems(playlistId: 'p', itemIds: ['a']);
+      final took = await timed(
+        () => client.playlists.rename(playlistId: 'p', name: 'n'),
+      );
+      expect(took, greaterThanOrEqualTo(settle * 0.9));
+      expect(adapter.last!.method, 'POST');
+      expect(adapter.path, '/Playlists/p');
+    });
+
+    test('create with ids, moveItem and update(ids:) count as writes',
+        () async {
+      adapter.respond = (r) => r.uri.path == '/Playlists'
+          ? CannedResponse.json({'Id': 'new'})
+          : CannedResponse(204, const []);
+      await client.playlists.create(name: 'x', itemIds: ['a']);
+      expect(
+        await timed(
+          () => client.playlists.update(playlistId: 'new', name: 'y'),
+        ),
+        greaterThanOrEqualTo(settle * 0.9),
+      );
+      await client.playlists.moveItem(
+        playlistId: 'q',
+        playlistItemId: 'a',
+        newIndex: 0,
+      );
+      expect(
+        await timed(() => client.playlists.rename(playlistId: 'q', name: 'n')),
+        greaterThanOrEqualTo(settle * 0.9),
+      );
+    });
+
+    test('no wait without a recent write to that playlist', () async {
+      adapter.respond = (r) => r.uri.path == '/Playlists'
+          ? CannedResponse.json({'Id': 'empty'})
+          : CannedResponse(204, const []);
+      // An empty create writes no entries.
+      await client.playlists.create(name: 'x');
+      await client.playlists.addItems(playlistId: 'other', itemIds: ['a']);
+      final took = await timed(() async {
+        await client.playlists.rename(playlistId: 'empty', name: 'n');
+        await client.playlists.rename(playlistId: 'never', name: 'n');
+      });
+      expect(took, lessThan(settle * 0.5));
+    });
+
+    test('delete waits too', () async {
+      adapter.respond = (_) => CannedResponse(204, const []);
+      await client.playlists.addItems(playlistId: 'p', itemIds: ['a']);
+      expect(
+        await timed(() => client.playlists.delete('p')),
+        greaterThanOrEqualTo(settle * 0.9),
+      );
+      expect(adapter.last!.method, 'DELETE');
+    });
+
+    test('a second rename does not wait again', () async {
+      adapter.respond = (_) => CannedResponse(204, const []);
+      await client.playlists.removeItems(playlistId: 'p', entryIds: ['a']);
+      await client.playlists.rename(playlistId: 'p', name: 'n');
+      expect(
+        await timed(() => client.playlists.rename(playlistId: 'p', name: 'm')),
+        lessThan(settle * 0.5),
+      );
+    });
+  });
+
   group('text bodies', () {
     const text = 'WEBVTT\n\n00:01.000 --> 00:02.000\nPerché sì, è già\n';
 

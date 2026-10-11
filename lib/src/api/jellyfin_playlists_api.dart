@@ -12,11 +12,44 @@ import '../jellyfin_server_models.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Playlists/*`.
+///
+/// Jellyfin 12.2 loses a rename that reaches a playlist within about half
+/// a second of a change to its entries, and still answers success (see
+/// [rename]). This class remembers when it last changed each playlist's
+/// entries and holds [rename] / [update] back until [renameSettle] has
+/// passed since; [delete] waits too. Only writes made through this
+/// instance are known: a change from another client, or another
+/// [JellyfinClient], is not.
 class JellyfinPlaylistsApi {
+  /// How long after an entry write [rename], [update] and [delete] wait
+  /// before they are sent. Jellyfin 12.2 lost every rename sent at once
+  /// after an add and none sent 0.5 s or more later; this keeps a margin.
+  static const Duration renameSettle = Duration(seconds: 1);
+
   final JellyfinConnection _http;
+
+  /// Monotonic clock for [_entryWrites].
+  final Stopwatch _clock = Stopwatch()..start();
+
+  /// Playlist id → [_clock] time of the last entry write answered.
+  final Map<String, Duration> _entryWrites = {};
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPlaylistsApi(this._http);
+
+  void _wroteEntries(String playlistId) =>
+      _entryWrites[playlistId] = _clock.elapsed;
+
+  /// Waits out what is left of [renameSettle] since the last entry write
+  /// to [playlistId]; returns at once when there was none.
+  Future<void> _settle(String playlistId) async {
+    final at = _entryWrites[playlistId];
+    if (at == null) return;
+    final left = renameSettle - (_clock.elapsed - at);
+    if (left > Duration.zero) await Future<void>.delayed(left);
+    // Another entry write may have landed while this one waited.
+    if (_entryWrites[playlistId] == at) _entryWrites.remove(playlistId);
+  }
 
   /// Create a new playlist for the current user.
   ///
@@ -50,6 +83,7 @@ class JellyfinPlaylistsApi {
     // POST returns `{ Id: "..." }` — fetch the playlist as an item so
     // the caller gets a full JellyfinItem to display.
     final id = (data['Id'] as String?) ?? '';
+    if (itemIds.isNotEmpty) _wroteEntries(id);
     return JellyfinItem(
       id: id,
       name: name,
@@ -111,6 +145,7 @@ class JellyfinPlaylistsApi {
         'userId': userId,
       },
     );
+    _wroteEntries(playlistId);
   }
 
   /// Remove entries by their [JellyfinItem.playlistItemId].
@@ -128,12 +163,20 @@ class JellyfinPlaylistsApi {
       method: 'DELETE',
       queryParameters: {'entryIds': entryIds},
     );
+    _wroteEntries(playlistId);
   }
 
   /// Delete the playlist itself — Jellyfin treats playlists as items, so
   /// it's `DELETE /Items/{id}`.
+  ///
+  /// Waits like [rename] after a recent entry write by this instance:
+  /// Jellyfin 12.2 deletes the playlist but then saves the pending entry
+  /// change, which writes its `playlist.xml` back to disk, an orphan a
+  /// later library scan may bring back.
   Future<void> delete(String playlistId) async {
+    await _settle(playlistId);
     await _http.request<void>('/Items/$playlistId', method: 'DELETE');
+    _entryWrites.remove(playlistId);
   }
 
   /// Rename a playlist.
@@ -142,13 +185,21 @@ class JellyfinPlaylistsApi {
   /// of a write that changed the playlist's entries — [create] with
   /// `itemIds`, [addItems] — and still answers success: the server saves
   /// the entry change to the playlist file after answering, over the new
-  /// name. Measured: 10 of 10 renames sent at once after an add were lost,
-  /// none of 16 with a gap of 0.5–4 s, none sent on their own. Name the
-  /// playlist in [create], or leave a gap.
+  /// name. A read right after the rename still shows the new name; the
+  /// old one returns a moment later. Measured: 10 of 10 renames sent at
+  /// once after an add were lost, none of 16 with a gap of 0.5–4 s, none
+  /// sent on their own.
+  ///
+  /// So when this instance changed the playlist's entries — [create] with
+  /// `itemIds`, [addItems], [removeItems], [moveItem], [update] with
+  /// `ids` — less than [renameSettle] ago, the rename waits out the rest
+  /// first; otherwise it is sent at once. An entry change made by another
+  /// client is not known here and can still win.
   Future<void> rename({
     required String playlistId,
     required String name,
   }) async {
+    await _settle(playlistId);
     // /Playlists/{id} POST with a new name updates the playlist.
     await _http.request<void>(
       '/Playlists/$playlistId',
@@ -176,6 +227,9 @@ class JellyfinPlaylistsApi {
   /// `POST /Playlists/{playlistId}` — update playlist metadata
   /// (name, IsPublic flag, ids order). Accepts any subset of the
   /// fields the server understands.
+  ///
+  /// Waits like [rename] after a recent entry write by this instance, so
+  /// a [name] is not lost; [ids] replaces the entries and counts as one.
   Future<void> update({
     required String playlistId,
     String? name,
@@ -189,11 +243,13 @@ class JellyfinPlaylistsApi {
       if (ids != null) 'Ids': ids,
       ...extra,
     };
+    await _settle(playlistId);
     await _http.request<void>(
       '/Playlists/$playlistId',
       method: 'POST',
       data: body,
     );
+    if (ids != null) _wroteEntries(playlistId);
   }
 
   /// `POST /Playlists/{playlistId}/Items/{itemId}/Move/{newIndex}` —
@@ -201,8 +257,8 @@ class JellyfinPlaylistsApi {
   /// [JellyfinItem.playlistItemId] — on 12.2 the item id, so with a track
   /// listed twice the first copy moves (verified).
   ///
-  /// Jellyfin 12.2 can answer before the new order is visible: a read
-  /// right after may still show the old one for a moment.
+  /// A move is an entry write: a [rename] right after it waits (see
+  /// [renameSettle]).
   Future<void> moveItem({
     required String playlistId,
     required String playlistItemId,
@@ -212,11 +268,13 @@ class JellyfinPlaylistsApi {
       '/Playlists/$playlistId/Items/$playlistItemId/Move/$newIndex',
       method: 'POST',
     );
+    _wroteEntries(playlistId);
   }
 
   /// `GET /Playlists/{playlistId}/Users` — list users with access to
-  /// a shared playlist. Returned as raw maps (`UserId`, `CanEdit`); resolve
-  /// display names separately via the users API if needed.
+  /// a shared playlist, as [JellyfinPlaylistUserPermission]s (user id and
+  /// `canEdit`); resolve display names separately via the users API if
+  /// needed.
   Future<List<JellyfinPlaylistUserPermission>> users(String playlistId) =>
       _http.requestJson(
         '/Playlists/$playlistId/Users',

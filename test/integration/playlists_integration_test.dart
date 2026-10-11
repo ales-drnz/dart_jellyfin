@@ -33,7 +33,7 @@ void main() {
         trackIds = [for (final t in tracks.items) t.id];
       });
 
-      test('create -> add -> list -> rename -> move -> remove -> delete',
+      test('create -> add -> rename -> list -> move -> remove -> delete',
           () async {
         final created = await jf.playlists.create(
           name: 'dart_jellyfin smoke playlist',
@@ -50,31 +50,28 @@ void main() {
             );
           }
 
-          var entries = await jf.playlists.items(playlistId: created.id);
-          expect(entries.items.length, greaterThanOrEqualTo(2));
-          expect(entries.items.length, trackIds.length);
-
-          // Rename, then verify by fetching as an item (Jellyfin's
-          // `/Playlists/{id}` returns a PlaylistDto without a Name field;
-          // the rename surfaces on the `/Items/{id}` view).
+          // Rename right after the entry write, then verify by fetching as an item
+          // (Jellyfin's `/Playlists/{id}` returns a PlaylistDto without a
+          // Name field; the rename surfaces on the `/Items/{id}` view).
           // Jellyfin 12.2 loses a rename sent within ~0.5 s of a write that
-          // changed the entries (measured: 10/10 lost at once, 0/16 with a
-          // gap of 0.5–4 s) — see JellyfinPlaylistsApi.rename. This test
-          // is not about that race, so it waits it out.
-          await Future<void>.delayed(const Duration(seconds: 1));
+          // changed the entries; rename() waits that out itself, which is
+          // what this proves — no delay here.
+          final sent = Stopwatch()..start();
           await jf.playlists.rename(
             playlistId: created.id,
             name: 'dart_jellyfin smoke playlist (renamed)',
           );
-          // 12.2 can answer the rename before a read sees it: poll briefly.
-          JellyfinItem? fetched;
-          for (var i = 0; i < 20; i++) {
-            fetched = await jf.items.byId(created.id);
-            if (fetched?.name.contains('renamed') ?? false) break;
-            await Future<void>.delayed(const Duration(milliseconds: 250));
-          }
-          expect(fetched, isNotNull);
-          expect(fetched!.name, contains('renamed'));
+          expect(sent.elapsed, greaterThan(const Duration(milliseconds: 500)));
+          // A lost rename reads back fine at first; the old name returns
+          // when the server saves the entry change, within about a second.
+          // So look again after that.
+          expect((await jf.items.byId(created.id))!.name, contains('renamed'));
+          await Future<void>.delayed(const Duration(seconds: 2));
+          expect((await jf.items.byId(created.id))!.name, contains('renamed'));
+
+          var entries = await jf.playlists.items(playlistId: created.id);
+          expect(entries.items.length, greaterThanOrEqualTo(2));
+          expect(entries.items.length, trackIds.length);
 
           // Reorder: move the last entry to position 0.
           final lastEntry = entries.items.last;
@@ -89,17 +86,8 @@ void main() {
             playlistItemId: lastEntryId!,
             newIndex: 0,
           );
-          // 12.2 writes the playlist file after answering the move: poll
-          // briefly instead of reading the old order back.
-          Object? newFirstEntryId;
-          for (var i = 0; i < 20 && newFirstEntryId != lastEntryId; i++) {
-            if (i > 0) {
-              await Future<void>.delayed(const Duration(milliseconds: 250));
-            }
-            entries = await jf.playlists.items(playlistId: created.id);
-            newFirstEntryId = entries.items.first.playlistItemId;
-          }
-          expect(newFirstEntryId, lastEntryId);
+          entries = await jf.playlists.items(playlistId: created.id);
+          expect(entries.items.first.playlistItemId, lastEntryId);
 
           // Remove the (now-first) entry.
           await jf.playlists.removeItems(
@@ -112,35 +100,29 @@ void main() {
           await jf.playlists.delete(created.id);
         }
 
-        // After delete, byId should return null or 404 -> null fallback.
-        // Some Jellyfin builds return 404 (which the client throws on);
-        // accept either outcome.
-        try {
-          final gone = await jf.playlists.byId(created.id);
-          expect(gone, isNull);
-        } on JellyfinException catch (e) {
-          expect(
-            e.type,
-            anyOf(JellyfinErrorType.notFound, JellyfinErrorType.badRequest),
-          );
-        }
+        // A deleted playlist is a 404 on 12.2.
+        await expectLater(
+          jf.playlists.byId(created.id),
+          throwsA(
+            isA<JellyfinException>()
+                .having((e) => e.type, 'type', JellyfinErrorType.notFound),
+          ),
+        );
       });
 
-      test('double-delete is idempotent (or fails cleanly with notFound)',
-          () async {
+      test('a second delete fails with notFound', () async {
         final created = await jf.playlists.create(
           name: 'dart_jellyfin idempotency probe',
         );
         await jf.playlists.delete(created.id);
 
-        try {
-          await jf.playlists.delete(created.id);
-        } on JellyfinException catch (e) {
-          expect(
-            e.type,
-            anyOf(JellyfinErrorType.notFound, JellyfinErrorType.badRequest),
-          );
-        }
+        await expectLater(
+          jf.playlists.delete(created.id),
+          throwsA(
+            isA<JellyfinException>()
+                .having((e) => e.type, 'type', JellyfinErrorType.notFound),
+          ),
+        );
       });
     },
     skip: bootstrapSkipReason,
