@@ -1,4 +1,4 @@
-## [0.3.0] - unreleased
+## [0.3.0] - 11-10-2026
 
 A revision of the whole package, for Jellyfin `12.2`. See [MIGRATION.md](MIGRATION.md) for the changes to make in an app.
 
