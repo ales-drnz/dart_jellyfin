@@ -1,0 +1,69 @@
+{
+ "Items": [
+  {
+   "AlbumCount": 1,
+   "ArtistCount": 0,
+   "ChannelId": null,
+   "ChildCount": 1,
+   "EndDate": "1099-12-31T00:00:00.0000000Z",
+   "EpisodeCount": 0,
+   "Id": "39d63c85b067c03f3f213117df62bd2f",
+   "ImageBlurHashes": {},
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "MovieCount": 0,
+   "MusicVideoCount": 0,
+   "Name": "MusicBrainz Test Artist",
+   "PremiereDate": "0999-01-01T00:00:00.0000000Z",
+   "ProductionYear": 999,
+   "ProgramCount": 0,
+   "RunTimeTicks": 0,
+   "SeriesCount": 0,
+   "ServerId": "00000000000000000000000000000000",
+   "SongCount": 0,
+   "TrailerCount": 0,
+   "Type": "MusicArtist",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "39d63c85b067c03f3f213117df62bd2f",
+    "Key": "Artist-MusicBrainz Test Artist",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  },
+  {
+   "AlbumCount": 1,
+   "ArtistCount": 0,
+   "ChannelId": null,
+   "ChildCount": 4,
+   "EpisodeCount": 0,
+   "Id": "2ac1215700ad5ae5e300de65949c5647",
+   "ImageBlurHashes": {},
+   "IsFolder": true,
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "MovieCount": 0,
+   "MusicVideoCount": 0,
+   "Name": "Test Artist",
+   "ProgramCount": 0,
+   "RecursiveItemCount": 3,
+   "RunTimeTicks": 0,
+   "SeriesCount": 0,
+   "ServerId": "00000000000000000000000000000000",
+   "SongCount": 3,
+   "TrailerCount": 0,
+   "Type": "MusicArtist",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "2ac1215700ad5ae5e300de65949c5647",
+    "Key": "Artist-Test Artist",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 2
+}

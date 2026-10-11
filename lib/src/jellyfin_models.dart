@@ -525,6 +525,47 @@ final class JellyfinItem {
   /// Child count for folder-like items.
   final int? childCount;
 
+  /// Items below this one at any depth (`RecursiveItemCount`), sent when
+  /// `fields` has `RecursiveItemCount`: an album's or an artist's tracks.
+  /// 12.2 omitted it, rather than sending 0, for an artist with no tracks
+  /// of its own.
+  final int? recursiveItemCount;
+
+  /// Albums (`AlbumCount`) — with [songCount] and the other counts below,
+  /// sent on artists, genres and other grouping items when `fields` has
+  /// `ItemCounts`. The server sends them flat on the item; there is no
+  /// `ItemCounts` object in the answer (verified on 12.2).
+  final int? albumCount;
+
+  /// Tracks (`SongCount`); see [albumCount].
+  final int? songCount;
+
+  /// Artists (`ArtistCount`); see [albumCount].
+  final int? artistCount;
+
+  /// Music videos (`MusicVideoCount`); see [albumCount].
+  final int? musicVideoCount;
+
+  /// Movies (`MovieCount`); see [albumCount].
+  final int? movieCount;
+
+  /// Series (`SeriesCount`); see [albumCount].
+  final int? seriesCount;
+
+  /// Episodes (`EpisodeCount`); see [albumCount].
+  final int? episodeCount;
+
+  /// Trailers (`TrailerCount`); see [albumCount].
+  final int? trailerCount;
+
+  /// Live TV programs (`ProgramCount`); see [albumCount].
+  final int? programCount;
+
+  /// Credited people (`People`), sent when `fields` has `People`: cast
+  /// and crew on video, and on music the artists, album artists and
+  /// composers, each with its [JellyfinItemPerson.type].
+  final List<JellyfinItemPerson> people;
+
   /// `true` when the server has lyrics for this audio item.
   final bool hasLyrics;
 
@@ -584,6 +625,7 @@ final class JellyfinItem {
     required this.artistItems,
     this.albumArtistItems = const [],
     this.genreItems = const [],
+    this.people = const [],
     this.playlistItemId,
     required this.mediaSources,
     required this.mediaStreams,
@@ -617,6 +659,16 @@ final class JellyfinItem {
     this.runTimeTicks,
     this.container,
     this.childCount,
+    this.recursiveItemCount,
+    this.albumCount,
+    this.songCount,
+    this.artistCount,
+    this.musicVideoCount,
+    this.movieCount,
+    this.seriesCount,
+    this.episodeCount,
+    this.trailerCount,
+    this.programCount,
     this.albumPrimaryImageTag,
     this.primaryImageAspectRatio,
     this.normalizationGain,
@@ -666,6 +718,17 @@ final class JellyfinItem {
           _objList(json['MediaStreams'], JellyfinMediaStream.fromJson),
       isFolder: json['IsFolder'] == true,
       childCount: _int(json['ChildCount']),
+      recursiveItemCount: _int(json['RecursiveItemCount']),
+      albumCount: _int(json['AlbumCount']),
+      songCount: _int(json['SongCount']),
+      artistCount: _int(json['ArtistCount']),
+      musicVideoCount: _int(json['MusicVideoCount']),
+      movieCount: _int(json['MovieCount']),
+      seriesCount: _int(json['SeriesCount']),
+      episodeCount: _int(json['EpisodeCount']),
+      trailerCount: _int(json['TrailerCount']),
+      programCount: _int(json['ProgramCount']),
+      people: _objList(json['People'], JellyfinItemPerson.fromJson),
       hasLyrics: json['HasLyrics'] == true,
       genres: _strList(json['Genres']),
       tags: _strList(json['Tags']),
@@ -732,6 +795,46 @@ final class JellyfinArtistRef {
       JellyfinArtistRef(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
+      );
+}
+
+/// A person credited on a [JellyfinItem] (`BaseItemPerson`), from
+/// [JellyfinItem.people].
+final class JellyfinItemPerson {
+  /// Person id — an artist's id for music credits.
+  final String id;
+
+  /// Display name.
+  final String name;
+
+  /// The part played, for actors; empty or null otherwise.
+  final String? role;
+
+  /// The credit's `PersonKind`: `'Actor'`, `'Director'`, `'Composer'`,
+  /// `'Artist'`, `'AlbumArtist'`, `'Lyricist'`, … (the server's default
+  /// is `'Unknown'`).
+  final String? type;
+
+  /// Tag of the person's primary image, or null when there is none.
+  final String? primaryImageTag;
+
+  /// Builds a person credit from already-parsed components.
+  const JellyfinItemPerson({
+    required this.id,
+    required this.name,
+    this.role,
+    this.type,
+    this.primaryImageTag,
+  });
+
+  /// Decodes a `{Name, Id, Role, Type, PrimaryImageTag}` entry.
+  factory JellyfinItemPerson.fromJson(Map<String, Object?> json) =>
+      JellyfinItemPerson(
+        id: _str(json['Id']) ?? '',
+        name: _str(json['Name']) ?? '',
+        role: _str(json['Role']),
+        type: _str(json['Type']),
+        primaryImageTag: _str(json['PrimaryImageTag']),
       );
 }
 

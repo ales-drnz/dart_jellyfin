@@ -953,7 +953,12 @@ server always sends them, so covers work with either preset. 0.2 listed
 With `Genres` requested, `JellyfinItem.genreItems` carries each genre's
 id and name (`JellyfinNameGuidPair`), the ids `items.list(genreIds:)` and
 `instantMix.fromItem()` take. Other typed fields worth knowing:
-`albumArtistItems` (album artists with ids), `normalizationGain` and
+`albumArtistItems` (album artists with ids), `people` (with the
+`People` field: `JellyfinItemPerson`s — name, id, role, a `type` such as
+`'Composer'` or `'AlbumArtist'`, image tag), `recursiveItemCount` (with
+`RecursiveItemCount`), `albumCount`, `songCount` and the other counts
+(with `ItemCounts`: the server sends them flat on the item, no
+`ItemCounts` object), `normalizationGain` and
 `albumNormalizationGain` (dB, filled by the server's "Audio
 Normalization" task; Jellyfin exposes no LUFS value), and
 `artworkItemId` / `artworkVersion`, the id whose cover to show and the

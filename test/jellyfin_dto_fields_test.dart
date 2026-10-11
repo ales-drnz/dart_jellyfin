@@ -441,6 +441,58 @@ void main() {
       expect(item.runTimeTicks, isNull);
       expect(item.indexNumber, isNull);
       expect(item.isFolder, isFalse);
+      expect(item.people, isEmpty);
+      expect(item.recursiveItemCount, isNull);
+      expect(item.albumCount, isNull);
+      expect(item.songCount, isNull);
+    });
+
+    test('lifts People, RecursiveItemCount and the flat item counts', () {
+      final item = JellyfinItem.fromJson(const {
+        'Id': 'ar-1',
+        'Name': 'Artist',
+        'Type': 'MusicArtist',
+        'RecursiveItemCount': 12,
+        'AlbumCount': 2,
+        'SongCount': 12,
+        'ArtistCount': 0,
+        'MusicVideoCount': 1,
+        'MovieCount': 3,
+        'SeriesCount': 4,
+        'EpisodeCount': 5,
+        'TrailerCount': 6,
+        'ProgramCount': 7,
+        'People': [
+          {
+            'Name': 'Composer Name',
+            'Id': 'p-1',
+            'Role': '',
+            'Type': 'Composer',
+            'PrimaryImageTag': 'tag-1',
+          },
+          {'Name': 'Actor Name', 'Id': 'p-2', 'Role': 'Lead', 'Type': 'Actor'},
+          'not a map',
+        ],
+      });
+      expect(item.recursiveItemCount, 12);
+      expect(item.albumCount, 2);
+      expect(item.songCount, 12);
+      expect(item.artistCount, 0);
+      expect(item.musicVideoCount, 1);
+      expect(item.movieCount, 3);
+      expect(item.seriesCount, 4);
+      expect(item.episodeCount, 5);
+      expect(item.trailerCount, 6);
+      expect(item.programCount, 7);
+      expect(item.people, hasLength(2));
+      final composer = item.people.first;
+      expect(composer.id, 'p-1');
+      expect(composer.name, 'Composer Name');
+      expect(composer.role, '');
+      expect(composer.type, 'Composer');
+      expect(composer.primaryImageTag, 'tag-1');
+      expect(item.people.last.role, 'Lead');
+      expect(item.people.last.primaryImageTag, isNull);
     });
 
     test('durationMs is null when runTimeTicks is null', () {

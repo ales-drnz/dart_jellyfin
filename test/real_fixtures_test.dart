@@ -63,6 +63,28 @@ void main() {
     expect(_items('instant_mix_genre').items.every((i) => i.isAudio), isTrue);
   });
 
+  test('item counts arrive flat on the item, People typed', () {
+    final artists = _items('artists_item_counts').items;
+    final artist = artists.firstWhere((a) => (a.songCount ?? 0) > 0);
+    expect(artist.albumCount, 1);
+    expect(artist.songCount, 3);
+    expect(artist.recursiveItemCount, 3);
+    expect(artist.movieCount, 0);
+    expect(artist.raw.containsKey('ItemCounts'), isFalse);
+    final genre = _items('genres_music').items.first;
+    expect(genre.albumCount, 1);
+    expect(genre.songCount, 1);
+
+    final album = _items('items_album_people').items.single;
+    expect(album.recursiveItemCount, 3);
+    expect(album.people, isNotEmpty);
+    expect(
+      album.people.where((p) => p.type == 'AlbumArtist').map((p) => p.name),
+      album.albumArtists,
+    );
+    expect(album.people.every((p) => p.id.isNotEmpty), isTrue);
+  });
+
   test('playlist entries carry their entry id (the item id on 12.2)', () {
     final entries = _items('playlist_items').items;
     expect(entries, hasLength(2));

@@ -1,0 +1,78 @@
+{
+ "Items": [
+  {
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    },
+    {
+     "Id": "39d63c85b067c03f3f213117df62bd2f",
+     "Name": "MusicBrainz Test Artist"
+    }
+   ],
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "ChildCount": 3,
+   "Id": "72839210ba8018a1bf1039f340953486",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {
+    "Primary": "e8ee3c665767491920a412e20897ade3"
+   },
+   "IsFolder": true,
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "Name": "Test Album",
+   "People": [
+    {
+     "Id": "26930bc91725ba952f7c1c0d41a6f840",
+     "Name": "Test Artist",
+     "Role": "",
+     "Type": "AlbumArtist"
+    },
+    {
+     "Id": "9cec42fcc8ad07419e961af51c150a66",
+     "Name": "MusicBrainz Test Artist",
+     "Role": "",
+     "Type": "AlbumArtist"
+    },
+    {
+     "Id": "26930bc91725ba952f7c1c0d41a6f840",
+     "Name": "Test Artist",
+     "Role": "",
+     "Type": "Artist"
+    }
+   ],
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "RecursiveItemCount": 3,
+   "RunTimeTicks": 90000000,
+   "ServerId": "00000000000000000000000000000000",
+   "Type": "MusicAlbum",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "72839210ba8018a1bf1039f340953486",
+    "Key": "MusicAlbum-MusicBrainzReleaseGroup-5b35fbbc-3f45-45a8-95a9-2545dbf44e7c",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 1
+}
