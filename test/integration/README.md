@@ -8,7 +8,8 @@ The lightweight drift watchdog at
 [`../spec_drift_watchdog_test.dart`](../spec_drift_watchdog_test.dart)
 runs on every `dart test` and does not require Docker — it only
 checks the upstream OpenAPI spec for changes. The Docker-backed
-integration suite below is opt-in via the `integration` tag.
+integration suite below is tagged `integration` and skipped by a plain
+`dart test`; the `integration` preset runs it, one file at a time.
 
 ## Quick start
 
@@ -40,7 +41,8 @@ integration suite below is opt-in via the `integration` tag.
 4. Run the integration tests:
 
    ```sh
-   dart test --tags integration
+   dart test -P integration                      # everything, serially
+   dart test -P integration --tags integration   # the integration suites only
    ```
 
 5. Tear down when done:
@@ -63,11 +65,8 @@ library — roughly 30-40 endpoints across:
 - Sessions (`sessions`)
 
 Destructive admin endpoints (deleteLibrary, uninstallPlugin, …) and
-hardware-dependent endpoints (Live TV tuner discovery) are tagged
-`@Tags(['destructive'])` / `@Tags(['hardware'])` and skipped by
-default. Run them explicitly with
-`dart test --tags "integration && destructive"` after backing up the
-test volumes.
+hardware-dependent endpoints (Live TV tuner discovery) are not
+exercised.
 
 ## Why no CI?
 

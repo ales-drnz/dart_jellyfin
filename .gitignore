@@ -14,8 +14,9 @@ pubspec.lock
 *.iml
 .DS_Store
 
-# Docs
-docs/
+# Docs (the pinned API document is tracked: the spec tests read it)
+docs/*
+!docs/jellyfin-openapi-stable.json
 
 # AI tooling
 .claude/

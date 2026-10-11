@@ -232,19 +232,10 @@
     "width"
    ]
   },
-  "/Environment/NetworkShares": {
-   "GET": []
-  },
-  "/Items/{itemId}/CriticReviews": {
-   "GET": []
-  },
   "/LiveTv/Recordings/Groups": {
    "GET": [
     "userId"
    ]
-  },
-  "/LiveTv/Recordings/Groups/{groupId}": {
-   "GET": []
   },
   "/LiveTv/Recordings/Series": {
    "GET": [
@@ -616,5 +607,5 @@
    ]
   }
  },
- "source": "Jellyfin OpenAPI 10.11.6 (api.jellyfin.org), routes absent from the 12.x document"
+ "source": "Jellyfin OpenAPI 10.11.6 (api.jellyfin.org), routes absent from the 12.x document that a 12.2 server still serves (each probed; routes that 404 on 12.2 removed)"
 }

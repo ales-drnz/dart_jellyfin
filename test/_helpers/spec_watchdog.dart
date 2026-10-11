@@ -18,6 +18,14 @@ import 'package:http/http.dart' as http;
 
 const String _upstreamUrl =
     'https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json';
+
+/// The pinned document, committed (unlike the rest of `docs/`) and left out
+/// of the package by `.pubignore`: Jellyfin 12.2.0 (`x-jellyfin-version`),
+/// byte-identical to the copy fetched from [_upstreamUrl] on 2026-10-10,
+/// sha256
+/// `bd31bb194443d1c57616fa0a8521e099b17d096b92794e471c0e0725c50949c8`.
+/// Replace it with a newer download, and update this note, when the
+/// watchdog reports drift that the library has caught up with.
 const String _pinnedPath = 'docs/jellyfin-openapi-stable.json';
 const String _cacheDir = 'test/.spec_cache';
 const Duration _cacheTtl = Duration(hours: 24);

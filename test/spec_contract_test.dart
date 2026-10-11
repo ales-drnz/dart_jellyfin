@@ -7,7 +7,8 @@
 /// Every public method of every sub-API is called through `dart:mirrors`
 /// with stand-in arguments — every optional parameter filled, so every
 /// query parameter the wrapper can send is sent — and each request that
-/// leaves the client is checked against `docs/jellyfin-openapi-stable.json`:
+/// leaves the client is checked against `docs/jellyfin-openapi-stable.json`
+/// (Jellyfin 12.2.0; source and checksum in `_helpers/spec_watchdog.dart`):
 ///
 /// * its path matches a documented route,
 /// * that route documents its HTTP method,
@@ -33,10 +34,14 @@ import '_helpers/capturing_client.dart';
 /// Query parameters a route does not declare, with why they are sent.
 /// Keys are `METHOD /spec/route`, values parameter name → reason.
 const _allowedExtras = <String, Map<String, String>>{
-  // ApiKey authenticates URLs a player opens itself (no auth header); the
-  // 12.x document lists it under securitySchemes, not per route.
+  // ApiKey authenticates URLs a player opens itself (no auth header). The
+  // 12.x document declares only the Authorization header (securitySchemes:
+  // CustomAuthentication) and no query parameter for it, but the server
+  // reads the token from `ApiKey` on any route, case-insensitively: 12.2
+  // answered /Users/Me?ApiKey= and ?apikey= with 200, and ?api_key= (the
+  // 10.x spelling) with 401.
   '*': {
-    'apikey': 'token for URLs opened by a player (securitySchemes)',
+    'apikey': 'query-string token for URLs opened by a player (verified)',
   },
   // /universal copies its whole query into the HLS variant URL it answers
   // with (verified on 12.2: a PlaySessionId sent here comes back in
@@ -76,8 +81,12 @@ final class _Route {
 }
 
 /// The pinned 12.x document plus the routes it hides but servers still
-/// serve (HLS segments, subtitle and trickplay files): those come from the
-/// 10.11.6 document, kept in `test/fixtures/spec/jellyfin-hidden-routes.json`.
+/// serve (HLS playlists and segments, a few obsolete endpoints): those come
+/// from the 10.11.6 document, kept in
+/// `test/fixtures/spec/jellyfin-hidden-routes.json`. It keeps only the
+/// routes a 12.2 server still has — probed with a GET, which an unknown
+/// route answers with an empty 404 and a POST- or DELETE-only route with
+/// 405 — so it cannot hide a call to a route 12.x removed.
 List<_Route> _loadSpec() {
   final spec = jsonDecode(
     File('docs/jellyfin-openapi-stable.json').readAsStringSync(),
