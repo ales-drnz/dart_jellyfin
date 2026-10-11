@@ -416,7 +416,11 @@ Future<void> main() async {
 
 `JellyfinClient` holds the identity of your app, the server, the token and the user. Each part of the Jellyfin API is a sub-API on it (`jellyfin.items`, `jellyfin.playlists`, `jellyfin.audio` and so on), and every call goes through the same connection. Ids, names and keys are always named parameters.
 
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/architecture.png" width="100%" alt="Architecture: your code calls JellyfinClient; JellyfinConnection sends through an http.Client and parses large answers on a background isolate into typed models">
+
 ### 1. Initialization and lifecycle
+
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/client_lifecycle.png" width="100%" alt="Client lifecycle: JellyfinClient, sign in with setSession, sub-APIs, withCancelToken, close">
 
 #### 1.1 Creating a client
 
@@ -528,6 +532,8 @@ open.
 ---
 
 ### 2. Authentication
+
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/sign_in_flow.png" width="100%" alt="Sign-in: authenticateByName, or Quick Connect with initiate, the approved code, state until authenticated and authenticateWithQuickConnect; then setSession">
 
 #### 2.1 Username and password
 
@@ -1289,6 +1295,8 @@ say, so give each download its own `playSessionId`.
 
 ### 9. HLS playlists
 
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/hls_playlists.png" width="100%" alt="HLS: the master playlist lists the variant playlist, which lists the segments; DeviceId and PlaySessionId ride every URL">
+
 Audio and video each have a `master.m3u8`, with every bandwidth variant,
 and a `main.m3u8` with one. Use the master when the player picks the
 quality, the variant when you already did.
@@ -1453,6 +1461,8 @@ final bitsPerSecond = (size ?? 0) * 8 * 1000 ~/ stopwatch.elapsedMilliseconds;
 ---
 
 ### 11. Playback reporting
+
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/play_reporting.png" width="100%" alt="Playback reports: start, progress with isPaused, stopped, with one play session id; ping keeps an HLS job alive">
 
 Reports tell the server what plays: they fill "Continue listening",
 play counts and the dashboard, and keep a transcode alive. Positions are
@@ -2501,6 +2511,8 @@ the request in flight too.
 ---
 
 ### 27. Notifications and typed events
+
+<img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/events.png" width="100%" alt="Socket frames become a JellyfinNotification, and events() decodes them into the sealed JellyfinEvent subtypes">
 
 The server pushes changes over a WebSocket: user data, library changes,
 sessions, scheduled tasks and remote-control commands for this client.
