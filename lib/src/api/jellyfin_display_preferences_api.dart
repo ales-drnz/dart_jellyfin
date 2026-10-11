@@ -25,10 +25,10 @@ class JellyfinDisplayPreferencesApi {
     required String displayPreferencesId,
     required String client,
   }) async {
-    final qp = <String, dynamic>{'client': client};
+    final qp = <String, Object?>{'client': client};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/DisplayPreferences/${Uri.encodeComponent(displayPreferencesId)}',
       queryParameters: qp,
     );
@@ -41,7 +41,7 @@ class JellyfinDisplayPreferencesApi {
     required String client,
     required JellyfinDisplayPreferences preferences,
   }) async {
-    final qp = <String, dynamic>{'client': client};
+    final qp = <String, Object?>{'client': client};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     await _http.request<void>(

@@ -29,7 +29,7 @@ class JellyfinMoviesApi {
     int? itemLimit,
     List<String> fields = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;

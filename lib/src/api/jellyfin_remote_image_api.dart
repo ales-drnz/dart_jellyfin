@@ -20,7 +20,7 @@ class JellyfinRemoteImageApi {
   /// `GET /Items/{itemId}/RemoteImages` — list candidate images
   /// from remote providers, optionally filtered by image type and
   /// provider name.
-  Future<Map<String, dynamic>> list({
+  Future<Map<String, Object?>> list({
     required String itemId,
     String? type,
     int? startIndex,
@@ -28,14 +28,14 @@ class JellyfinRemoteImageApi {
     String? providerName,
     bool includeAllLanguages = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'includeAllLanguages': includeAllLanguages,
     };
     if (type != null) qp['type'] = type;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (providerName != null) qp['providerName'] = providerName;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/RemoteImages',
       queryParameters: qp,
     );
@@ -58,14 +58,14 @@ class JellyfinRemoteImageApi {
 
   /// `GET /Items/{itemId}/RemoteImages/Providers` — list providers
   /// that can supply remote images for this item.
-  Future<List<Map<String, dynamic>>> providers(String itemId) async {
-    final res = await _http.request<List<dynamic>>(
+  Future<List<Map<String, Object?>>> providers(String itemId) async {
+    final res = await _http.request<List<Object?>>(
       '/Items/$itemId/RemoteImages/Providers',
     );
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

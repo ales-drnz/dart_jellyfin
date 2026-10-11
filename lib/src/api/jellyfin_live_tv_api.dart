@@ -38,7 +38,7 @@ class JellyfinLiveTvApi {
     List<String> sortBy = const [],
     bool descending = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
@@ -64,7 +64,7 @@ class JellyfinLiveTvApi {
   /// `CurrentProgram` field, so the currently airing program may be
   /// absent from the returned item.
   Future<JellyfinItem?> channel(String channelId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Channels/$channelId',
       queryParameters: {'userId': _http.userId},
     );
@@ -97,7 +97,7 @@ class JellyfinLiveTvApi {
     List<String> sortBy = const ['StartDate'],
     bool descending = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.userId,
       'startIndex': startIndex,
       'sortOrder': descending ? 'Descending' : 'Ascending',
@@ -133,7 +133,7 @@ class JellyfinLiveTvApi {
     bool? isNews,
     bool? isKids,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.userId,
       'isAiring': isAiring,
     };
@@ -166,7 +166,7 @@ class JellyfinLiveTvApi {
     int? limit,
     bool enableUserData = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
@@ -184,7 +184,7 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Recordings/{recordingId}`.
   Future<JellyfinItem?> recording(String recordingId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Recordings/$recordingId',
       queryParameters: {'userId': _http.userId},
     );
@@ -204,13 +204,13 @@ class JellyfinLiveTvApi {
   // ─── Timers (single recordings) ────────────────────────────────────
 
   /// `GET /LiveTv/Timers` — scheduled (pending) recordings.
-  Future<JellyfinQueryResult<Map<String, dynamic>>> timers({
+  Future<JellyfinQueryResult<Map<String, Object?>>> timers({
     String? channelId,
     String? seriesTimerId,
     bool? isActive,
     bool? isScheduled,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (channelId != null) qp['channelId'] = channelId;
     if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
     if (isActive != null) qp['isActive'] = isActive;
@@ -223,7 +223,7 @@ class JellyfinLiveTvApi {
   }
 
   /// `POST /LiveTv/Timers` — create a one-shot timer.
-  Future<void> createTimer({required Map<String, dynamic> body}) async {
+  Future<void> createTimer({required Map<String, Object?> body}) async {
     await _http.request<void>(
       '/LiveTv/Timers',
       method: 'POST',
@@ -242,11 +242,11 @@ class JellyfinLiveTvApi {
   // ─── Series timers (recurring) ─────────────────────────────────────
 
   /// `GET /LiveTv/SeriesTimers` — recurring recording rules.
-  Future<JellyfinQueryResult<Map<String, dynamic>>> seriesTimers({
+  Future<JellyfinQueryResult<Map<String, Object?>>> seriesTimers({
     String? sortBy,
     bool descending = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'sortOrder': descending ? 'Descending' : 'Ascending',
     };
     if (sortBy != null) qp['sortBy'] = sortBy;
@@ -259,7 +259,7 @@ class JellyfinLiveTvApi {
 
   /// `POST /LiveTv/SeriesTimers` — create a recurring rule (record
   /// every airing of a series).
-  Future<void> createSeriesTimer({required Map<String, dynamic> body}) async {
+  Future<void> createSeriesTimer({required Map<String, Object?> body}) async {
     await _http.request<void>(
       '/LiveTv/SeriesTimers',
       method: 'POST',
@@ -279,26 +279,26 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Info` — overall live-TV configuration on the
   /// server. Admin only.
-  Future<Map<String, dynamic>> info() async {
-    final res = await _http.request<Map<String, dynamic>>('/LiveTv/Info');
+  Future<Map<String, Object?>> info() async {
+    final res = await _http.request<Map<String, Object?>>('/LiveTv/Info');
     return res.data ?? const {};
   }
 
   /// `GET /LiveTv/GuideInfo` — EPG metadata (start / end of the
   /// guide window, supported channels).
-  Future<Map<String, dynamic>> guideInfo() async {
-    final res = await _http.request<Map<String, dynamic>>('/LiveTv/GuideInfo');
+  Future<Map<String, Object?>> guideInfo() async {
+    final res = await _http.request<Map<String, Object?>>('/LiveTv/GuideInfo');
     return res.data ?? const {};
   }
 
   /// `GET /LiveTv/ChannelMappingOptions` — options for mapping
   /// channels to listings provider entries. Admin only.
-  Future<Map<String, dynamic>> channelMappingOptions({
+  Future<Map<String, Object?>> channelMappingOptions({
     String? providerId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (providerId != null) qp['providerId'] = providerId;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ChannelMappingOptions',
       queryParameters: qp.isEmpty ? null : qp,
     );
@@ -306,10 +306,10 @@ class JellyfinLiveTvApi {
   }
 
   /// `POST /LiveTv/ChannelMappings` — set a channel-to-EPG mapping.
-  Future<Map<String, dynamic>> setChannelMapping(
-    Map<String, dynamic> body,
+  Future<Map<String, Object?>> setChannelMapping(
+    Map<String, Object?> body,
   ) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ChannelMappings',
       method: 'POST',
       data: body,
@@ -321,8 +321,8 @@ class JellyfinLiveTvApi {
 
   /// `POST /LiveTv/TunerHosts` — register a tuner host (HDHomeRun,
   /// IPTV provider, …). [body] is the tuner-host descriptor.
-  Future<Map<String, dynamic>> addTunerHost(Map<String, dynamic> body) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> addTunerHost(Map<String, Object?> body) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/TunerHosts',
       method: 'POST',
       data: body,
@@ -341,12 +341,12 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/TunerHosts/Types` — tuner-host types the server
   /// supports.
-  Future<List<Map<String, dynamic>>> tunerHostTypes() async {
-    final res = await _http.request<List<dynamic>>('/LiveTv/TunerHosts/Types');
+  Future<List<Map<String, Object?>>> tunerHostTypes() async {
+    final res = await _http.request<List<Object?>>('/LiveTv/TunerHosts/Types');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -359,45 +359,45 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Tuners/Discover` — discover tuners on the LAN.
-  Future<List<Map<String, dynamic>>> discoverTuners({
+  Future<List<Map<String, Object?>>> discoverTuners({
     bool newDevicesOnly = false,
   }) async {
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/LiveTv/Tuners/Discover',
       queryParameters: {'newDevicesOnly': newDevicesOnly},
     );
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `GET /LiveTv/Tuners/Discvover` — typo-variant of [discoverTuners]
   /// preserved upstream. Behaves identically.
-  Future<List<Map<String, dynamic>>> discoverTunersAlt({
+  Future<List<Map<String, Object?>>> discoverTunersAlt({
     bool newDevicesOnly = false,
   }) async {
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/LiveTv/Tuners/Discvover',
       queryParameters: {'newDevicesOnly': newDevicesOnly},
     );
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   // ─── Admin: listings providers ────────────────────────────────────
 
   /// `POST /LiveTv/ListingProviders` — add an EPG listings provider.
-  Future<Map<String, dynamic>> addListingProvider({
-    required Map<String, dynamic> body,
+  Future<Map<String, Object?>> addListingProvider({
+    required Map<String, Object?> body,
     bool validateListings = false,
     bool validateLogin = false,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ListingProviders',
       method: 'POST',
       queryParameters: {
@@ -421,8 +421,8 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/ListingProviders/Default` — fields the UI should
   /// pre-populate when adding a new listings provider.
-  Future<Map<String, dynamic>> defaultListingProvider() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> defaultListingProvider() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ListingProviders/Default',
     );
     return res.data ?? const {};
@@ -430,32 +430,32 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/ListingProviders/Lineups` — channel lineups
   /// available from a provider.
-  Future<List<Map<String, dynamic>>> lineups({
+  Future<List<Map<String, Object?>>> lineups({
     String? id,
     String? type,
     String? location,
     String? country,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (id != null) qp['id'] = id;
     if (type != null) qp['type'] = type;
     if (location != null) qp['location'] = location;
     if (country != null) qp['country'] = country;
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/LiveTv/ListingProviders/Lineups',
       queryParameters: qp.isEmpty ? null : qp,
     );
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `GET /LiveTv/ListingProviders/SchedulesDirect/Countries` —
   /// countries supported by the Schedules Direct provider.
-  Future<Map<String, dynamic>> schedulesDirectCountries() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> schedulesDirectCountries() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ListingProviders/SchedulesDirect/Countries',
     );
     return res.data ?? const {};
@@ -496,7 +496,7 @@ class JellyfinLiveTvApi {
   Future<JellyfinQueryResult<JellyfinItem>> recordingGroups({
     String? userId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
     return _http.requestJson(
@@ -511,7 +511,7 @@ class JellyfinLiveTvApi {
   Future<JellyfinQueryResult<JellyfinItem>> recordingFolders({
     String? userId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
     return _http.requestJson(
@@ -548,7 +548,7 @@ class JellyfinLiveTvApi {
     bool enableImages = true,
     bool enableUserData = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
     };
@@ -572,7 +572,7 @@ class JellyfinLiveTvApi {
   /// `GET /LiveTv/Programs/{programId}` — fetch a single program
   /// (EPG entry) by id.
   Future<JellyfinItem?> program(String programId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Programs/$programId',
     );
     final data = res.data;
@@ -582,10 +582,10 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Timers/Defaults` — default values to pre-populate
   /// a new recording timer form.
-  Future<Map<String, dynamic>> defaultTimer({String? programId}) async {
-    final qp = <String, dynamic>{};
+  Future<Map<String, Object?>> defaultTimer({String? programId}) async {
+    final qp = <String, Object?>{};
     if (programId != null) qp['programId'] = programId;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Timers/Defaults',
       queryParameters: qp.isEmpty ? null : qp,
     );

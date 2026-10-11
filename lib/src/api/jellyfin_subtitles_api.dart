@@ -130,19 +130,19 @@ class JellyfinSubtitlesApi {
   ///
   /// Returns raw search hit maps; each carries `Id`, `ProviderName`,
   /// `Name`, `Format`, `DownloadCount`, `CommunityRating`, …
-  Future<List<Map<String, dynamic>>> searchRemote({
+  Future<List<Map<String, Object?>>> searchRemote({
     required String itemId,
     required String language,
     bool isPerfectMatch = false,
   }) async {
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/Items/$itemId/RemoteSearch/Subtitles/$language',
       queryParameters: {'isPerfectMatch': isPerfectMatch},
     );
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -163,8 +163,8 @@ class JellyfinSubtitlesApi {
 
   /// `GET /Providers/Subtitles/Subtitles/{id}` — fetch a remote
   /// subtitle preview by id (without installing it on any item).
-  Future<Map<String, dynamic>?> getRemote(String id) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>?> getRemote(String id) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Providers/Subtitles/Subtitles/$id',
     );
     return res.data;
@@ -174,12 +174,12 @@ class JellyfinSubtitlesApi {
 
   /// `GET /FallbackFont/Fonts` — fonts the server can serve to clients
   /// that render `.ass` / `.ssa` subtitles via libass.
-  Future<List<Map<String, dynamic>>> fallbackFonts() async {
-    final res = await _http.request<List<dynamic>>('/FallbackFont/Fonts');
+  Future<List<Map<String, Object?>>> fallbackFonts() async {
+    final res = await _http.request<List<Object?>>('/FallbackFont/Fonts');
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 

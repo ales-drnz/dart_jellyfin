@@ -252,7 +252,7 @@ class JellyfinSyncPlayApi {
     int? playingItemPosition,
     int? startPositionTicks,
   }) async {
-    final body = <String, dynamic>{
+    final body = <String, Object?>{
       'PlayingQueue': playingQueue,
     };
     if (playingItemPosition != null) {

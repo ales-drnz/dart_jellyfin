@@ -20,33 +20,33 @@ class JellyfinLocalizationApi {
   /// `GET /Localization/Countries` — every country the server knows
   /// about, each entry returned as a raw map (`Name`,
   /// `DisplayName`, `TwoLetterISORegionName`, …).
-  Future<List<Map<String, dynamic>>> countries() =>
+  Future<List<Map<String, Object?>>> countries() =>
       _flatList('/Localization/Countries');
 
   /// `GET /Localization/Cultures` — every culture/language the
   /// server knows about. Each entry carries the two- and three-letter
   /// ISO codes plus display names.
-  Future<List<Map<String, dynamic>>> cultures() =>
+  Future<List<Map<String, Object?>>> cultures() =>
       _flatList('/Localization/Cultures');
 
   /// `GET /Localization/Options` — the localization options
   /// configured on the server (the choices an admin picked for
   /// preferred metadata language, etc.).
-  Future<List<Map<String, dynamic>>> options() =>
+  Future<List<Map<String, Object?>>> options() =>
       _flatList('/Localization/Options');
 
   /// `GET /Localization/ParentalRatings` — the parental rating
   /// scale the server uses. Each entry maps a numeric value to a
   /// display name (e.g. `'PG-13'`).
-  Future<List<Map<String, dynamic>>> parentalRatings() =>
+  Future<List<Map<String, Object?>>> parentalRatings() =>
       _flatList('/Localization/ParentalRatings');
 
-  Future<List<Map<String, dynamic>>> _flatList(String path) async {
-    final res = await _http.request<List<dynamic>>(path);
+  Future<List<Map<String, Object?>>> _flatList(String path) async {
+    final res = await _http.request<List<Object?>>(path);
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

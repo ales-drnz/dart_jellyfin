@@ -26,14 +26,14 @@ class JellyfinItemLookupApi {
   /// `GET /Items/{itemId}/ExternalIdInfos` — providers that can
   /// supply external ids for this item kind (IMDB, TMDB, MusicBrainz,
   /// …). Each entry is a raw map describing one provider.
-  Future<List<Map<String, dynamic>>> externalIdInfos(String itemId) async {
-    final res = await _http.request<List<dynamic>>(
+  Future<List<Map<String, Object?>>> externalIdInfos(String itemId) async {
+    final res = await _http.request<List<Object?>>(
       '/Items/$itemId/ExternalIdInfos',
     );
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -47,7 +47,7 @@ class JellyfinItemLookupApi {
   /// ApplyTo, ...}`.
   Future<void> applySearchResult({
     required String itemId,
-    required Map<String, dynamic> body,
+    required Map<String, Object?> body,
     bool replaceAllImages = true,
   }) async {
     await _http.request<void>(
@@ -60,54 +60,54 @@ class JellyfinItemLookupApi {
 
   /// `POST /Items/RemoteSearch/Movie` — metadata search for a movie
   /// item. [body] is the upstream `MovieInfoRemoteSearchQuery`.
-  Future<List<Map<String, dynamic>>> searchMovies(Map<String, dynamic> body) =>
+  Future<List<Map<String, Object?>>> searchMovies(Map<String, Object?> body) =>
       _search('/Items/RemoteSearch/Movie', body);
 
   /// `POST /Items/RemoteSearch/Series`.
-  Future<List<Map<String, dynamic>>> searchSeries(Map<String, dynamic> body) =>
+  Future<List<Map<String, Object?>>> searchSeries(Map<String, Object?> body) =>
       _search('/Items/RemoteSearch/Series', body);
 
   /// `POST /Items/RemoteSearch/Trailer`.
-  Future<List<Map<String, dynamic>>> searchTrailers(
-    Map<String, dynamic> body,
+  Future<List<Map<String, Object?>>> searchTrailers(
+    Map<String, Object?> body,
   ) =>
       _search('/Items/RemoteSearch/Trailer', body);
 
   /// `POST /Items/RemoteSearch/MusicAlbum`.
-  Future<List<Map<String, dynamic>>> searchMusicAlbums(
-    Map<String, dynamic> body,
+  Future<List<Map<String, Object?>>> searchMusicAlbums(
+    Map<String, Object?> body,
   ) =>
       _search('/Items/RemoteSearch/MusicAlbum', body);
 
   /// `POST /Items/RemoteSearch/MusicArtist`.
-  Future<List<Map<String, dynamic>>> searchMusicArtists(
-    Map<String, dynamic> body,
+  Future<List<Map<String, Object?>>> searchMusicArtists(
+    Map<String, Object?> body,
   ) =>
       _search('/Items/RemoteSearch/MusicArtist', body);
 
   /// `POST /Items/RemoteSearch/MusicVideo`.
-  Future<List<Map<String, dynamic>>> searchMusicVideos(
-    Map<String, dynamic> body,
+  Future<List<Map<String, Object?>>> searchMusicVideos(
+    Map<String, Object?> body,
   ) =>
       _search('/Items/RemoteSearch/MusicVideo', body);
 
   /// `POST /Items/RemoteSearch/Person`.
-  Future<List<Map<String, dynamic>>> searchPersons(Map<String, dynamic> body) =>
+  Future<List<Map<String, Object?>>> searchPersons(Map<String, Object?> body) =>
       _search('/Items/RemoteSearch/Person', body);
 
   /// `POST /Items/RemoteSearch/Book`.
-  Future<List<Map<String, dynamic>>> searchBooks(Map<String, dynamic> body) =>
+  Future<List<Map<String, Object?>>> searchBooks(Map<String, Object?> body) =>
       _search('/Items/RemoteSearch/Book', body);
 
   /// `POST /Items/RemoteSearch/BoxSet`.
-  Future<List<Map<String, dynamic>>> searchBoxSets(Map<String, dynamic> body) =>
+  Future<List<Map<String, Object?>>> searchBoxSets(Map<String, Object?> body) =>
       _search('/Items/RemoteSearch/BoxSet', body);
 
-  Future<List<Map<String, dynamic>>> _search(
+  Future<List<Map<String, Object?>>> _search(
     String path,
-    Map<String, dynamic> body,
+    Map<String, Object?> body,
   ) async {
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       path,
       method: 'POST',
       data: body,
@@ -115,7 +115,7 @@ class JellyfinItemLookupApi {
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

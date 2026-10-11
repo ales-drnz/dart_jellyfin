@@ -45,7 +45,7 @@ class JellyfinPersonsApi {
     String? appearsInItemId,
     bool enableImages = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableUserData': enableUserData,
       'enableImages': enableImages,
     };

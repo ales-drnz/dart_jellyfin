@@ -80,7 +80,7 @@ class JellyfinGenresApi {
     List<String> sortBy = const [],
     bool descending = false,
   }) async {
-    final qp = <String, dynamic>{'startIndex': startIndex};
+    final qp = <String, Object?>{'startIndex': startIndex};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;

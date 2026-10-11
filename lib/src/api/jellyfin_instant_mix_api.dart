@@ -197,14 +197,14 @@ class JellyfinInstantMixApi {
 
   Future<JellyfinQueryResult<JellyfinItem>> _request(
     String path, {
-    Map<String, dynamic> extra = const {},
+    Map<String, Object?> extra = const {},
     int? limit,
     List<String> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.userId,
       'enableImages': enableImages,
       'enableUserData': enableUserData,

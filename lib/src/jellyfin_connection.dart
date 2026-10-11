@@ -203,7 +203,7 @@ final class JellyfinConnection {
   Future<JellyfinResponse<T>> request<T>(
     String path, {
     String method = 'GET',
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Object? data,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
@@ -256,7 +256,7 @@ final class JellyfinConnection {
     String path,
     R Function(Object? json) parse, {
     String method = 'GET',
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Object? data,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
@@ -296,7 +296,7 @@ final class JellyfinConnection {
   /// held in memory; use [requestStream] for media.
   Future<JellyfinResponse<Uint8List>> requestBytes(
     String url, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     bool absoluteUrl = true,
     JellyfinCancelToken? cancelToken,
   }) =>
@@ -317,7 +317,7 @@ final class JellyfinConnection {
   /// streams that may stay quiet for minutes.
   Future<JellyfinStreamedResponse> requestStream(
     String url, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = true,
     bool stallTimeout = true,
@@ -366,7 +366,7 @@ final class JellyfinConnection {
   Future<_Exchange> _exchange(
     String path, {
     required String method,
-    required Map<String, dynamic>? queryParameters,
+    required Map<String, Object?>? queryParameters,
     required Object? data,
     required Map<String, String>? extraHeaders,
     required bool absoluteUrl,
@@ -420,7 +420,7 @@ final class JellyfinConnection {
   Future<_Exchange> _exchangeOnce(
     String path, {
     required String method,
-    required Map<String, dynamic>? queryParameters,
+    required Map<String, Object?>? queryParameters,
     required Object? data,
     required Map<String, String>? extraHeaders,
     required bool absoluteUrl,
@@ -454,7 +454,7 @@ final class JellyfinConnection {
   Future<_Opened> _open(
     String path, {
     required String method,
-    required Map<String, dynamic>? queryParameters,
+    required Map<String, Object?>? queryParameters,
     required Object? data,
     required Map<String, String>? extraHeaders,
     required bool absoluteUrl,
@@ -680,7 +680,7 @@ final class JellyfinConnection {
   /// form-encoded (`encodeQueryComponent`), a list repeats its key once per
   /// element, and a `null` value sends the bare key.
   @visibleForTesting
-  static Uri buildUri(String url, Map<String, dynamic>? queryParameters) {
+  static Uri buildUri(String url, Map<String, Object?>? queryParameters) {
     final qp = queryParameters;
     if (qp == null || qp.isEmpty) return Uri.parse(url).normalizePath();
     final parts = <String>[];

@@ -29,7 +29,7 @@ class JellyfinPlaylistsApi {
     bool isPublic = false,
   }) async {
     final userId = _http.requireUserId();
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Playlists',
       method: 'POST',
       data: {
@@ -83,7 +83,7 @@ class JellyfinPlaylistsApi {
     List<String> fields = const [],
   }) async {
     final userId = _http.requireUserId();
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': userId,
       'startIndex': startIndex,
       if (fields.isNotEmpty) 'fields': fields,
@@ -165,7 +165,7 @@ class JellyfinPlaylistsApi {
   /// endpoint returns a `PlaylistDto` (only `OpenAccess`, `Shares`,
   /// `ItemIds`) and carries none of these fields, so it is not used here.
   Future<JellyfinItem?> byId(String playlistId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$playlistId',
     );
     final data = res.data;
@@ -181,9 +181,9 @@ class JellyfinPlaylistsApi {
     String? name,
     bool? isPublic,
     List<String>? ids,
-    Map<String, dynamic> extra = const {},
+    Map<String, Object?> extra = const {},
   }) async {
-    final body = <String, dynamic>{
+    final body = <String, Object?>{
       if (name != null) 'Name': name,
       if (isPublic != null) 'IsPublic': isPublic,
       if (ids != null) 'Ids': ids,
@@ -225,11 +225,11 @@ class JellyfinPlaylistsApi {
 
   /// `GET /Playlists/{playlistId}/Users/{userId}` — one user's
   /// access record for a playlist.
-  Future<Map<String, dynamic>?> userAccess({
+  Future<Map<String, Object?>?> userAccess({
     required String playlistId,
     required String userId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Playlists/$playlistId/Users/$userId',
     );
     return res.data;

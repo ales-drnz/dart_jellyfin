@@ -24,7 +24,7 @@ class JellyfinActivityLogApi {
     DateTime? minDate,
     bool? hasUserId,
   }) {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (minDate != null) qp['minDate'] = minDate.toUtc().toIso8601String();

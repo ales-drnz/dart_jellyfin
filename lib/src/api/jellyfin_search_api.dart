@@ -41,7 +41,7 @@ class JellyfinSearchApi {
     bool includeStudios = false,
     bool includePeople = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'searchTerm': query,
       'startIndex': startIndex,
       'includeArtists': includeArtists,

@@ -28,7 +28,7 @@ class JellyfinChannelsApi {
     bool? supportsMediaDeletion,
     bool? isFavorite,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (startIndex != null) qp['startIndex'] = startIndex;
@@ -60,7 +60,7 @@ class JellyfinChannelsApi {
     List<String> filters = const [],
     List<String> fields = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (folderId != null) qp['folderId'] = folderId;
@@ -88,7 +88,7 @@ class JellyfinChannelsApi {
     List<String> filters = const [],
     List<String> fields = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (startIndex != null) qp['startIndex'] = startIndex;
@@ -106,8 +106,8 @@ class JellyfinChannelsApi {
 
   /// `GET /Channels/{channelId}/Features` — feature flags for one
   /// channel (supports search, item sort, deletion, etc.).
-  Future<Map<String, dynamic>> features(String channelId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> features(String channelId) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Channels/$channelId/Features',
     );
     return res.data ?? const {};
@@ -115,12 +115,12 @@ class JellyfinChannelsApi {
 
   /// `GET /Channels/Features` — feature flags for every channel,
   /// returned as a flat list of feature maps.
-  Future<List<Map<String, dynamic>>> allFeatures() async {
-    final res = await _http.request<List<dynamic>>('/Channels/Features');
+  Future<List<Map<String, Object?>>> allFeatures() async {
+    final res = await _http.request<List<Object?>>('/Channels/Features');
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

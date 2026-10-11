@@ -44,7 +44,7 @@ class JellyfinTvShowsApi {
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
     };
@@ -83,7 +83,7 @@ class JellyfinTvShowsApi {
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
     };
@@ -122,7 +122,7 @@ class JellyfinTvShowsApi {
     bool enableResumable = true,
     bool enableRewatching = false,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
       'enableTotalRecordCount': enableTotalRecordCount,
@@ -161,7 +161,7 @@ class JellyfinTvShowsApi {
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
     };

@@ -23,7 +23,7 @@ class JellyfinScheduledTasksApi {
     bool? isHidden,
     bool? isEnabled,
   }) {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (isHidden != null) qp['isHidden'] = isHidden;
     if (isEnabled != null) qp['isEnabled'] = isEnabled;
     return _http.requestJson(
@@ -43,7 +43,7 @@ class JellyfinScheduledTasksApi {
   /// triggers (cron-like schedule definitions).
   Future<void> updateTriggers({
     required String taskId,
-    required List<Map<String, dynamic>> triggers,
+    required List<Map<String, Object?>> triggers,
   }) async {
     await _http.request<void>(
       '/ScheduledTasks/$taskId/Triggers',

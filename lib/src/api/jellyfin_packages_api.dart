@@ -20,24 +20,24 @@ class JellyfinPackagesApi {
   JellyfinPackagesApi(this._http);
 
   /// `GET /Packages` — list every package the server can install.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<List<dynamic>>('/Packages');
+  Future<List<Map<String, Object?>>> list() async {
+    final res = await _http.request<List<Object?>>('/Packages');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `GET /Packages/{name}` — info for one package (releases,
   /// download urls, dependencies).
-  Future<Map<String, dynamic>> byName({
+  Future<Map<String, Object?>> byName({
     required String name,
     String? assemblyGuid,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (assemblyGuid != null) qp['assemblyGuid'] = assemblyGuid;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Packages/${Uri.encodeComponent(name)}',
       queryParameters: qp.isEmpty ? null : qp,
     );
@@ -51,7 +51,7 @@ class JellyfinPackagesApi {
     String? version,
     String? repositoryUrl,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (assemblyGuid != null) qp['assemblyGuid'] = assemblyGuid;
     if (version != null) qp['version'] = version;
     if (repositoryUrl != null) qp['repositoryUrl'] = repositoryUrl;
@@ -72,18 +72,18 @@ class JellyfinPackagesApi {
   }
 
   /// `GET /Repositories` — list configured plugin repositories.
-  Future<List<Map<String, dynamic>>> repositories() async {
-    final res = await _http.request<List<dynamic>>('/Repositories');
+  Future<List<Map<String, Object?>>> repositories() async {
+    final res = await _http.request<List<Object?>>('/Repositories');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `POST /Repositories` — replace the list of configured plugin
   /// repositories. Pass the full new list as [body].
-  Future<void> setRepositories(List<Map<String, dynamic>> body) async {
+  Future<void> setRepositories(List<Map<String, Object?>> body) async {
     await _http.request<void>(
       '/Repositories',
       method: 'POST',

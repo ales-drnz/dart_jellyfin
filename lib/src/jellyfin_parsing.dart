@@ -15,27 +15,27 @@ import 'jellyfin_models.dart';
 
 /// Parses a `{Items: [...], TotalRecordCount, StartIndex}` envelope.
 JellyfinQueryResult<T> Function(Object? json) queryResultOf<T>(
-  T Function(Map<String, dynamic>) parser, {
+  T Function(Map<String, Object?>) parser, {
   String itemsKey = 'Items',
 }) =>
     (json) => JellyfinQueryResult.fromJson(
-          json is Map<String, dynamic> ? json : const <String, dynamic>{},
+          json is Map<String, Object?> ? json : const <String, Object?>{},
           parser,
           itemsKey: itemsKey,
         );
 
 /// Parses a bare JSON array, skipping entries that are not objects.
 List<T> Function(Object? json) listOf<T>(
-  T Function(Map<String, dynamic>) parser,
+  T Function(Map<String, Object?>) parser,
 ) =>
     (json) => [
           if (json is List)
             for (final e in json)
-              if (e is Map<String, dynamic>) parser(e),
+              if (e is Map<String, Object?>) parser(e),
         ];
 
 /// Parses one JSON object, or `null` for an empty body.
 T? Function(Object? json) objectOf<T>(
-  T Function(Map<String, dynamic>) parser,
+  T Function(Map<String, Object?>) parser,
 ) =>
-    (json) => json is Map<String, dynamic> ? parser(json) : null;
+    (json) => json is Map<String, Object?> ? parser(json) : null;

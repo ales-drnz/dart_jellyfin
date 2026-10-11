@@ -33,7 +33,7 @@ class JellyfinNotificationsApi {
   WebSocketChannel? _channel;
   StreamController<JellyfinNotification>? _controller;
   Timer? _keepAlive;
-  StreamSubscription<dynamic>? _socketSub;
+  StreamSubscription<Object?>? _socketSub;
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinNotificationsApi(this._http);
@@ -196,7 +196,7 @@ class JellyfinNotificationsApi {
   JellyfinNotification? _decode(String message) {
     try {
       final decoded = jsonDecode(message);
-      if (decoded is Map<String, dynamic>) {
+      if (decoded is Map<String, Object?>) {
         return JellyfinNotification.fromJson(decoded);
       }
     } catch (_) {
@@ -229,7 +229,7 @@ final class JellyfinNotification {
 
   /// Raw frame, useful when the message type is not yet promoted to
   /// a typed accessor.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Build a [JellyfinNotification] from its decomposed fields.
   const JellyfinNotification({
@@ -239,7 +239,7 @@ final class JellyfinNotification {
   });
 
   /// Parse a Jellyfin websocket frame (`{MessageType, Data}`).
-  factory JellyfinNotification.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinNotification.fromJson(Map<String, Object?> json) =>
       JellyfinNotification(
         messageType: json['MessageType']?.toString() ?? 'Unknown',
         data: json['Data'],

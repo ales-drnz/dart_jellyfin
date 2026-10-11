@@ -32,7 +32,7 @@ class JellyfinSessionsApi {
     int? activeWithinSeconds,
     String? deviceId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (controllableByUserId != null) {
       qp['controllableByUserId'] = controllableByUserId;
     }
@@ -81,7 +81,7 @@ class JellyfinSessionsApi {
   /// but accepts the full `ClientCapabilitiesDto` body for advanced
   /// declarations (device profile, app store url, icon url, …).
   Future<void> postFullCapabilities({
-    required Map<String, dynamic> body,
+    required Map<String, Object?> body,
   }) async {
     await _http.request<void>(
       '/Sessions/Capabilities/Full',
@@ -122,7 +122,7 @@ class JellyfinSessionsApi {
     int? startIndex,
     String? mediaSourceId,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'playCommand': playCommand,
       'itemIds': itemIds,
     };
@@ -147,7 +147,7 @@ class JellyfinSessionsApi {
     int? seekPositionTicks,
     String? controllingUserId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (seekPositionTicks != null) {
       qp['seekPositionTicks'] = seekPositionTicks;
     }
@@ -192,7 +192,7 @@ class JellyfinSessionsApi {
   Future<void> sendFullCommand({
     required String sessionId,
     required String name,
-    Map<String, dynamic> arguments = const {},
+    Map<String, Object?> arguments = const {},
   }) async {
     await _http.request<void>(
       '/Sessions/$sessionId/Command',

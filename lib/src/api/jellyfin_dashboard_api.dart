@@ -28,19 +28,19 @@ class JellyfinDashboardApi {
 
   /// `GET /web/ConfigurationPages` — list configuration pages
   /// registered by plugins.
-  Future<List<Map<String, dynamic>>> configurationPages({
+  Future<List<Map<String, Object?>>> configurationPages({
     bool? enableInMainMenu,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (enableInMainMenu != null) qp['enableInMainMenu'] = enableInMainMenu;
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/web/ConfigurationPages',
       queryParameters: qp.isEmpty ? null : qp,
     );
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

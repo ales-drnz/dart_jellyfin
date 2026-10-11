@@ -29,7 +29,7 @@ class JellyfinUserDataApi {
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
   Future<JellyfinUserData> markFavorite(String itemId, {String? userId}) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserFavoriteItems/$itemId',
       method: 'POST',
       queryParameters: _userQuery(userId),
@@ -45,7 +45,7 @@ class JellyfinUserDataApi {
     String itemId, {
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserFavoriteItems/$itemId',
       method: 'DELETE',
       queryParameters: _userQuery(userId),
@@ -75,7 +75,7 @@ class JellyfinUserDataApi {
     DateTime? datePlayed,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserPlayedItems/$itemId',
       method: 'POST',
       queryParameters: _userQuery(
@@ -93,7 +93,7 @@ class JellyfinUserDataApi {
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
   Future<JellyfinUserData> markUnplayed(String itemId, {String? userId}) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserPlayedItems/$itemId',
       method: 'DELETE',
       queryParameters: _userQuery(userId),
@@ -107,7 +107,7 @@ class JellyfinUserDataApi {
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
   Future<JellyfinUserData> get(String itemId, {String? userId}) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/UserData',
       queryParameters: _userQuery(userId),
     );
@@ -124,7 +124,7 @@ class JellyfinUserDataApi {
     required bool likes,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/Rating',
       method: 'POST',
       queryParameters: _userQuery(userId, extra: {'likes': likes}),
@@ -138,7 +138,7 @@ class JellyfinUserDataApi {
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
   Future<JellyfinUserData> clearRating(String itemId, {String? userId}) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/Rating',
       method: 'DELETE',
       queryParameters: _userQuery(userId),
@@ -154,7 +154,7 @@ class JellyfinUserDataApi {
   Future<JellyfinUserData> update({
     required String itemId,
     JellyfinUserData? userData,
-    Map<String, dynamic>? raw,
+    Map<String, Object?>? raw,
     String? userId,
   }) async {
     final body = raw ??
@@ -169,7 +169,7 @@ class JellyfinUserDataApi {
                 userData!.lastPlayedDate!.toUtc().toIso8601String(),
           'Played': userData?.played ?? false,
         };
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/UserData',
       method: 'POST',
       data: body,
@@ -182,12 +182,12 @@ class JellyfinUserDataApi {
   /// connection's own user when [userId] is null, and merging any [extra]
   /// per-call params (e.g. `likes`, `datePlayed`). Returns `null` when there
   /// is nothing to send.
-  Map<String, dynamic>? _userQuery(
+  Map<String, Object?>? _userQuery(
     String? userId, {
-    Map<String, dynamic>? extra,
+    Map<String, Object?>? extra,
   }) {
     final uid = userId ?? _http.userId;
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       if (uid != null) 'userId': uid,
       ...?extra,
     };

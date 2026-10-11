@@ -36,7 +36,7 @@ class JellyfinYearsApi {
     bool recursive = true,
     bool enableImages = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'startIndex': startIndex,
       'recursive': recursive,
       'enableUserData': enableUserData,
@@ -72,11 +72,11 @@ class JellyfinYearsApi {
 
   /// `GET /Years/{year}` — lookup a single year. Returns null on 404.
   Future<JellyfinItem?> byYear(int year) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     try {
-      final res = await _http.request<Map<String, dynamic>>(
+      final res = await _http.request<Map<String, Object?>>(
         '/Years/$year',
         queryParameters: qp.isEmpty ? null : qp,
       );

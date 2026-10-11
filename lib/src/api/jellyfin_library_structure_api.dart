@@ -18,12 +18,12 @@ class JellyfinLibraryStructureApi {
   JellyfinLibraryStructureApi(this._http);
 
   /// `GET /Library/VirtualFolders` — list every configured library.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<List<dynamic>>('/Library/VirtualFolders');
+  Future<List<Map<String, Object?>>> list() async {
+    final res = await _http.request<List<Object?>>('/Library/VirtualFolders');
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -32,10 +32,10 @@ class JellyfinLibraryStructureApi {
     String? name,
     String? collectionType,
     List<String> paths = const [],
-    Map<String, dynamic>? libraryOptions,
+    Map<String, Object?>? libraryOptions,
     bool refreshLibrary = false,
   }) async {
-    final qp = <String, dynamic>{'refreshLibrary': refreshLibrary};
+    final qp = <String, Object?>{'refreshLibrary': refreshLibrary};
     if (name != null) qp['name'] = name;
     if (collectionType != null) qp['collectionType'] = collectionType;
     if (paths.isNotEmpty) qp['paths'] = paths;
@@ -80,7 +80,7 @@ class JellyfinLibraryStructureApi {
   /// `POST /Library/VirtualFolders/LibraryOptions` — update the
   /// options of a library (metadata fetchers, image fetchers,
   /// chapter image config, …).
-  Future<void> updateLibraryOptions(Map<String, dynamic> body) async {
+  Future<void> updateLibraryOptions(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Library/VirtualFolders/LibraryOptions',
       method: 'POST',
@@ -91,7 +91,7 @@ class JellyfinLibraryStructureApi {
   /// `POST /Library/VirtualFolders/Paths?refreshLibrary=...` —
   /// add a physical folder to a library.
   Future<void> addMediaPath({
-    required Map<String, dynamic> body,
+    required Map<String, Object?> body,
     bool refreshLibrary = false,
   }) async {
     await _http.request<void>(
@@ -122,7 +122,7 @@ class JellyfinLibraryStructureApi {
 
   /// `POST /Library/VirtualFolders/Paths/Update` — update a
   /// physical folder's options (e.g. network credentials).
-  Future<void> updateMediaPath(Map<String, dynamic> body) async {
+  Future<void> updateMediaPath(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Library/VirtualFolders/Paths/Update',
       method: 'POST',

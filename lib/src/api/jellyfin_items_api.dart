@@ -255,7 +255,7 @@ class JellyfinItemsApi {
       ..['enableImages'] = false
       ..['enableUserData'] = false;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items',
       queryParameters: qp,
     );
@@ -272,7 +272,7 @@ class JellyfinItemsApi {
   /// Lives in one place so the two can never drift apart: whatever
   /// narrows a page also narrows a count. List values are handed to the
   /// transport unjoined — see [JellyfinConnection.request].
-  Map<String, dynamic> _narrowing({
+  Map<String, Object?> _narrowing({
     required String? parentId,
     required List<String> includeItemTypes,
     required List<String> excludeItemTypes,
@@ -301,7 +301,7 @@ class JellyfinItemsApi {
     required bool recursive,
     required bool enableTotalRecordCount,
   }) {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': _http.requireUserId(),
       'recursive': recursive,
       'enableTotalRecordCount': enableTotalRecordCount,
@@ -350,7 +350,7 @@ class JellyfinItemsApi {
   Future<JellyfinItem?> byId(String itemId) async {
     final userId = _http.requireUserId();
     try {
-      final res = await _http.request<Map<String, dynamic>>(
+      final res = await _http.request<Map<String, Object?>>(
         '/Items/$itemId',
         queryParameters: {
           'userId': userId,
@@ -373,7 +373,7 @@ class JellyfinItemsApi {
     int? limit,
   }) async {
     final userId = _http.requireUserId();
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': userId,
       'startIndex': startIndex,
       'enableImages': true,
@@ -393,7 +393,7 @@ class JellyfinItemsApi {
   /// single [JellyfinItem]; treat it as the "Home" parent.
   Future<JellyfinItem?> root() async {
     final userId = _http.requireUserId();
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/Root',
       queryParameters: {'userId': userId},
     );
@@ -451,7 +451,7 @@ class JellyfinItemsApi {
   /// [body] is the full `BaseItemDto` shape.
   Future<void> updateMetadata({
     required String itemId,
-    required Map<String, dynamic> body,
+    required Map<String, Object?> body,
   }) async {
     await _http.request<void>(
       '/Items/$itemId',
@@ -475,8 +475,8 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/MetadataEditor` — info needed to populate
   /// the "Edit metadata" UI (available genres, tags, lock options).
-  Future<Map<String, dynamic>> metadataEditorInfo(String itemId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> metadataEditorInfo(String itemId) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/MetadataEditor',
     );
     return res.data ?? const {};
@@ -525,7 +525,7 @@ class JellyfinItemsApi {
     bool? isPlayed,
   }) async {
     final userId = _http.requireUserId();
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'userId': userId,
       'limit': limit,
     };

@@ -16,7 +16,7 @@ class JellyfinSystemApi {
 
   /// Authenticated server info (`GET /System/Info`).
   Future<JellyfinSystemInfo> info() async {
-    final res = await _http.request<Map<String, dynamic>>('/System/Info');
+    final res = await _http.request<Map<String, Object?>>('/System/Info');
     return JellyfinSystemInfo.fromJson(res.data ?? const {});
   }
 
@@ -25,7 +25,7 @@ class JellyfinSystemApi {
   /// Jellyfin server before asking the user for credentials.
   Future<JellyfinSystemInfo> publicInfo() async {
     final res =
-        await _http.request<Map<String, dynamic>>('/System/Info/Public');
+        await _http.request<Map<String, Object?>>('/System/Info/Public');
     return JellyfinSystemInfo.fromJson(res.data ?? const {});
   }
 
@@ -48,19 +48,19 @@ class JellyfinSystemApi {
 
   /// `GET /System/Info/Storage` — storage usage on every drive
   /// the server is configured to use.
-  Future<Map<String, dynamic>> storage() async {
+  Future<Map<String, Object?>> storage() async {
     final res =
-        await _http.request<Map<String, dynamic>>('/System/Info/Storage');
+        await _http.request<Map<String, Object?>>('/System/Info/Storage');
     return res.data ?? const {};
   }
 
   /// `GET /System/Logs` — list available log files.
-  Future<List<Map<String, dynamic>>> logs() async {
-    final res = await _http.request<List<dynamic>>('/System/Logs');
+  Future<List<Map<String, Object?>>> logs() async {
+    final res = await _http.request<List<Object?>>('/System/Logs');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -108,5 +108,5 @@ class JellyfinSystemApi {
       );
 }
 
-Map<String, dynamic> _object(Object? json) =>
-    json is Map<String, dynamic> ? json : const <String, dynamic>{};
+Map<String, Object?> _object(Object? json) =>
+    json is Map<String, Object?> ? json : const <String, Object?>{};

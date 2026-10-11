@@ -149,11 +149,11 @@ class JellyfinArtistsApi {
   /// `/Artists/{name}` — lookup by exact artist name. Returns null on
   /// 404 (no artist matches the name).
   Future<JellyfinItem?> byName(String name) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     try {
-      final res = await _http.request<Map<String, dynamic>>(
+      final res = await _http.request<Map<String, Object?>>(
         '/Artists/${Uri.encodeComponent(name)}',
         queryParameters: qp.isEmpty ? null : qp,
       );
@@ -190,7 +190,7 @@ class JellyfinArtistsApi {
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'startIndex': startIndex,
       'enableUserData': enableUserData,
     };

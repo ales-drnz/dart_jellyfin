@@ -35,7 +35,7 @@ class JellyfinLyricsApi {
   /// matching [JellyfinAudioApi.lyrics]'s behaviour.
   Future<JellyfinLyrics?> forItem(String itemId) async {
     try {
-      final res = await _http.request<Map<String, dynamic>>(
+      final res = await _http.request<Map<String, Object?>>(
         '/Audio/$itemId/Lyrics',
       );
       final data = res.data;
@@ -62,7 +62,7 @@ class JellyfinLyricsApi {
     required String fileName,
     required Uint8List body,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Audio/$itemId/Lyrics',
       method: 'POST',
       queryParameters: {'fileName': fileName},
@@ -100,7 +100,7 @@ class JellyfinLyricsApi {
     required String itemId,
     required String lyricId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Audio/$itemId/RemoteSearch/Lyrics/$lyricId',
       method: 'POST',
     );
@@ -112,7 +112,7 @@ class JellyfinLyricsApi {
   /// `GET /Providers/Lyrics/{lyricId}` — preview a remote lyric
   /// result without attaching it. Same id as [downloadRemote].
   Future<JellyfinLyrics?> previewRemote(String lyricId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Providers/Lyrics/$lyricId',
     );
     final data = res.data;

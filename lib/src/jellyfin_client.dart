@@ -434,7 +434,7 @@ class JellyfinClient {
   Future<JellyfinResponse<T>> request<T>(
     String path, {
     String method = 'GET',
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Object? data,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = false,
@@ -456,7 +456,7 @@ class JellyfinClient {
   /// held in memory; use [requestStream] for media downloads.
   Future<JellyfinResponse<Uint8List>> requestBytes(
     String url, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     bool absoluteUrl = true,
     JellyfinCancelToken? cancelToken,
   }) =>
@@ -475,7 +475,7 @@ class JellyfinClient {
   /// unless [stallTimeout] is `false`.
   Future<JellyfinStreamedResponse> requestStream(
     String url, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     bool absoluteUrl = true,
     bool stallTimeout = true,
@@ -495,7 +495,7 @@ class JellyfinClient {
   /// Shorthand for a `GET` [request].
   Future<JellyfinResponse<T>> get<T>(
     String path, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
   }) =>
@@ -510,7 +510,7 @@ class JellyfinClient {
   Future<JellyfinResponse<T>> post<T>(
     String path, {
     Object? data,
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
   }) =>
@@ -526,7 +526,7 @@ class JellyfinClient {
   /// Shorthand for a `DELETE` [request].
   Future<JellyfinResponse<T>> delete<T>(
     String path, {
-    Map<String, dynamic>? queryParameters,
+    Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
   }) =>

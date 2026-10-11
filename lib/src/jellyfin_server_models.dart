@@ -20,7 +20,7 @@ final class JellyfinEndpointInfo {
   final bool isInNetwork;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds an endpoint info from already-parsed components.
   const JellyfinEndpointInfo({
@@ -30,7 +30,7 @@ final class JellyfinEndpointInfo {
   });
 
   /// Decodes `{IsLocal, IsInNetwork}`.
-  factory JellyfinEndpointInfo.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinEndpointInfo.fromJson(Map<String, Object?> json) =>
       JellyfinEndpointInfo(
         isLocal: json['IsLocal'] == true,
         isInNetwork: json['IsInNetwork'] == true,
@@ -47,7 +47,7 @@ final class JellyfinUtcTime {
   final DateTime? responseTransmissionTime;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a server time from already-parsed components.
   const JellyfinUtcTime({
@@ -57,7 +57,7 @@ final class JellyfinUtcTime {
   });
 
   /// Decodes `{RequestReceptionTime, ResponseTransmissionTime}`.
-  factory JellyfinUtcTime.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinUtcTime.fromJson(Map<String, Object?> json) =>
       JellyfinUtcTime(
         requestReceptionTime: _dt(json['RequestReceptionTime']),
         responseTransmissionTime: _dt(json['ResponseTransmissionTime']),
@@ -98,7 +98,7 @@ final class JellyfinItemCounts {
   final int itemCount;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds item counts from already-parsed components.
   const JellyfinItemCounts({
@@ -116,7 +116,7 @@ final class JellyfinItemCounts {
   });
 
   /// Decodes an `ItemCounts` body; a missing count is 0.
-  factory JellyfinItemCounts.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinItemCounts.fromJson(Map<String, Object?> json) =>
       JellyfinItemCounts(
         songCount: _int(json['SongCount']) ?? 0,
         albumCount: _int(json['AlbumCount']) ?? 0,
@@ -163,7 +163,7 @@ final class JellyfinScheduledTask {
   final JellyfinTaskResult? lastExecutionResult;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a task from already-parsed components.
   const JellyfinScheduledTask({
@@ -180,7 +180,7 @@ final class JellyfinScheduledTask {
   });
 
   /// Decodes a `TaskInfo`.
-  factory JellyfinScheduledTask.fromJson(Map<String, dynamic> json) {
+  factory JellyfinScheduledTask.fromJson(Map<String, Object?> json) {
     final last = json['LastExecutionResult'];
     return JellyfinScheduledTask(
       id: _str(json['Id']) ?? '',
@@ -191,7 +191,7 @@ final class JellyfinScheduledTask {
       category: _str(json['Category']),
       description: _str(json['Description']),
       isHidden: json['IsHidden'] == true,
-      lastExecutionResult: last is Map<String, dynamic>
+      lastExecutionResult: last is Map<String, Object?>
           ? JellyfinTaskResult.fromJson(last)
           : null,
       raw: json,
@@ -217,7 +217,7 @@ final class JellyfinTaskResult {
   final String? errorMessage;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a task result from already-parsed components.
   const JellyfinTaskResult({
@@ -229,7 +229,7 @@ final class JellyfinTaskResult {
   });
 
   /// Decodes a `TaskResult`.
-  factory JellyfinTaskResult.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinTaskResult.fromJson(Map<String, Object?> json) =>
       JellyfinTaskResult(
         status: _str(json['Status']) ?? '',
         startTime: _dt(json['StartTimeUtc']),
@@ -266,7 +266,7 @@ final class JellyfinDevice {
   final DateTime? dateLastActivity;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a device from already-parsed components.
   const JellyfinDevice({
@@ -282,7 +282,7 @@ final class JellyfinDevice {
   });
 
   /// Decodes a `DeviceInfoDto`.
-  factory JellyfinDevice.fromJson(Map<String, dynamic> json) => JellyfinDevice(
+  factory JellyfinDevice.fromJson(Map<String, Object?> json) => JellyfinDevice(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']),
         customName: _str(json['CustomName']),
@@ -322,7 +322,7 @@ final class JellyfinActivityLogEntry {
   final String? overview;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a log entry from already-parsed components.
   const JellyfinActivityLogEntry({
@@ -338,7 +338,7 @@ final class JellyfinActivityLogEntry {
   });
 
   /// Decodes an `ActivityLogEntry`.
-  factory JellyfinActivityLogEntry.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinActivityLogEntry.fromJson(Map<String, Object?> json) =>
       JellyfinActivityLogEntry(
         id: _int(json['Id']) ?? 0,
         name: _str(json['Name']) ?? '',
@@ -379,7 +379,7 @@ final class JellyfinImageInfo {
   final String? path;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds an image info from already-parsed components.
   const JellyfinImageInfo({
@@ -395,7 +395,7 @@ final class JellyfinImageInfo {
   });
 
   /// Decodes an `ImageInfo`.
-  factory JellyfinImageInfo.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinImageInfo.fromJson(Map<String, Object?> json) =>
       JellyfinImageInfo(
         type: _str(json['ImageType']) ?? '',
         index: _int(json['ImageIndex']),
@@ -421,7 +421,7 @@ final class JellyfinRemoteLyric {
   final JellyfinLyrics? lyrics;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a remote lyric from already-parsed components.
   const JellyfinRemoteLyric({
@@ -432,12 +432,12 @@ final class JellyfinRemoteLyric {
   });
 
   /// Decodes a `RemoteLyricInfoDto`.
-  factory JellyfinRemoteLyric.fromJson(Map<String, dynamic> json) {
+  factory JellyfinRemoteLyric.fromJson(Map<String, Object?> json) {
     final lyrics = json['Lyrics'];
     return JellyfinRemoteLyric(
       id: _str(json['Id']) ?? '',
       providerName: _str(json['ProviderName']),
-      lyrics: lyrics is Map<String, dynamic>
+      lyrics: lyrics is Map<String, Object?>
           ? JellyfinLyrics.fromJson(lyrics)
           : null,
       raw: json,
@@ -463,7 +463,7 @@ final class JellyfinSyncPlayGroup {
   final DateTime? lastUpdatedAt;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a group from already-parsed components.
   const JellyfinSyncPlayGroup({
@@ -476,7 +476,7 @@ final class JellyfinSyncPlayGroup {
   });
 
   /// Decodes a `GroupInfoDto`.
-  factory JellyfinSyncPlayGroup.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinSyncPlayGroup.fromJson(Map<String, Object?> json) =>
       JellyfinSyncPlayGroup(
         id: _str(json['GroupId']) ?? '',
         name: _str(json['GroupName']) ?? '',
@@ -500,7 +500,7 @@ final class JellyfinPlaylistUserPermission {
   final bool canEdit;
 
   /// The decoded body.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a permission from already-parsed components.
   const JellyfinPlaylistUserPermission({
@@ -510,7 +510,7 @@ final class JellyfinPlaylistUserPermission {
   });
 
   /// Decodes `{UserId, CanEdit}`.
-  factory JellyfinPlaylistUserPermission.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinPlaylistUserPermission.fromJson(Map<String, Object?> json) =>
       JellyfinPlaylistUserPermission(
         userId: _str(json['UserId']) ?? '',
         canEdit: json['CanEdit'] == true,

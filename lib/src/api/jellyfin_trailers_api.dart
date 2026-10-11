@@ -44,7 +44,7 @@ class JellyfinTrailersApi {
     List<String> enableImageTypes = const [],
     bool recursive = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'startIndex': startIndex,
       'recursive': recursive,
       'enableImages': enableImages,

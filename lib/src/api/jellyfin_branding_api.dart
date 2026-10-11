@@ -16,8 +16,8 @@ class JellyfinBrandingApi {
 
   /// `GET /Branding/Configuration` — branding options the admin
   /// configured (login wording, custom CSS body, splashscreen toggle).
-  Future<Map<String, dynamic>> configuration() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> configuration() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Branding/Configuration',
     );
     return res.data ?? const {};

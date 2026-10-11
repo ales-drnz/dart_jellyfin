@@ -42,8 +42,8 @@ final class JellyfinQueryResult<T> {
   /// [itemsKey] defaults to `'Items'`; pass a different key for endpoints that
   /// nest the list elsewhere (e.g. `'SearchHints'`).
   factory JellyfinQueryResult.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) parser, {
+    Map<String, Object?> json,
+    T Function(Map<String, Object?>) parser, {
     String itemsKey = 'Items',
   }) {
     final raw = json[itemsKey];
@@ -51,7 +51,7 @@ final class JellyfinQueryResult<T> {
       items: [
         if (raw is List)
           for (final e in raw)
-            if (e is Map<String, dynamic>) parser(e),
+            if (e is Map<String, Object?>) parser(e),
       ],
       totalRecordCount:
           _int(json['TotalRecordCount']) ?? (raw is List ? raw.length : 0),
@@ -82,7 +82,7 @@ final class JellyfinSystemInfo {
   final String? operatingSystem;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a system-info DTO from already-parsed components.
   const JellyfinSystemInfo({
@@ -95,7 +95,7 @@ final class JellyfinSystemInfo {
   });
 
   /// Decodes the flat `/System/Info` payload.
-  factory JellyfinSystemInfo.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinSystemInfo.fromJson(Map<String, Object?> json) =>
       JellyfinSystemInfo(
         id: _str(json['Id']),
         serverName: _str(json['ServerName']),
@@ -152,7 +152,7 @@ final class JellyfinUser {
   final DateTime? lastActivityDate;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a user DTO from already-parsed components.
   const JellyfinUser({
@@ -172,7 +172,7 @@ final class JellyfinUser {
   });
 
   /// Decodes a `/Users/{id}` (or `/Users/Me`) payload.
-  factory JellyfinUser.fromJson(Map<String, dynamic> json) => JellyfinUser(
+  factory JellyfinUser.fromJson(Map<String, Object?> json) => JellyfinUser(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
         serverId: _str(json['ServerId']),
@@ -199,7 +199,7 @@ final class JellyfinAuthResult {
   final String serverId;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds an auth result from already-parsed components.
   const JellyfinAuthResult({
@@ -211,15 +211,15 @@ final class JellyfinAuthResult {
 
   /// Decodes the envelope `{User, AccessToken, ServerId}`. A missing `User`
   /// is tolerated and replaced with a blank [JellyfinUser].
-  factory JellyfinAuthResult.fromJson(Map<String, dynamic> json) {
+  factory JellyfinAuthResult.fromJson(Map<String, Object?> json) {
     final userJson = json['User'];
     return JellyfinAuthResult(
-      user: userJson is Map<String, dynamic>
+      user: userJson is Map<String, Object?>
           ? JellyfinUser.fromJson(userJson)
           : const JellyfinUser(
               id: '',
               name: '',
-              raw: <String, dynamic>{},
+              raw: <String, Object?>{},
             ),
       accessToken: _str(json['AccessToken']) ?? '',
       serverId: _str(json['ServerId']) ?? '',
@@ -267,7 +267,7 @@ final class JellyfinQuickConnectState {
   });
 
   /// Decodes a flat quick-connect state payload.
-  factory JellyfinQuickConnectState.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinQuickConnectState.fromJson(Map<String, Object?> json) =>
       JellyfinQuickConnectState(
         authenticated: json['Authenticated'] == true,
         secret: _str(json['Secret']) ?? '',
@@ -306,7 +306,7 @@ final class JellyfinView {
   final String? serverId;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a view from already-parsed components.
   const JellyfinView({
@@ -319,7 +319,7 @@ final class JellyfinView {
   });
 
   /// Decodes a `/UserViews` entry, flattening `ImageTags.Primary` for convenience.
-  factory JellyfinView.fromJson(Map<String, dynamic> json) {
+  factory JellyfinView.fromJson(Map<String, Object?> json) {
     final tags = json['ImageTags'];
     return JellyfinView(
       id: _str(json['Id']) ?? '',
@@ -573,7 +573,7 @@ final class JellyfinItem {
   final int? height;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds an item from already-parsed components.
   const JellyfinItem({
@@ -628,7 +628,7 @@ final class JellyfinItem {
 
   /// Decodes a `BaseItemDto` payload, lifting the subset of fields used by music
   /// apps and stashing the rest in [raw].
-  factory JellyfinItem.fromJson(Map<String, dynamic> json) {
+  factory JellyfinItem.fromJson(Map<String, Object?> json) {
     return JellyfinItem(
       id: _str(json['Id']) ?? '',
       name: _str(json['Name']) ?? '',
@@ -676,8 +676,8 @@ final class JellyfinItem {
       primaryImageAspectRatio: _double(json['PrimaryImageAspectRatio']),
       normalizationGain: _double(json['NormalizationGain']),
       albumNormalizationGain: _double(json['AlbumNormalizationGain']),
-      userData: json['UserData'] is Map<String, dynamic>
-          ? JellyfinUserData.fromJson(json['UserData'] as Map<String, dynamic>)
+      userData: json['UserData'] is Map<String, Object?>
+          ? JellyfinUserData.fromJson(json['UserData'] as Map<String, Object?>)
           : null,
       width: _int(json['Width']),
       height: _int(json['Height']),
@@ -728,7 +728,7 @@ final class JellyfinArtistRef {
   const JellyfinArtistRef({required this.id, required this.name});
 
   /// Decodes a `{Id, Name}` artist reference.
-  factory JellyfinArtistRef.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinArtistRef.fromJson(Map<String, Object?> json) =>
       JellyfinArtistRef(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
@@ -777,7 +777,7 @@ final class JellyfinMediaSource {
   final List<JellyfinMediaStream> mediaStreams;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a media source from already-parsed components.
   const JellyfinMediaSource({
@@ -798,7 +798,7 @@ final class JellyfinMediaSource {
   });
 
   /// Decodes a `MediaSourceInfo` payload.
-  factory JellyfinMediaSource.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinMediaSource.fromJson(Map<String, Object?> json) =>
       JellyfinMediaSource(
         id: _str(json['Id']) ?? '',
         path: _str(json['Path']),
@@ -851,7 +851,7 @@ final class JellyfinMediaStream {
   final bool isDefault;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a media stream from already-parsed components.
   const JellyfinMediaStream({
@@ -869,7 +869,7 @@ final class JellyfinMediaStream {
   });
 
   /// Decodes a `MediaStream` payload.
-  factory JellyfinMediaStream.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinMediaStream.fromJson(Map<String, Object?> json) =>
       JellyfinMediaStream(
         index: _int(json['Index']),
         type: _str(json['Type']),
@@ -938,7 +938,7 @@ final class JellyfinUserData {
   });
 
   /// Decodes a `UserItemDataDto` payload.
-  factory JellyfinUserData.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinUserData.fromJson(Map<String, Object?> json) =>
       JellyfinUserData(
         playbackPositionTicks: _int(json['PlaybackPositionTicks']),
         playCount: _int(json['PlayCount']) ?? 0,
@@ -981,7 +981,7 @@ final class JellyfinLyricCue {
   });
 
   /// Decodes a `{Position, EndPosition, Start, End}` cue.
-  factory JellyfinLyricCue.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinLyricCue.fromJson(Map<String, Object?> json) =>
       JellyfinLyricCue(
         position: _int(json['Position']) ?? 0,
         endPosition: _int(json['EndPosition']) ?? 0,
@@ -1016,7 +1016,7 @@ final class JellyfinLyricLine {
   });
 
   /// Decodes a `{Start, Text, Cues}` lyrics entry.
-  factory JellyfinLyricLine.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinLyricLine.fromJson(Map<String, Object?> json) =>
       JellyfinLyricLine(
         startTicks: _int(json['Start']),
         text: _str(json['Text']) ?? '',
@@ -1119,7 +1119,7 @@ final class JellyfinLyricMetadata {
   });
 
   /// Decodes a `LyricMetadata` object.
-  factory JellyfinLyricMetadata.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinLyricMetadata.fromJson(Map<String, Object?> json) =>
       JellyfinLyricMetadata(
         artist: _str(json['Artist']),
         album: _str(json['Album']),
@@ -1143,18 +1143,18 @@ final class JellyfinLyrics {
   final JellyfinLyricMetadata? metadata;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a lyrics payload from already-parsed components.
   const JellyfinLyrics({required this.lines, required this.raw, this.metadata});
 
   /// Decodes `{Lyrics: [...], Metadata: {...}}`. Tolerates missing or
   /// non-list `Lyrics`.
-  factory JellyfinLyrics.fromJson(Map<String, dynamic> json) {
+  factory JellyfinLyrics.fromJson(Map<String, Object?> json) {
     final meta = json['Metadata'];
     return JellyfinLyrics(
       lines: _objList(json['Lyrics'], JellyfinLyricLine.fromJson),
-      metadata: meta is Map<String, dynamic>
+      metadata: meta is Map<String, Object?>
           ? JellyfinLyricMetadata.fromJson(meta)
           : null,
       raw: json,
@@ -1227,7 +1227,7 @@ final class JellyfinSearchHint {
   final String? primaryImageTag;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a search hint from already-parsed components.
   const JellyfinSearchHint({
@@ -1249,7 +1249,7 @@ final class JellyfinSearchHint {
   });
 
   /// Decodes a search-hint entry; accepts both `Id` and legacy `ItemId` keys.
-  factory JellyfinSearchHint.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinSearchHint.fromJson(Map<String, Object?> json) =>
       JellyfinSearchHint(
         itemId: _str(json['Id']) ?? _str(json['ItemId']) ?? '',
         name: _str(json['Name']),
@@ -1309,11 +1309,11 @@ List<String> _strList(Object? v) {
   ];
 }
 
-List<T> _objList<T>(Object? v, T Function(Map<String, dynamic>) parser) {
+List<T> _objList<T>(Object? v, T Function(Map<String, Object?>) parser) {
   if (v is! List) return const [];
   return [
     for (final e in v)
-      if (e is Map<String, dynamic>) parser(e),
+      if (e is Map<String, Object?>) parser(e),
   ];
 }
 
@@ -1321,7 +1321,7 @@ List<String> _stringList(Object? v, String fieldName) {
   if (v is! List) return const [];
   return [
     for (final e in v)
-      if (e is Map<String, dynamic> && e[fieldName] is String)
+      if (e is Map<String, Object?> && e[fieldName] is String)
         e[fieldName] as String,
   ];
 }
@@ -1398,10 +1398,10 @@ final class JellyfinSession {
   /// `PlayState` — `PositionTicks`, `IsPaused`, `IsMuted`, `VolumeLevel`,
   /// `AudioStreamIndex`, `SubtitleStreamIndex`, `PlayMethod`,
   /// `RepeatMode`, `PlaybackOrder`.
-  final Map<String, dynamic>? playState;
+  final Map<String, Object?>? playState;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a session from already-parsed components.
   const JellyfinSession({
@@ -1426,7 +1426,7 @@ final class JellyfinSession {
   });
 
   /// Decodes a `/Sessions` entry, recursing into `NowPlayingItem` when present.
-  factory JellyfinSession.fromJson(Map<String, dynamic> json) {
+  factory JellyfinSession.fromJson(Map<String, Object?> json) {
     final npi = json['NowPlayingItem'];
     return JellyfinSession(
       id: _str(json['Id']) ?? '',
@@ -1445,9 +1445,9 @@ final class JellyfinSession {
       playableMediaTypes: _strList(json['PlayableMediaTypes']),
       supportedCommands: _strList(json['SupportedCommands']),
       nowPlayingItem:
-          npi is Map<String, dynamic> ? JellyfinItem.fromJson(npi) : null,
-      playState: json['PlayState'] is Map<String, dynamic>
-          ? json['PlayState'] as Map<String, dynamic>
+          npi is Map<String, Object?> ? JellyfinItem.fromJson(npi) : null,
+      playState: json['PlayState'] is Map<String, Object?>
+          ? json['PlayState'] as Map<String, Object?>
           : null,
       raw: json,
     );
@@ -1479,7 +1479,7 @@ final class JellyfinPlaybackInfo {
   final String? errorCode;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a playback-info DTO from already-parsed components.
   const JellyfinPlaybackInfo({
@@ -1490,7 +1490,7 @@ final class JellyfinPlaybackInfo {
   });
 
   /// Decodes the `PlaybackInfoResponse` envelope.
-  factory JellyfinPlaybackInfo.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinPlaybackInfo.fromJson(Map<String, Object?> json) =>
       JellyfinPlaybackInfo(
         mediaSources:
             _objList(json['MediaSources'], JellyfinMediaSource.fromJson),
@@ -1550,7 +1550,7 @@ final class JellyfinDirectPlayProfile {
   }) : type = 'Video';
 
   /// `DirectPlayProfile` JSON body. Null constraints are omitted.
-  Map<String, dynamic> toJson() => <String, dynamic>{
+  Map<String, Object?> toJson() => <String, Object?>{
         'Type': type,
         if (container != null) 'Container': container,
         if (audioCodec != null) 'AudioCodec': audioCodec,
@@ -1591,21 +1591,21 @@ final class JellyfinDeviceProfile {
 
   /// Containers + codecs the server should re-mux into when direct
   /// play isn't possible but transcoding would be wasteful.
-  final List<Map<String, dynamic>> transcodingProfiles;
+  final List<Map<String, Object?>> transcodingProfiles;
 
   /// Codec-level constraints (e.g. "h264 up to profile high@4.0").
-  final List<Map<String, dynamic>> codecProfiles;
+  final List<Map<String, Object?>> codecProfiles;
 
   /// Container-level constraints.
-  final List<Map<String, dynamic>> containerProfiles;
+  final List<Map<String, Object?>> containerProfiles;
 
   /// Subtitle profiles (formats the player understands and which
   /// methods — Embed/Encode/External — it prefers).
-  final List<Map<String, dynamic>> subtitleProfiles;
+  final List<Map<String, Object?>> subtitleProfiles;
 
   /// Anything else not promoted to a typed field. Merged verbatim
   /// into the outgoing JSON.
-  final Map<String, dynamic> extra;
+  final Map<String, Object?> extra;
 
   /// Builds a device profile from already-parsed components.
   const JellyfinDeviceProfile({
@@ -1623,8 +1623,8 @@ final class JellyfinDeviceProfile {
 
   /// JSON body accepted by `/Items/{id}/PlaybackInfo` and friends. Empty
   /// fields are omitted; [extra] is merged in at the top level.
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
       if (name != null) 'Name': name,
       if (maxStreamingBitrate != null)
         'MaxStreamingBitrate': maxStreamingBitrate,
@@ -1695,7 +1695,7 @@ final class JellyfinDisplayPreferences {
   final Map<String, String> customPrefs;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a display-preferences DTO from already-parsed components.
   const JellyfinDisplayPreferences({
@@ -1717,7 +1717,7 @@ final class JellyfinDisplayPreferences {
   });
 
   /// Decodes a `/DisplayPreferences/{id}` payload.
-  factory JellyfinDisplayPreferences.fromJson(Map<String, dynamic> json) {
+  factory JellyfinDisplayPreferences.fromJson(Map<String, Object?> json) {
     final cp = json['CustomPrefs'];
     return JellyfinDisplayPreferences(
       id: _str(json['Id']),
@@ -1745,7 +1745,7 @@ final class JellyfinDisplayPreferences {
   }
 
   /// JSON shape accepted by `POST /DisplayPreferences/{id}`.
-  Map<String, dynamic> toJson() => <String, dynamic>{
+  Map<String, Object?> toJson() => <String, Object?>{
         if (id != null) 'Id': id,
         if (client != null) 'Client': client,
         if (viewType != null) 'ViewType': viewType,
@@ -1780,7 +1780,7 @@ final class JellyfinNameGuidPair {
   const JellyfinNameGuidPair({this.name, this.id});
 
   /// Decodes a `{Name, Id}` entry.
-  factory JellyfinNameGuidPair.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinNameGuidPair.fromJson(Map<String, Object?> json) =>
       JellyfinNameGuidPair(
         name: _str(json['Name']),
         id: _str(json['Id']),
@@ -1797,7 +1797,7 @@ final class JellyfinQueryFilters {
   final List<String> tags;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a filters facet from already-parsed components.
   const JellyfinQueryFilters({
@@ -1807,7 +1807,7 @@ final class JellyfinQueryFilters {
   });
 
   /// Decodes a `/Items/Filters2` response.
-  factory JellyfinQueryFilters.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinQueryFilters.fromJson(Map<String, Object?> json) =>
       JellyfinQueryFilters(
         genres: _objList(json['Genres'], JellyfinNameGuidPair.fromJson),
         tags: _strList(json['Tags']),
@@ -1830,7 +1830,7 @@ final class JellyfinQueryFiltersLegacy {
   final List<int> years;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a legacy filters facet from already-parsed components.
   const JellyfinQueryFiltersLegacy({
@@ -1842,7 +1842,7 @@ final class JellyfinQueryFiltersLegacy {
   });
 
   /// Decodes a `/Items/Filters` response.
-  factory JellyfinQueryFiltersLegacy.fromJson(Map<String, dynamic> json) {
+  factory JellyfinQueryFiltersLegacy.fromJson(Map<String, Object?> json) {
     final rawYears = json['Years'];
     return JellyfinQueryFiltersLegacy(
       genres: _strList(json['Genres']),
@@ -1882,7 +1882,7 @@ final class JellyfinMediaSegment {
   final int? endTicks;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a media segment from already-parsed components.
   const JellyfinMediaSegment({
@@ -1903,7 +1903,7 @@ final class JellyfinMediaSegment {
       endTicks == null ? null : Duration(microseconds: endTicks! ~/ 10);
 
   /// Decodes a `/MediaSegments/{itemId}` entry.
-  factory JellyfinMediaSegment.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinMediaSegment.fromJson(Map<String, Object?> json) =>
       JellyfinMediaSegment(
         id: _str(json['Id']),
         itemId: _str(json['ItemId']),
@@ -1954,7 +1954,7 @@ final class JellyfinMovieRecommendation {
   final List<JellyfinItem> items;
 
   /// Untouched response body for fields not lifted above.
-  final Map<String, dynamic> raw;
+  final Map<String, Object?> raw;
 
   /// Builds a recommendation bucket from already-parsed components.
   const JellyfinMovieRecommendation({
@@ -1966,7 +1966,7 @@ final class JellyfinMovieRecommendation {
   });
 
   /// Decodes a recommendation entry, recursing into each `Items` element.
-  factory JellyfinMovieRecommendation.fromJson(Map<String, dynamic> json) =>
+  factory JellyfinMovieRecommendation.fromJson(Map<String, Object?> json) =>
       JellyfinMovieRecommendation(
         categoryId: _str(json['CategoryId']),
         baselineItemName: _str(json['BaselineItemName']),

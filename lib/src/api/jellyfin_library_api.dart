@@ -18,7 +18,7 @@ class JellyfinLibraryApi {
   /// The libraries visible to the current user.
   Future<List<JellyfinView>> userViews() async {
     final userId = _http.requireUserId();
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/UserViews',
       queryParameters: {'userId': userId},
     );
@@ -100,7 +100,7 @@ class JellyfinLibraryApi {
   /// `GET /Items/{itemId}/Ancestors` — every parent above this item,
   /// from grandparent up to the root library.
   Future<List<JellyfinItem>> ancestors({required String itemId}) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     return _http.requestJson(
@@ -123,7 +123,7 @@ class JellyfinLibraryApi {
     int? limit,
     List<String> fields = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (startIndex != null) qp['startIndex'] = startIndex;
@@ -138,14 +138,14 @@ class JellyfinLibraryApi {
 
   /// `GET /Items/{itemId}/ThemeMedia` — title-screen theme media
   /// (songs and videos) plus inherited ones, returned together.
-  Future<Map<String, dynamic>> themeMedia({
+  Future<Map<String, Object?>> themeMedia({
     required String itemId,
     bool inheritFromParent = false,
   }) async {
-    final qp = <String, dynamic>{'inheritFromParent': inheritFromParent};
+    final qp = <String, Object?>{'inheritFromParent': inheritFromParent};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/ThemeMedia',
       queryParameters: qp,
     );
@@ -175,7 +175,7 @@ class JellyfinLibraryApi {
     String? userId,
     bool? isFavorite,
   }) {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
@@ -183,7 +183,7 @@ class JellyfinLibraryApi {
       '/Items/Counts',
       queryParameters: qp.isEmpty ? null : qp,
       (json) => JellyfinItemCounts.fromJson(
-        json is Map<String, dynamic> ? json : const <String, dynamic>{},
+        json is Map<String, Object?> ? json : const <String, Object?>{},
       ),
     );
   }
@@ -194,7 +194,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> mediaFolders({
     bool? isHidden,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (isHidden != null) qp['isHidden'] = isHidden;
     return _http.requestJson(
       '/Library/MediaFolders',
@@ -206,7 +206,7 @@ class JellyfinLibraryApi {
   /// `GET /Library/PhysicalPaths` — every physical path the server
   /// scans. Admin-only.
   Future<List<String>> physicalPaths() async {
-    final res = await _http.request<List<dynamic>>('/Library/PhysicalPaths');
+    final res = await _http.request<List<Object?>>('/Library/PhysicalPaths');
     final list = res.data ?? const [];
     return [
       for (final e in list)
@@ -217,14 +217,14 @@ class JellyfinLibraryApi {
   /// `GET /Libraries/AvailableOptions` — server-side library options
   /// catalog (typed sources, metadata fetchers, …). Used by admin UIs
   /// when configuring a virtual folder.
-  Future<Map<String, dynamic>> availableOptions({
+  Future<Map<String, Object?>> availableOptions({
     String? libraryContentType,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (libraryContentType != null) {
       qp['libraryContentType'] = libraryContentType;
     }
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Libraries/AvailableOptions',
       queryParameters: qp.isEmpty ? null : qp,
     );
@@ -234,7 +234,7 @@ class JellyfinLibraryApi {
   /// `POST /Library/Media/Updated` — notify the server that one or
   /// more media files have changed on disk. Admin-only.
   Future<void> notifyMediaUpdated(
-    List<Map<String, dynamic>> updatesInfo,
+    List<Map<String, Object?>> updatesInfo,
   ) async {
     await _http.request<void>(
       '/Library/Media/Updated',
@@ -304,7 +304,7 @@ class JellyfinLibraryApi {
     List<String> fields = const [],
     String? userId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final uid = userId ?? _http.userId;
     if (uid != null) qp['userId'] = uid;
     if (excludeArtistIds.isNotEmpty) {
@@ -323,7 +323,7 @@ class JellyfinLibraryApi {
     String path,
     bool inheritFromParent,
   ) async {
-    final qp = <String, dynamic>{'inheritFromParent': inheritFromParent};
+    final qp = <String, Object?>{'inheritFromParent': inheritFromParent};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     return _http.requestJson(
@@ -339,7 +339,7 @@ class JellyfinLibraryApi {
     String? imdbId,
     String? tvdbId,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (tmdbId != null) qp['tmdbId'] = tmdbId;
     if (imdbId != null) qp['imdbId'] = imdbId;
     if (tvdbId != null) qp['tvdbId'] = tvdbId;

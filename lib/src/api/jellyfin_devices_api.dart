@@ -20,7 +20,7 @@ class JellyfinDevicesApi {
   /// `GET /Devices` — list registered devices, optionally scoped to
   /// one user.
   Future<List<JellyfinDevice>> list({String? userId}) {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (userId != null) qp['userId'] = userId;
     return _http.requestJson(
       '/Devices',
@@ -47,8 +47,8 @@ class JellyfinDevicesApi {
 
   /// `GET /Devices/Options?id={id}` — per-device admin options
   /// (custom name, …).
-  Future<Map<String, dynamic>> options(String id) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> options(String id) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Devices/Options',
       queryParameters: {'id': id},
     );
@@ -58,7 +58,7 @@ class JellyfinDevicesApi {
   /// `POST /Devices/Options?id={id}` — replace the device options.
   Future<void> updateOptions({
     required String id,
-    required Map<String, dynamic> body,
+    required Map<String, Object?> body,
   }) async {
     await _http.request<void>(
       '/Devices/Options',

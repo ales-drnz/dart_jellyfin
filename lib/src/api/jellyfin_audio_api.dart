@@ -109,7 +109,7 @@ class JellyfinAudioApi {
   ///   - the response body is empty.
   Future<JellyfinLyrics?> lyrics(String itemId) async {
     try {
-      final res = await _http.request<Map<String, dynamic>>(
+      final res = await _http.request<Map<String, Object?>>(
         '/Audio/$itemId/Lyrics',
       );
       final data = res.data;

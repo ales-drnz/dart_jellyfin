@@ -27,7 +27,7 @@ class JellyfinMediaSegmentsApi {
     required String itemId,
     List<String> includeSegmentTypes = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (includeSegmentTypes.isNotEmpty) {
       qp['includeSegmentTypes'] = includeSegmentTypes;
     }

@@ -28,8 +28,8 @@ class JellyfinStartupApi {
   ///
   /// Obsolete in Jellyfin 12; read `configuration.get()` instead.
   @Deprecated('Obsolete in Jellyfin 12; use configuration.get() instead.')
-  Future<Map<String, dynamic>> configuration() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> configuration() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Startup/Configuration',
     );
     return res.data ?? const {};
@@ -40,7 +40,7 @@ class JellyfinStartupApi {
   ///
   /// Obsolete in Jellyfin 12; write `configuration.update()` instead.
   @Deprecated('Obsolete in Jellyfin 12; use configuration.update() instead.')
-  Future<void> updateInitialConfiguration(Map<String, dynamic> body) async {
+  Future<void> updateInitialConfiguration(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Startup/Configuration',
       method: 'POST',
@@ -50,8 +50,8 @@ class JellyfinStartupApi {
 
   /// `GET /Startup/User` — return the in-progress first user account
   /// being created by the wizard.
-  Future<Map<String, dynamic>> firstUser() async {
-    final res = await _http.request<Map<String, dynamic>>('/Startup/User');
+  Future<Map<String, Object?>> firstUser() async {
+    final res = await _http.request<Map<String, Object?>>('/Startup/User');
     return res.data ?? const {};
   }
 
@@ -60,8 +60,8 @@ class JellyfinStartupApi {
   ///
   /// Obsolete in Jellyfin 12; [firstUser] is the supported route.
   @Deprecated('Obsolete in Jellyfin 12; use firstUser() instead.')
-  Future<Map<String, dynamic>> firstUserAlt() async {
-    final res = await _http.request<Map<String, dynamic>>('/Startup/FirstUser');
+  Future<Map<String, Object?>> firstUserAlt() async {
+    final res = await _http.request<Map<String, Object?>>('/Startup/FirstUser');
     return res.data ?? const {};
   }
 
@@ -88,7 +88,7 @@ class JellyfinStartupApi {
   @Deprecated(
     "Obsolete in Jellyfin 12; use configuration.updateNamed('network', …).",
   )
-  Future<void> setRemoteAccess(Map<String, dynamic> body) async {
+  Future<void> setRemoteAccess(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Startup/RemoteAccess',
       method: 'POST',

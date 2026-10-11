@@ -21,19 +21,19 @@ class JellyfinCollectionApi {
   ///
   /// Returns the raw `CollectionCreationResult` map; the new
   /// collection's id sits in the `Id` field.
-  Future<Map<String, dynamic>> create({
+  Future<Map<String, Object?>> create({
     String? name,
     List<String> ids = const [],
     String? parentId,
     bool? isLocked,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     if (name != null) qp['name'] = name;
     if (ids.isNotEmpty) qp['ids'] = ids;
     if (parentId != null) qp['parentId'] = parentId;
     if (isLocked != null) qp['isLocked'] = isLocked;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Collections',
       method: 'POST',
       queryParameters: qp.isEmpty ? null : qp,

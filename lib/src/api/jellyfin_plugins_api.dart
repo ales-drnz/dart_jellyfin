@@ -17,12 +17,12 @@ class JellyfinPluginsApi {
   JellyfinPluginsApi(this._http);
 
   /// `GET /Plugins` — every installed plugin.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<List<dynamic>>('/Plugins');
+  Future<List<Map<String, Object?>>> list() async {
+    final res = await _http.request<List<Object?>>('/Plugins');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -64,8 +64,8 @@ class JellyfinPluginsApi {
 
   /// `GET /Plugins/{pluginId}/Configuration` — fetch a plugin's
   /// current configuration document.
-  Future<Map<String, dynamic>> configuration(String pluginId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> configuration(String pluginId) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Plugins/$pluginId/Configuration',
     );
     return res.data ?? const {};
@@ -75,7 +75,7 @@ class JellyfinPluginsApi {
   /// configuration.
   Future<void> updateConfiguration({
     required String pluginId,
-    required Map<String, dynamic> configuration,
+    required Map<String, Object?> configuration,
   }) async {
     await _http.request<void>(
       '/Plugins/$pluginId/Configuration',
@@ -85,8 +85,8 @@ class JellyfinPluginsApi {
   }
 
   /// `POST /Plugins/{pluginId}/Manifest` — get the plugin's manifest.
-  Future<Map<String, dynamic>> manifest(String pluginId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> manifest(String pluginId) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Plugins/$pluginId/Manifest',
       method: 'POST',
     );

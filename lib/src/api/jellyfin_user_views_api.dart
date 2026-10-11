@@ -27,7 +27,7 @@ class JellyfinUserViewsApi {
     List<String> presetViews = const [],
     bool? includeHidden,
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (includeExternalContent != null) {
@@ -46,19 +46,19 @@ class JellyfinUserViewsApi {
   /// `GET /UserViews/GroupingOptions` — the server's recommendations
   /// for how to group views in the UI (e.g. "by media type", "by
   /// folder"). Returned as a flat list of option maps.
-  Future<List<Map<String, dynamic>>> groupingOptions() async {
-    final qp = <String, dynamic>{};
+  Future<List<Map<String, Object?>>> groupingOptions() async {
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
 
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/UserViews/GroupingOptions',
       queryParameters: qp.isEmpty ? null : qp,
     );
     final list = res.data ?? const [];
     return [
       for (final e in list)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 }

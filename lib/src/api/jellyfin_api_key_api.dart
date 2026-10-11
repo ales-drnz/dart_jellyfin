@@ -20,13 +20,13 @@ class JellyfinApiKeyApi {
   ///
   /// The server wraps the keys in a `QueryResult` envelope
   /// (`{Items, TotalRecordCount}`), so we lift the `Items` array out.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<Map<String, dynamic>>('/Auth/Keys');
+  Future<List<Map<String, Object?>>> list() async {
+    final res = await _http.request<Map<String, Object?>>('/Auth/Keys');
     final items = res.data?['Items'];
     if (items is! List) return const [];
     return [
       for (final e in items)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 

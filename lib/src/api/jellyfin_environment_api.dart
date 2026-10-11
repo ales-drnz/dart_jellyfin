@@ -22,12 +22,12 @@ class JellyfinEnvironmentApi {
   /// [includeDirectories] to `true`, unlike the OpenAPI spec which
   /// defaults it to `false`. [includeFiles] keeps the spec default of
   /// `false`. Both are always sent on the wire.
-  Future<List<Map<String, dynamic>>> directoryContents({
+  Future<List<Map<String, Object?>>> directoryContents({
     required String path,
     bool includeFiles = false,
     bool includeDirectories = true,
   }) async {
-    final res = await _http.request<List<dynamic>>(
+    final res = await _http.request<List<Object?>>(
       '/Environment/DirectoryContents',
       queryParameters: {
         'path': path,
@@ -38,26 +38,26 @@ class JellyfinEnvironmentApi {
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `GET /Environment/DefaultDirectoryBrowser` — server's
   /// suggested starting directory for the browse UI.
-  Future<Map<String, dynamic>> defaultDirectoryBrowser() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> defaultDirectoryBrowser() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Environment/DefaultDirectoryBrowser',
     );
     return res.data ?? const {};
   }
 
   /// `GET /Environment/Drives` — every drive mounted on the server.
-  Future<List<Map<String, dynamic>>> drives() async {
-    final res = await _http.request<List<dynamic>>('/Environment/Drives');
+  Future<List<Map<String, Object?>>> drives() async {
+    final res = await _http.request<List<Object?>>('/Environment/Drives');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
@@ -74,7 +74,7 @@ class JellyfinEnvironmentApi {
 
   /// `POST /Environment/ValidatePath` — ask the server whether
   /// [body] describes a valid, accessible path.
-  Future<void> validatePath(Map<String, dynamic> body) async {
+  Future<void> validatePath(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Environment/ValidatePath',
       method: 'POST',

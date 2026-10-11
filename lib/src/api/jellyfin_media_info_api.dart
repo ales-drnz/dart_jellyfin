@@ -39,7 +39,7 @@ class JellyfinMediaInfoApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/PlaybackInfo',
       queryParameters: {'userId': userId ?? _http.userId},
     );
@@ -71,7 +71,7 @@ class JellyfinMediaInfoApi {
     bool allowVideoStreamCopy = true,
     bool allowAudioStreamCopy = true,
   }) async {
-    final body = <String, dynamic>{
+    final body = <String, Object?>{
       'UserId': userId ?? _http.userId,
       'DeviceProfile': deviceProfile.toJson(),
       'AutoOpenLiveStream': autoOpenLiveStream,
@@ -90,7 +90,7 @@ class JellyfinMediaInfoApi {
       if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
       if (liveStreamId != null) 'LiveStreamId': liveStreamId,
     };
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/PlaybackInfo',
       method: 'POST',
       data: body,
@@ -114,7 +114,7 @@ class JellyfinMediaInfoApi {
     String? itemId,
     JellyfinDeviceProfile? deviceProfile,
   }) async {
-    final body = <String, dynamic>{
+    final body = <String, Object?>{
       'OpenToken': openToken,
       if (userId != null || _http.userId != null)
         'UserId': userId ?? _http.userId,
@@ -129,7 +129,7 @@ class JellyfinMediaInfoApi {
       if (itemId != null) 'ItemId': itemId,
       if (deviceProfile != null) 'DeviceProfile': deviceProfile.toJson(),
     };
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/LiveStreams/Open',
       method: 'POST',
       data: body,

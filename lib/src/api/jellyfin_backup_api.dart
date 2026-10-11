@@ -15,19 +15,19 @@ class JellyfinBackupApi {
   JellyfinBackupApi(this._http);
 
   /// `GET /Backup` — list backup files known to the server.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<List<dynamic>>('/Backup');
+  Future<List<Map<String, Object?>>> list() async {
+    final res = await _http.request<List<Object?>>('/Backup');
     final l = res.data ?? const [];
     return [
       for (final e in l)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 
   /// `POST /Backup/Create` — create a new backup. [body] carries
   /// the inclusion options (metadata, plugins, library, …).
-  Future<Map<String, dynamic>> create(Map<String, dynamic> body) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> create(Map<String, Object?> body) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Backup/Create',
       method: 'POST',
       data: body,
@@ -37,8 +37,8 @@ class JellyfinBackupApi {
 
   /// `GET /Backup/Manifest?path={path}` — read the manifest of a
   /// specific backup file.
-  Future<Map<String, dynamic>> manifest(String path) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> manifest(String path) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Backup/Manifest',
       queryParameters: {'path': path},
     );
@@ -47,7 +47,7 @@ class JellyfinBackupApi {
 
   /// `POST /Backup/Restore` — restore from a backup file. [body]
   /// describes which file and which sections to restore.
-  Future<void> restore(Map<String, dynamic> body) async {
+  Future<void> restore(Map<String, Object?> body) async {
     await _http.request<void>(
       '/Backup/Restore',
       method: 'POST',

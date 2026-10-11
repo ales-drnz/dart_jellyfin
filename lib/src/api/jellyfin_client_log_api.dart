@@ -26,7 +26,7 @@ class JellyfinClientLogApi {
     required Uint8List body,
     String contentType = 'text/plain',
   }) async {
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/ClientLog/Document',
       method: 'POST',
       data: body,

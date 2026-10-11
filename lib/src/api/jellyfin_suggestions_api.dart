@@ -31,7 +31,7 @@ class JellyfinSuggestionsApi {
     int? limit,
     bool enableTotalRecordCount = true,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'enableTotalRecordCount': enableTotalRecordCount,
     };
     final userId = _http.userId;

@@ -90,8 +90,8 @@ class JellyfinVideosApi {
   }
 
   /// "Additional parts" — multi-file movies (CD1/CD2, parts/halves).
-  Future<List<Map<String, dynamic>>> additionalParts(String itemId) async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<List<Map<String, Object?>>> additionalParts(String itemId) async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Videos/$itemId/AdditionalParts',
       queryParameters: {'userId': _http.userId},
     );
@@ -99,7 +99,7 @@ class JellyfinVideosApi {
     if (items is! List) return const [];
     return [
       for (final e in items)
-        if (e is Map<String, dynamic>) e,
+        if (e is Map<String, Object?>) e,
     ];
   }
 

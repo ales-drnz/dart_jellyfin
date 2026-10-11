@@ -371,7 +371,7 @@ class JellyfinHlsApi {
     String? deviceId,
     required String playSessionId,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'deviceId': deviceId ?? _http.credentials.deviceId,
       'playSessionId': playSessionId,
     };

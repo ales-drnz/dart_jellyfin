@@ -21,11 +21,11 @@ Future<JellyfinItem?> lookupItemByName(
   String name,
   JellyfinConnection http,
 ) async {
-  final qp = <String, dynamic>{};
+  final qp = <String, Object?>{};
   final userId = http.userId;
   if (userId != null) qp['userId'] = userId;
   try {
-    final res = await http.request<Map<String, dynamic>>(
+    final res = await http.request<Map<String, Object?>>(
       '$basePath/${Uri.encodeComponent(name)}',
       queryParameters: qp.isEmpty ? null : qp,
     );

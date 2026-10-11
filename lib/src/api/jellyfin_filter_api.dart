@@ -32,7 +32,7 @@ class JellyfinFilterApi {
     bool? isSeries,
     bool recursive = true,
   }) async {
-    final qp = <String, dynamic>{'recursive': recursive};
+    final qp = <String, Object?>{'recursive': recursive};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;
@@ -46,7 +46,7 @@ class JellyfinFilterApi {
     if (isNews != null) qp['isNews'] = isNews;
     if (isSeries != null) qp['isSeries'] = isSeries;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/Filters2',
       queryParameters: qp,
     );
@@ -60,7 +60,7 @@ class JellyfinFilterApi {
     List<String> includeItemTypes = const [],
     List<String> mediaTypes = const [],
   }) async {
-    final qp = <String, dynamic>{};
+    final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
     if (parentId != null) qp['parentId'] = parentId;
@@ -69,7 +69,7 @@ class JellyfinFilterApi {
     }
     if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
 
-    final res = await _http.request<Map<String, dynamic>>(
+    final res = await _http.request<Map<String, Object?>>(
       '/Items/Filters',
       queryParameters: qp,
     );

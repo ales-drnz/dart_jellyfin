@@ -25,8 +25,8 @@ class JellyfinTmdbApi {
     'Hidden from the Jellyfin 12 API and may be removed without notice; '
     'no replacement exists.',
   )
-  Future<Map<String, dynamic>> clientConfiguration() async {
-    final res = await _http.request<Map<String, dynamic>>(
+  Future<Map<String, Object?>> clientConfiguration() async {
+    final res = await _http.request<Map<String, Object?>>(
       '/Tmdb/ClientConfiguration',
     );
     return res.data ?? const {};

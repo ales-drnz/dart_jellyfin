@@ -35,7 +35,7 @@ class JellyfinStudiosApi {
     String? nameStartsWithOrGreater,
     String? nameLessThan,
   }) async {
-    final qp = <String, dynamic>{
+    final qp = <String, Object?>{
       'startIndex': startIndex,
       'enableUserData': enableUserData,
     };
