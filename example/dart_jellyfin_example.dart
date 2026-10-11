@@ -12,20 +12,54 @@ Future<void> main() async {
       deviceId: 'example-device',
       version: '1.0.0',
     ),
+    // Opt in to resending idempotent requests after transient failures.
+    retryPolicy: const JellyfinRetryPolicy(),
   );
 
   jellyfin.connect('https://jellyfin.example.com');
 
-  final auth = await jellyfin.user.authenticateByName(
-    username: 'user',
-    password: 'password',
-  );
-  print('Logged in as ${auth.user.name}');
+  try {
+    final auth = await jellyfin.user.authenticateByName(
+      username: 'user',
+      password: 'password',
+    );
+    print('Logged in as ${auth.user.name}');
 
-  jellyfin.setSession(token: auth.accessToken, userId: auth.user.id);
+    jellyfin.setSession(token: auth.accessToken, userId: auth.user.id);
 
-  final views = await jellyfin.userViews.list();
-  for (final v in views.items) {
-    print('${v.name} (${v.collectionType})');
+    final views = await jellyfin.userViews.list();
+    for (final v in views.items) {
+      print('${v.name} (${v.collectionType})');
+    }
+
+    final music = views.items.where((v) => v.isMusic).firstOrNull;
+    if (music == null) return;
+
+    // Walk the library's albums page by page; every request made through
+    // the view can be cancelled with one token.
+    final token = JellyfinCancelToken();
+    final scoped = jellyfin.withCancelToken(token);
+    final albums = JellyfinPaging.items(
+      (start, size) async => (await scoped.items.list(
+        parentId: music.id,
+        includeItemTypes: const [JellyfinItemKind.musicAlbum],
+        sortBy: const ['SortName'],
+        startIndex: start,
+        limit: size,
+        fields: JellyfinItemsApi.browseFields,
+        enableTotalRecordCount: false,
+      ))
+          .items,
+      pageSize: 50,
+      limit: 200,
+    );
+    await for (final album in albums) {
+      print('${album.name} - ${album.albumArtist ?? '?'}');
+    }
+  } on JellyfinException catch (e) {
+    if (e.isCancelled) return;
+    print('Failed: ${e.type} ${e.statusCode ?? ''} ${e.message}');
+  } finally {
+    jellyfin.close();
   }
 }

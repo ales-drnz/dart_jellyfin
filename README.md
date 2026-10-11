@@ -3,7 +3,7 @@
 #### Jellyfin client for Flutter and Dart.
 
 [![](https://img.shields.io/pub/v/dart_jellyfin.svg?style=for-the-badge&logo=dart&logoColor=white)](https://pub.dev/packages/dart_jellyfin)
-[![](https://img.shields.io/badge/jellyfin-v12.0-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
+[![](https://img.shields.io/badge/jellyfin-v12.2-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
 [![](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/github/stars/ales-drnz/dart_jellyfin?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ales-drnz/dart_jellyfin)
 [![](https://img.shields.io/discord/1485588004029333516?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/g2Qf4Mq9MP)
@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/dart_jellyfin.png" width="70" alt="logo"></td>
-<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin <code>v12.0</code>. It covers libraries, playlists, audio streaming, lyrics, playback reporting and search through typed Dart objects, and handles the session lifecycle for you.</td>
+<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin <code>v12.2</code> (tested against 12.0 and 12.2). It covers libraries, playlists, audio streaming, lyrics, playback reporting and search through typed Dart objects, and handles the session lifecycle for you.</td>
 </tr>
 </table>
 
@@ -25,8 +25,13 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.2.0
+  dart_jellyfin: ^0.3.0
 ```
+
+`package:dart_jellyfin/dart_jellyfin.dart` is the library; file downloads
+live in `package:dart_jellyfin/io.dart`, because they need `dart:io`.
+Coming from 0.2.x? [MIGRATION.md](MIGRATION.md) lists every breaking change
+with what to write instead.
 
 ---
 
@@ -43,6 +48,9 @@ dependencies:
     * [1.3 Connecting to a server](#13-connecting-to-a-server)
     * [1.4 Session management](#14-session-management)
     * [1.5 Disposing](#15-disposing)
+    * [1.6 Choosing the HTTP stack](#16-choosing-the-http-stack)
+    * [1.7 Cancellation](#17-cancellation)
+    * [1.8 Retries](#18-retries)
 
     </details>
 
@@ -62,6 +70,7 @@ dependencies:
     * [3.1 Public system info (no auth)](#31-public-system-info-no-auth)
     * [3.2 Authenticated info](#32-authenticated-info)
     * [3.3 Ping](#33-ping)
+    * [3.4 Server and housekeeping](#34-server-and-housekeeping)
 
     </details>
 
@@ -74,6 +83,8 @@ dependencies:
     * [4.4 Single item](#44-single-item)
     * [4.5 Resume and latest](#45-resume-and-latest)
     * [4.6 BaseItemKind reference](#46-baseitemkind-reference)
+    * [4.7 Field presets](#47-field-presets)
+    * [4.8 Paging](#48-paging)
 
     </details>
 
@@ -347,6 +358,14 @@ dependencies:
 
     * [34.1 Raw request](#341-raw-request)
     * [34.2 Raw bytes](#342-raw-bytes)
+    * [34.3 Streamed body](#343-streamed-body)
+
+    </details>
+
+    <details>
+    <summary><a href="#35-downloads"><b>35. Downloads</b></a></summary>
+
+    * [35.1 Downloading to a file](#351-downloading-to-a-file)
 
     </details>
 *   [Project background](#project-background)
@@ -366,7 +385,7 @@ dependencies:
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/key-round.png" width="32"></td>
 <td valign="middle"><b>Both auth flows</b><br><code>user.authenticateByName()</code> for credentials, plus <code>quickConnect.initiate()</code> + <code>state()</code> + <code>user.authenticateWithQuickConnect()</code> for the Quick Connect link flow.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/wrench.png" width="32"></td>
-<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. Emitted as the single <code>Authorization: MediaBrowser</code> header. It is the only auth path Jellyfin 12.0 accepts out of the box.</td>
+<td valign="middle"><b>Authorization header builder</b><br><code>MediaBrowser Client="…", Device="…", DeviceId="…", Version="…", Token="…"</code> built correctly and refreshed when the token changes. Emitted as the single <code>Authorization: MediaBrowser</code> header. It is the only auth path Jellyfin 12 accepts out of the box.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/layers.png" width="32"></td>
@@ -376,15 +395,27 @@ dependencies:
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/music.png" width="32"></td>
-<td valign="middle"><b>Lyrics with timing</b><br><code>JellyfinLyrics</code> exposes parsed lines with ticks-to-ms helpers, plus <code>.toLrc()</code> to render LRC for any synced-lyrics player.</td>
+<td valign="middle"><b>Lyrics with timing</b><br><code>JellyfinLyrics</code> exposes parsed lines with <code>Duration</code> getters and word-level cues, plus <code>.toLrc()</code> to render LRC (or enhanced LRC) for any synced-lyrics player.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/audio-lines.png" width="32"></td>
 <td valign="middle"><b>Audio streaming</b><br><code>audio.universalStreamUrl()</code> lets the server decide direct-play vs transcoding; <code>audio.directStreamUrl()</code> gives the zero-transcode original.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/triangle-alert.png" width="32"></td>
-<td valign="middle"><b>Semantic errors</b><br>every failure is a <code>JellyfinException</code> you can branch on (auth, not found, timeout, connection), never a raw network error in your code.</td>
+<td valign="middle"><b>Semantic errors</b><br>every failure is a <code>JellyfinException</code> you can branch on (auth, not found, timeout, connection, cancelled), never a raw network error in your code.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/terminal.png" width="32"></td>
-<td valign="middle"><b>Escape hatch</b><br><code>client.request&lt;T&gt;()</code> and <code>client.requestBytes()</code> for endpoints not yet covered by the typed sub-APIs.</td>
+<td valign="middle"><b>Escape hatch</b><br><code>client.request&lt;T&gt;()</code>, <code>client.requestBytes()</code> and <code>client.requestStream()</code> for endpoints not yet covered by the typed sub-APIs.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/globe.png" width="32"></td>
+<td valign="middle"><b>Any HTTP stack</b><br>built on <code>package:http</code>: inject a <code>CupertinoClient</code> or <code>CronetClient</code> for HTTP/2 and the system proxy, or a <code>MockClient</code> in tests.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/cpu.png" width="32"></td>
+<td valign="middle"><b>Off the caller's isolate</b><br>large responses are inflated, decoded and parsed into models on a background isolate, so a 1.5 MB page does not stall your UI.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/zap.png" width="32"></td>
+<td valign="middle"><b>Cancellation and retries</b><br><code>withCancelToken()</code> makes every call of a view cancellable; an opt-in <code>JellyfinRetryPolicy</code> resends idempotent requests after transient failures.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/download.png" width="32"></td>
+<td valign="middle"><b>Streaming downloads</b><br><code>downloadToFile()</code> in <code>package:dart_jellyfin/io.dart</code> writes a body to disk as it arrives, with progress, and never leaves a partial file.</td>
 </tr>
 </table>
 
@@ -434,6 +465,9 @@ Future<void> main() async {
     playSessionId: 'my-session-uuid',
   );
   // hand `url` to your audio engine
+
+  // 5. Release the HTTP client when the app is done with the server.
+  jellyfin.close();
 }
 ```
 
@@ -458,8 +492,22 @@ final jellyfin = JellyfinClient(
 ```
 
 The `baseUrl` is optional and can be set later via `connect()`. The
-constructor optionally accepts a custom `dio: Dio()` plus
-`connectTimeout` and `receiveTimeout`. By default it owns its own Dio.
+other constructor parameters are optional too:
+
+| Parameter | Default | Meaning |
+| :--- | :--- | :--- |
+| `httpClient` | a `dart:io` / browser client | the `package:http` client to send through (see [1.6](#16-choosing-the-http-stack)) |
+| `connectTimeout` | 15 s | bounds the handshake (default client) and, with `receiveTimeout`, the wait for response headers |
+| `receiveTimeout` | 30 s | also bounds every pause inside a response body |
+| `jsonIsolateThreshold` | 50 KB | bodies this size or larger are decoded, and parsed into models, on a background isolate |
+| `retryPolicy` | `JellyfinRetryPolicy.none` | opt-in resend of idempotent requests (see [1.8](#18-retries)) |
+
+With the default `dart:io` client, a gzip body is inflated as part of
+that decode, so above the threshold it too leaves the caller's isolate.
+On the web there are no isolates and the work runs in place.
+
+`JellyfinClient` and its sub-API classes are not `final`, so your tests
+can implement or mock them. The models are `final` data classes.
 
 #### 1.2 Credentials and the Authorization header
 
@@ -473,7 +521,7 @@ Authorization: MediaBrowser Client="MyApp", Device="iPhone", DeviceId="…uuid�
 After login the same line gets a `, Token="…"` suffix. Only this
 `Authorization: MediaBrowser` header is emitted; the deprecated
 `X-Emby-Authorization` and `X-MediaBrowser-Token` headers are no longer
-sent. Jellyfin 12.0 rejects them by default (`EnableLegacyAuthorization`
+sent. Jellyfin 12 rejects them by default (`EnableLegacyAuthorization`
 is off on new and upgraded installs) and the `/emby/*` and
 `/mediabrowser/*` route prefixes are gone, so this is the only header
 that works.
@@ -494,7 +542,7 @@ final header = JellyfinAuthHeader.build(credentials, token: someToken);
 jellyfin.connect('https://jellyfin.example.com');
 ```
 
-Trailing slashes are stripped. Calling `connect()` again switches the
+A trailing slash is stripped. Calling `connect()` again switches the
 client to a new server; the session (token + userId) is **not**
 cleared automatically. Call `clearSession()` first if needed.
 
@@ -516,9 +564,102 @@ final userId = jellyfin.userId;
 
 #### 1.5 Disposing
 
-`JellyfinClient` doesn't own any native resources, so a `disconnect()`
-is sufficient. There's no `dispose()` to call. If you injected a
-custom Dio, dispose it yourself.
+```dart
+jellyfin.close();
+```
+
+`close()` closes the HTTP client the `JellyfinClient` created. Later
+requests, through it or any `withCancelToken()` view, fail with
+`JellyfinErrorType.state`. An injected `httpClient` is left alone: you
+created it, you close it.
+
+#### 1.6 Choosing the HTTP stack
+
+The transport is `package:http`, so any `http.Client` works. On Apple
+platforms and Android the native stacks give HTTP/2, the system proxy
+and the platform's certificate store:
+
+```dart
+// CupertinoClient.defaultSessionConfiguration() (package:cupertino_http),
+// CronetClient.defaultCronetEngine() (package:cronet_http), or any other
+// http.Client.
+final http.Client httpClient = http.Client();
+
+final jellyfin = JellyfinClient(
+  baseUrl: 'https://jellyfin.example.com',
+  credentials: credentials,
+  httpClient: httpClient,
+);
+
+// … later: an injected client is yours to close.
+httpClient.close();
+```
+
+In tests, pass a `MockClient` from `package:http/testing.dart`. An
+injected client handles gzip itself (native stacks do it on their own
+threads).
+
+#### 1.7 Cancellation
+
+`withCancelToken()` returns a view of the client whose every sub-API
+call is cancelled by one `JellyfinCancelToken`. The view shares the
+connection pool, server and session, and costs nothing to create, so
+make one per page, filter or search term:
+
+```dart
+JellyfinCancelToken? pageToken;
+
+Future<void> showAlbums(String libraryId) async {
+  pageToken?.cancel(); // drop the previous page's requests
+  final token = pageToken = JellyfinCancelToken();
+  try {
+    final albums = await jellyfin.withCancelToken(token).items.list(
+          parentId: libraryId,
+          includeItemTypes: const [JellyfinItemKind.musicAlbum],
+          limit: 50,
+        );
+    print(albums.items.length);
+  } on JellyfinException catch (e) {
+    if (e.isCancelled) return; // not a failure
+    rethrow;
+  }
+}
+```
+
+A cancelled call throws a `JellyfinException` of type
+`JellyfinErrorType.cancelled`. A token cancels once; make a new one for
+the next page. `request()`, `requestBytes()`, `requestStream()` and
+`images.fetch()` also take a `cancelToken:` directly. The notifications
+WebSocket is not a request and is not cancelled.
+
+#### 1.8 Retries
+
+Off by default. Pass a `JellyfinRetryPolicy` to resend idempotent
+requests after a transient failure:
+
+```dart
+final jellyfin = JellyfinClient(
+  credentials: credentials,
+  retryPolicy: const JellyfinRetryPolicy(), // up to 3 attempts in all
+);
+
+// Or tune it:
+const patient = JellyfinRetryPolicy(
+  maxAttempts: 5,
+  initialDelay: Duration(milliseconds: 500),
+  maxDelay: Duration(seconds: 10),
+);
+```
+
+The defaults are `maxAttempts: 3` (the first attempt included),
+`initialDelay: 300 ms` and `maxDelay: 5 s`.
+
+Only `GET` and `HEAD` are resent, and only after no answer at all
+(connection lost, timeout), `502`, `503`, `504` or `429`. A `500` is not
+retried. The wait grows exponentially with full jitter; a `Retry-After`
+header (in seconds) is honoured up to `maxDelay`, and a cancel token
+also cancels the wait. Opening a stream is retried too; a body already
+flowing is not replayed.
 
 ---
 
@@ -622,6 +763,29 @@ if (await jellyfin.system.ping()) { /* server reachable */ }
 Swallows all transport errors. Hits `/System/Info/Public` under the
 hood.
 
+#### 3.4 Server and housekeeping
+
+```dart
+final counts = await jellyfin.library.counts();
+print('${counts.albumCount} albums, ${counts.songCount} tracks');
+
+final endpoint = await jellyfin.system.endpointInfo(); // isLocal, isInNetwork
+final clock = await jellyfin.system.utcTime(); // for clock-skew correction
+
+// Admin token:
+final tasks = await jellyfin.scheduledTasks.list();
+final devices = await jellyfin.devices.list();
+final log = await jellyfin.activityLog.entries(limit: 50);
+```
+
+These answer typed models: `JellyfinItemCounts`, `JellyfinEndpointInfo`,
+`JellyfinUtcTime`, `JellyfinScheduledTask`, `JellyfinDevice` and a
+`JellyfinQueryResult<JellyfinActivityLogEntry>`. Like every model, each
+keeps the decoded body in `raw`. The "Audio Normalization" scheduled
+task is the one that fills `JellyfinItem.normalizationGain`. Admin-only
+setup endpoints (Live TV tuners, plugins, packages, localization) still
+answer maps.
+
 ---
 
 ### 4. Library browsing
@@ -650,14 +814,14 @@ final page = await jellyfin.items.list(
   parentId: music.id,
   includeItemTypes: const [JellyfinItemKind.musicAlbum],
   sortBy: const ['SortName', 'ProductionYear'],
-  descending: false,
-  startIndex: 0,
+  descending: true,
+  startIndex: 50, // second page
   limit: 50,
   searchTerm: 'pink',          // optional substring filter
   filters: const ['IsFavorite'], // optional ItemFilters
   artistIds: [artistId],
   genreIds: [genreId],
-  fields: JellyfinItemsApi.musicFields, // opt in to the music field set
+  fields: JellyfinItemsApi.browseFields, // light set for a grid
 );
 print('${page.items.length} of ${page.totalRecordCount}');
 ```
@@ -678,12 +842,21 @@ comma or a pipe.
 Prefer the id form over the name form where you have a choice: ids come
 back from `filter.facets()` and survive a rename.
 
-**Fields preset.** `fields` defaults to empty — the server's own
-projection. `JellyfinItemsApi.musicFields` is a ready-made set
-(`Overview, Genres, MediaSources, MediaStreams, ProviderIds,
-PrimaryImageAspectRatio, SortName, DateCreated, ChildCount, ParentId,
-Path, OriginalTitle, AlbumPrimaryImageTag`) to pass when you are
-browsing music; pass your own list for anything else.
+**Fields.** `fields` defaults to empty — the server's own projection.
+Two presets are ready-made; see [4.7](#47-field-presets).
+
+**Artists are not scoped by `parentId`.** With
+`includeItemTypes: [JellyfinItemKind.musicArtist]`, `/Items` ignores
+`parentId` and answers the artists of every library (verified with two
+music libraries). List one library's artists with
+`artists.albumArtists(parentId: …)` or `artists.list(parentId: …)`,
+which do honour it. Albums and tracks are scoped as expected.
+
+**Totals cost a second query.** `enableTotalRecordCount` (default
+`true`) makes the server count the whole result set for
+`totalRecordCount`. Pass `false` when you page until a short page and
+never show a total; `totalRecordCount` then reports only the items in
+the page.
 
 #### 4.3 Counting items
 
@@ -760,6 +933,72 @@ Use `JellyfinItemKind` constants as `includeItemTypes` values:
 | `studio`       | `Studio`       | |
 | `book`         | `Book`         | |
 
+#### 4.7 Field presets
+
+| Preset | Fields | Use for |
+| :--- | :--- | :--- |
+| `JellyfinItemsApi.browseFields` | `Genres, DateCreated, ChildCount, SortName, PrimaryImageAspectRatio` | grids and lists of albums, artists, playlists, genres |
+| `JellyfinItemsApi.musicFields` | `Overview, Genres, MediaSources, MediaStreams, ProviderIds, PrimaryImageAspectRatio, SortName, DateCreated, ChildCount, ParentId, Path, OriginalTitle` | a queue or a track info sheet, where media sources and streams are read |
+
+`musicFields` is the expensive one: measured on Jellyfin 12.0, a track
+costs ~3.2 KB with it against ~1.2 KB with `browseFields`, and a
+500-track album page was 1.5 MB of JSON that took the server ~230 ms to
+build. `MediaSources` and `MediaStreams` are most of both. Neither preset
+is a default, because `/Items` also serves video and photo libraries.
+
+Image tags (`ImageTags`, `AlbumPrimaryImageTag`) are not fields: the
+server always sends them, so covers work with either preset. 0.2 listed
+`AlbumPrimaryImageTag` in `musicFields`; the server ignored it.
+
+With `Genres` requested, `JellyfinItem.genreItems` carries each genre's
+id and name (`JellyfinNameGuidPair`), the ids `items.list(genreIds:)` and
+`instantMix.fromItem()` take. Other typed fields worth knowing:
+`albumArtistItems` (album artists with ids), `normalizationGain` and
+`albumNormalizationGain` (dB, filled by the server's "Audio
+Normalization" task; Jellyfin exposes no LUFS value), and
+`artworkItemId` / `artworkVersion`, the id whose cover to show and the
+image tag to put in a cache key:
+
+```dart
+final coverId = track.artworkItemId;
+if (coverId != null) {
+  final url = jellyfin.images.url(
+    itemId: coverId,
+    tag: track.artworkVersion, // changes when the cover does
+    maxWidth: 512,
+    maxHeight: 512,
+  );
+}
+```
+
+#### 4.8 Paging
+
+`JellyfinPaging.pages()` and `JellyfinPaging.items()` walk any paged
+endpoint as a stream, one request per page, nothing fetched ahead:
+
+```dart
+final tracks = JellyfinPaging.items(
+  (start, size) async => (await jellyfin.items.list(
+    parentId: music.id,
+    includeItemTypes: const [JellyfinItemKind.audio],
+    sortBy: const ['SortName'],
+    startIndex: start,
+    limit: size,
+    enableTotalRecordCount: false,
+  ))
+      .items,
+  pageSize: 200,
+);
+await for (final track in tracks) {
+  print(track.name);
+}
+```
+
+Paging stops at the first page shorter than `pageSize`, or after
+`limit` rows when you pass one. Cancelling the subscription stops it
+before the next request; pair it with a cancel token
+([1.7](#17-cancellation)) to drop the request in flight too.
+
 ---
 
 ### 5. Playlists
@@ -771,7 +1010,7 @@ final playlist = await jellyfin.playlists.create(
   name: 'My Mix',
   mediaType: 'Audio',  // 'Audio' | 'Video' | 'Photo' | 'Book'
   itemIds: const ['12345', '12346'],
-  isPublic: false,
+  isPublic: true, // private by default
 );
 ```
 
@@ -780,7 +1019,6 @@ final playlist = await jellyfin.playlists.create(
 ```dart
 final page = await jellyfin.playlists.items(
   playlistId: playlist.id,
-  startIndex: 0,
   limit: 100,
 );
 ```
@@ -797,10 +1035,10 @@ await jellyfin.playlists.addItems(
   itemIds: const ['99999', '99998'],
 );
 
-// To remove, find PlaylistItemId from .raw.
+// To remove, pass the entries' playlistItemId.
 final items = await jellyfin.playlists.items(playlistId: playlist.id);
 final entryIds = items.items
-    .map((i) => i.raw['PlaylistItemId'] as String?)
+    .map((i) => i.playlistItemId)
     .whereType<String>()
     .toList();
 await jellyfin.playlists.removeItems(
@@ -809,9 +1047,12 @@ await jellyfin.playlists.removeItems(
 );
 ```
 
-> ⚠️ `removeItems` expects **PlaylistItemId** entries, not the
-> underlying item id. Reading from `.raw` is currently the only way;
-> a typed field will be promoted in a future release.
+`removeItems` and `moveItem` take `JellyfinItem.playlistItemId`, present
+on items read from `playlists.items()`. On Jellyfin 12.2 it equals the
+item id (verified): with a track listed twice, removing its entry
+removes **every** copy and moving it moves the first. The server offers
+no way to address one copy of a duplicate. After `moveItem`, a read
+right away can still show the old order for a moment.
 
 #### 5.4 Renaming and deleting
 
@@ -819,6 +1060,14 @@ await jellyfin.playlists.removeItems(
 await jellyfin.playlists.rename(playlistId: '123', name: 'New name');
 await jellyfin.playlists.delete('123');
 ```
+
+Jellyfin 12.2 loses a rename sent within about half a second of a write
+that changed the entries (`create` with `itemIds`, `addItems`) and still
+answers success: the server saves the entry change over the new name.
+Name the playlist in `create()`, or leave a gap.
+
+`playlists.users()` lists who can access a shared playlist as
+`JellyfinPlaylistUserPermission` (`userId`, `canEdit`).
 
 ---
 
@@ -883,24 +1132,33 @@ Bypass transcoding entirely (best quality, smallest server CPU):
 final (url, ext) = jellyfin.audio.directStreamUrl(
   itemId: track.id,
   container: 'flac',
-  isStatic: true,
 );
 ```
+
+`isStatic` defaults to `true` (serve the file as stored); `ext` echoes
+`container` for naming a file.
 
 #### 7.3 Lyrics
 
 ```dart
 final lyrics = await jellyfin.audio.lyrics(track.id);
 if (lyrics == null) { /* no lyrics on server */ }
-else if (lyrics.isSynced) {
-  print(lyrics.toLrc());      // mm:ss.cc LRC document
+else if (lyrics.hasCues) {
+  print(lyrics.toLrc(enhanced: true)); // ELRC: per-word <mm:ss.cc> times
+} else if (lyrics.isSynced) {
+  print(lyrics.toLrc()); // mm:ss.cc LRC document
 } else {
   print(lyrics.toPlainText()); // line per entry, no timestamps
 }
 ```
 
 `JellyfinLyrics` exposes the parsed lines (`startTicks` in
-100-nanosecond units, `text`) plus convenience renderers. To grab the
+100-nanosecond units and `start` as a `Duration`, `text`, and `cues`:
+word-level `JellyfinLyricCue`s with their own start and end), the lyric
+file's tags as `metadata` (`JellyfinLyricMetadata`: artist, album,
+title, offset, …) and the renderers. `toLrc(enhanced: true)` writes
+lines that have cues in the enhanced LRC syntax and the others as plain
+LRC. To grab the
 raw `.lrc` or `.txt` body without going through `JellyfinLyrics`:
 
 ```dart
@@ -927,18 +1185,22 @@ response carries a `transcodingUrl` you can use verbatim.
 final (url, ext) = jellyfin.videos.streamUrl(
   itemId: movie.id,
   mediaSourceId: movie.mediaSources.first.id,
-  maxStreamingBitrate: 8000000,
   videoCodec: 'h264',
   audioCodec: 'aac',
+  videoBitRate: 8000000,
+  audioBitRate: 192000,
   audioStreamIndex: 1,
   subtitleStreamIndex: 3,
   maxAudioChannels: 2,
   maxWidth: 1920,
   maxHeight: 1080,
-  isStatic: false,
   playSessionId: 'my-uuid',
 );
 ```
+
+No video route reads `maxStreamingBitrate`: it is deprecated on
+`videos.streamUrl()` and the video HLS builders and no longer sent. Cap a
+video transcode with `videoBitRate` and `audioBitRate`.
 
 Pass `isStatic: true` to force the original-file passthrough (no
 muxing, no transcoding). Set `params` to replay a server-decided
@@ -956,7 +1218,7 @@ for (final p in parts) {
 }
 ```
 
-Returns the raw `List<Map<String,dynamic>>`; a typed DTO can be
+Returns the raw `List<Map<String, Object?>>`; a typed DTO can be
 promoted later if usage grows.
 
 #### 8.3 Recommended pre-flight
@@ -997,22 +1259,40 @@ final masterUrl = jellyfin.hls.audioMasterUrl(
   itemId: track.id,
   maxStreamingBitrate: 320000,
   audioCodec: 'aac',
+  playSessionId: 'my-uuid',
 );
 final mainUrl = jellyfin.hls.audioVariantUrl(
   itemId: track.id,
+  audioCodec: 'aac',
   audioBitRate: 256000,
-  audioCodec: 'mp3',
+  segmentContainer: 'mp4', // 'ts' | 'mp4'; the route reads no `container`
+  segmentLength: 6, // seconds
+  minSegments: 1, // segments made before the server answers
+  enableAutoStreamCopy: false, // with allowAudioStreamCopy: false,
+  allowAudioStreamCopy: false, // force a real transcode
+  playSessionId: 'my-uuid',
 );
 ```
+
+Also typed: `audioSampleRate`, `maxAudioBitDepth`, `audioChannels`,
+`maxAudioChannels`, `startTimeTicks`, `breakOnNonKeyFrames`, `context`
+(`Streaming` or `Static`); `params` adds any other query parameter verbatim.
+
+The playlist builders send the token as `ApiKey` and, as `DeviceId`, the id the
+auth header carries (`JellyfinCredentials.deviceId`), never a constant:
+Jellyfin files the transcoding job under that device, and the playback
+reports and `playback.ping()` find the job through it and
+`playSessionId` (see [14.4](#144-ping)).
 
 #### 9.2 Video master and variant
 
 ```dart
 final masterUrl = jellyfin.hls.videoMasterUrl(
   itemId: movie.id,
-  maxStreamingBitrate: 8000000,
   videoCodec: 'h264',
   audioCodec: 'aac',
+  videoBitRate: 8000000,
+  audioBitRate: 192000,
   maxWidth: 1920,
   maxHeight: 1080,
   subtitleStreamIndex: 3,
@@ -1072,10 +1352,14 @@ final url = jellyfin.subtitles.streamWithTicksUrl(
   itemId: movie.id,
   mediaSourceId: msid,
   index: 3,
-  startPositionTicks: 6000_000_000, // 10 minutes
-  format: 'vtt',
+  startPositionTicks: 6000000000, // 10 minutes
+  endPositionTicks: 6600000000, // 11 minutes
 );
 ```
+
+`format` defaults to `vtt`. The `segmentLength` parameter is deprecated
+here (it belongs to the subtitle playlist route, below) and no longer
+sent; bound the slice with `endPositionTicks`.
 
 For HLS-delivered subtitles (when `subtitleMethod: 'Hls'` was set on
 the video URL):
@@ -1125,8 +1409,7 @@ await jellyfin.subtitles.upload(
   language: 'eng',
   format: 'srt',
   data: base64Subtitle,
-  isForced: false,
-  isHearingImpaired: false,
+  isForced: true, // isHearingImpaired is the other flag
 );
 
 await jellyfin.subtitles.delete(itemId: movie.id, index: 3);
@@ -1208,7 +1491,7 @@ final playlistUrl = jellyfin.trickplay.hlsPlaylistUrl(
 
 `/Items/{itemId}/PlaybackInfo` is the heart of any non-trivial video
 client. The server inspects a `DeviceProfile` describing what the
-client can decode and answers with a [`JellyfinPlaybackInfo`] whose
+client can decode and answers with a `JellyfinPlaybackInfo` whose
 `mediaSources` already carries `supportsDirectPlay`,
 `supportsDirectStream`, `supportsTranscoding` and a `transcodingUrl`
 to use verbatim.
@@ -1234,7 +1517,7 @@ const profile = JellyfinDeviceProfile(
   name: 'MyApp',
   maxStreamingBitrate: 8000000,
   musicStreamingTranscodingBitrate: 320000,
-  directPlayProfiles: const [
+  directPlayProfiles: [
     JellyfinDirectPlayProfile.audio(container: 'mp3,aac,flac'),
     JellyfinDirectPlayProfile.video(container: 'mp4,mkv,webm'),
   ],
@@ -1268,7 +1551,7 @@ final opened = await jellyfin.mediaInfo.openLiveStream(
   itemId: movie.id,
   deviceProfile: profile,
 );
-final liveStreamId = opened.mediaSources.first.raw['LiveStreamId'];
+final liveStreamId = opened.mediaSources.first.raw['LiveStreamId'] as String;
 // … play …
 await jellyfin.mediaInfo.closeLiveStream(liveStreamId: liveStreamId);
 ```
@@ -1280,7 +1563,7 @@ a starting `maxStreamingBitrate`:
 
 ```dart
 final stopwatch = Stopwatch()..start();
-final size = await jellyfin.mediaInfo.bitrateTestBytesLength(size: 1_000_000);
+final size = await jellyfin.mediaInfo.bitrateTestBytesLength(size: 1000000);
 stopwatch.stop();
 final bps = (size ?? 0) * 8 * 1000 ~/ stopwatch.elapsedMilliseconds;
 ```
@@ -1291,35 +1574,60 @@ final bps = (size ?? 0) * 8 * 1000 ~/ stopwatch.elapsedMilliseconds;
 
 Jellyfin's image URLs are deterministic: `/Items/{id}/Images/{type}`
 with a `tag` query parameter (the hash from
-`JellyfinItem.imageTags[type]`) for cache busting. The response is a
-pre-sized JPEG, no client-side scaling needed.
+`JellyfinItem.imageTags[type]`) for cache busting. The server resizes,
+so no client-side scaling is needed. Without `format` it answers in the
+source's own format (a PNG upload comes back as PNG).
 
 #### 13.1 Building an image URL
 
 ```dart
 final url = jellyfin.images.url(
-  itemId: track.albumId ?? track.id,
-  type: JellyfinImagesApi.typePrimary,
-  tag: track.imageTags['Primary'],   // cache-bust hash
-  fillWidth: 500,
-  fillHeight: 500,
+  itemId: track.artworkItemId ?? track.id,
+  tag: track.artworkVersion, // cache-bust hash
+  maxWidth: 512,
+  maxHeight: 512,
+  format: JellyfinImagesApi.formatJpg,
   quality: 85,
 );
 ```
+
+`type` defaults to `JellyfinImagesApi.typePrimary`. Sizing, as Jellyfin
+12.0 was measured to apply it to a 1200×800 source:
+
+| Parameters | Effect | 512 / 512 gives |
+| :--- | :--- | :--- |
+| `maxWidth` / `maxHeight` | fit *inside* the box, aspect kept (the pair for a cover cache) | 512×341 |
+| `fillWidth` / `fillHeight` | *cover* the box, aspect kept | 768×512 |
+| `width` / `height` | exactly those dimensions, stretched | 512×512 |
+
+`format` re-encodes (`formatJpg`, `formatPng`, `formatWebp`, `formatGif`,
+`formatBmp`, `formatSvg`), and `format=Jpg` together with `maxWidth` is
+honoured. `quality` (0–100) applies to the lossy formats:
+`maxWidth=512&format=Jpg&quality=85` measured 9.8 KB against 22 KB at the
+server's default. `url()` also takes `percentPlayed` and
+`unplayedCount` (baked-in progress bar and badge), `blur` (radius) and
+`backgroundColor` (fills transparency, e.g. `'000000'`). The entity
+builders (`artistImageUrl`, `genreImageUrl`, `studioImageUrl`,
+`personImageUrl`, …) take `maxWidth` / `maxHeight` too, and
+`images.listItemImages(itemId)` lists an item's images as
+`JellyfinImageInfo` (type, index, tag, size, dimensions).
 
 #### 13.2 Fetching bytes
 
 ```dart
 final Uint8List? bytes = await jellyfin.images.fetch(
-  itemId: track.albumId ?? track.id,
-  type: JellyfinImagesApi.typePrimary,
-  tag: track.imageTags['Primary'],
-  fillWidth: 500,
-  fillHeight: 500,
+  itemId: track.artworkItemId ?? track.id,
+  tag: track.artworkVersion,
+  maxWidth: 512,
+  maxHeight: 512,
+  format: JellyfinImagesApi.formatJpg,
+  cancelToken: token, // optional: drop it when the cell scrolls away
 );
 ```
 
-Returns `null` on 404. Throws `JellyfinException` on transient failures
+`fetch()` takes the sizing and encoding parameters of `url()` (not
+`percentPlayed`, `unplayedCount`, `blur` or `backgroundColor`) plus a
+`cancelToken`. Returns `null` on 404. Throws `JellyfinException` on transient failures
 (5xx, network down) so the caller can distinguish "no image ever"
 from "try again later".
 
@@ -1350,7 +1658,7 @@ await jellyfin.playback.start(
   itemId: track.id,
   playSessionId: 'my-uuid',
   mediaSourceId: track.mediaSources.first.id,
-  playMethod: 'DirectPlay', // 'DirectPlay' | 'DirectStream' | 'Transcode'
+  method: JellyfinPlayMethod.transcode, // directPlay (default) | directStream
 );
 ```
 
@@ -1361,31 +1669,46 @@ Send every ~10 s and on every state change.
 ```dart
 await jellyfin.playback.progress(
   itemId: track.id,
-  position: Duration(seconds: 42),
+  position: const Duration(seconds: 42),
   isPaused: false,
   volumeLevel: 80,
   playSessionId: 'my-uuid',
-  repeatMode: 'RepeatNone', // 'RepeatNone' | 'RepeatAll' | 'RepeatOne'
+  method: JellyfinPlayMethod.transcode,
+  order: JellyfinPlaybackOrder.shuffle, // or defaultOrder
+  repeat: JellyfinRepeatMode.all, // none | all | one
 );
 ```
+
+`method`, `order` and `repeat` are enums. The 0.2 `String` parameters
+(`playMethod`, `playbackOrder`, `repeatMode`) still work but are
+deprecated; passing one together with its enum throws an
+`ArgumentError`.
 
 #### 14.3 Stopped
 
 ```dart
 await jellyfin.playback.stopped(
   itemId: track.id,
-  position: Duration(seconds: 240),
+  position: const Duration(seconds: 240),
   playSessionId: 'my-uuid',
 );
 ```
 
 #### 14.4 Ping
 
-Keeps an active transcode session alive while the player buffers.
+Tells the server the transcode of a play session is still wanted.
 
 ```dart
 await jellyfin.playback.ping(playSessionId: 'my-uuid');
 ```
+
+Measured on Jellyfin 12.0 with an HLS audio transcode: the job is filed
+under the stream URL's `DeviceId` (the auth header's, in every builder
+here), so ping, `progress` and `stopped` reach it. A paused session that
+sent one `progress` with `isPaused: true` kept its job for the 130 s
+observed without pings, and `stopped` ends it. A player that sends
+`progress` every ~10 s needs no ping; ping covers stretches with nothing
+to report, such as buffering before the first `start`.
 
 ---
 
@@ -1421,13 +1744,22 @@ device as a cast target.
 await jellyfin.sessions.postCapabilities(
   playableMediaTypes: const ['Audio', 'Video'],
   supportedCommands: const [
-    'Play', 'Pause', 'Stop', 'NextTrack', 'PreviousTrack',
-    'Seek', 'SetVolume', 'Mute', 'Unmute', 'ToggleMute',
-    'SetAudioStreamIndex', 'SetSubtitleStreamIndex',
+    'Play', 'PlayState', // accept play and playstate commands
+    JellyfinGeneralCommand.setVolume,
+    JellyfinGeneralCommand.mute,
+    JellyfinGeneralCommand.unmute,
+    JellyfinGeneralCommand.toggleMute,
+    JellyfinGeneralCommand.setAudioStreamIndex,
+    JellyfinGeneralCommand.setSubtitleStreamIndex,
   ],
   supportsMediaControl: true,
 );
 ```
+
+`supportedCommands` takes `GeneralCommandType` values. Pause, stop,
+seek and track skips are not among them: they arrive as playstate
+commands ([15.4](#154-playstate-commands)), which the `PlayState`
+capability advertises.
 
 When the user logs out, call `jellyfin.sessions.reportSessionEnded()`
 so the server clears any pending now-playing entries.
@@ -1439,10 +1771,13 @@ final target = sessions.firstWhere((s) => s.supportsMediaControl);
 await jellyfin.sessions.play(
   sessionId: target.id,
   itemIds: const ['12345', '12346'],
-  playCommand: 'PlayNow',          // PlayNext | PlayLast | Shuffle
-  startPositionTicks: 0,
+  playCommand: JellyfinPlayCommand.playShuffle,
 );
 ```
+
+`playCommand` defaults to `JellyfinPlayCommand.playNow` (replace the
+queue); the other constants are `playNext`, `playLast`,
+`playInstantMix` and `playShuffle`.
 
 #### 15.4 Playstate commands
 
@@ -1454,11 +1789,11 @@ await jellyfin.sessions.sendPlaystateCommand(
 await jellyfin.sessions.sendPlaystateCommand(
   sessionId: target.id,
   command: JellyfinPlaystateCommand.seek,
-  seekPositionTicks: 1200_000_000, // 2 minutes
+  seekPositionTicks: 1200000000, // 2 minutes
 );
 ```
 
-Constants on [`JellyfinPlaystateCommand`]: `stop`, `pause`, `unpause`,
+Constants on `JellyfinPlaystateCommand`: `stop`, `pause`, `unpause`,
 `playPause`, `nextTrack`, `previousTrack`, `seek`, `rewind`,
 `fastForward`.
 
@@ -1478,7 +1813,7 @@ await jellyfin.sessions.sendFullCommand(
   arguments: {'Volume': '80'},
 );
 
-// System-level (GoHome, GoToSettings, Restart):
+// Navigation-level (GoHome, GoToSettings, GoToSearch, …):
 await jellyfin.sessions.sendSystemCommand(
   sessionId: target.id,
   command: 'GoHome',
@@ -1530,7 +1865,7 @@ await jellyfin.userData.markUnplayed(track.id);
 
 #### 16.3 Reading and writing the record
 
-Both calls return the freshest [`JellyfinUserData`] (`isFavorite`,
+Both calls return the freshest `JellyfinUserData` (`isFavorite`,
 `playCount`, `playbackPositionTicks`, `lastPlayedDate`). You can also
 fetch and write the whole record:
 
@@ -1538,9 +1873,15 @@ fetch and write the whole record:
 final data = await jellyfin.userData.get(itemId);
 print('position=${data.playbackPositionTicks} count=${data.playCount}');
 
+// Reset the resume position, keep the rest.
 await jellyfin.userData.update(
   itemId: itemId,
-  userData: data.copyWithPosition(0), // your own helper
+  userData: JellyfinUserData(
+    playCount: data.playCount,
+    isFavorite: data.isFavorite,
+    played: data.played,
+    playbackPositionTicks: 0,
+  ),
 );
 ```
 
@@ -1587,7 +1928,10 @@ final rock       = await jellyfin.genres.byName('Rock');
 final fromGenre  = await jellyfin.instantMix.fromItem(itemId: rock!.id);
 ```
 
-Each helper returns a [`JellyfinQueryResult<JellyfinItem>`], the same
+A genre id from `genres.list()`, `genres.byName()` or a track's
+`genreItems` is a valid seed for `fromItem()`.
+
+Each helper returns a `JellyfinQueryResult<JellyfinItem>`, the same
 shape as `items.list()`, so the result drops straight into a UI list.
 
 > Jellyfin 12 marks the music-genre seeds (`fromMusicGenre`,
@@ -1620,6 +1964,9 @@ for (final ch in channels.items) {
 final ch = await jellyfin.liveTv.channel(channelId);
 // ch.raw['CurrentProgram'] carries the now-airing show.
 ```
+
+`/LiveTv/Channels` has no search parameter: `searchTerm` is deprecated
+here and no longer sent. Filter the answer by name instead.
 
 #### 18.2 Programs and EPG
 
@@ -1663,21 +2010,25 @@ Both one-shot timers (record this airing) and series timers
 ```dart
 final scheduled = await jellyfin.liveTv.timers(isActive: true);
 
-await jellyfin.liveTv.createTimer(body: {
-  'ProgramId': 'pgm-1234',
-  'PrePaddingSeconds': 60,
-  'PostPaddingSeconds': 300,
-});
+await jellyfin.liveTv.createTimer(
+  body: {
+    'ProgramId': 'pgm-1234',
+    'PrePaddingSeconds': 60,
+    'PostPaddingSeconds': 300,
+  },
+);
 
 await jellyfin.liveTv.deleteTimer(timerId);
 
 // Recurring rules:
 final series = await jellyfin.liveTv.seriesTimers();
-await jellyfin.liveTv.createSeriesTimer(body: {
-  'ProgramId': 'pgm-1234',
-  'RecordAnyTime': false,
-  'RecordNewOnly': true,
-});
+await jellyfin.liveTv.createSeriesTimer(
+  body: {
+    'ProgramId': 'pgm-1234',
+    'RecordAnyTime': false,
+    'RecordNewOnly': true,
+  },
+);
 ```
 
 ---
@@ -1695,13 +2046,17 @@ can resume the group simultaneously.
 ```dart
 final groups = await jellyfin.syncPlay.list();
 for (final g in groups) {
-  print('${g['GroupName']} (${g['Participants']} participants)');
+  print('${g.name} (${g.participants.length} participants, ${g.state})');
 }
 
 await jellyfin.syncPlay.createGroup(groupName: 'Friday movie night');
-await jellyfin.syncPlay.joinGroup(groupId: groups.first['GroupId'] as String);
+await jellyfin.syncPlay.joinGroup(groupId: groups.first.id);
 await jellyfin.syncPlay.leaveGroup();
 ```
+
+`list()` answers `JellyfinSyncPlayGroup`s (`id`, `name`, `state`,
+`participants`, `lastUpdatedAt`); `syncPlay.group(id)` fetches one, or
+`null`.
 
 #### 19.2 Group playback control
 
@@ -1710,7 +2065,7 @@ Every command propagates to every member of the group:
 ```dart
 await jellyfin.syncPlay.pause();
 await jellyfin.syncPlay.unpause();
-await jellyfin.syncPlay.seek(positionTicks: 1200_000_000); // 2 min
+await jellyfin.syncPlay.seek(positionTicks: 1200000000); // 2 min
 await jellyfin.syncPlay.stop();
 
 await jellyfin.syncPlay.nextItem(playlistItemId: nextEntryId);
@@ -1725,9 +2080,15 @@ await jellyfin.syncPlay.setShuffleMode(mode: 'Shuffle');
 
 ```dart
 // Replace the queue.
+await jellyfin.syncPlay.setNewQueue(
+  playingQueue: const ['12345', '12346', '12347'],
+  playingItemPosition: 0,
+);
+
+// Append ('Queue', the default) or insert after the current item.
 await jellyfin.syncPlay.queue(
-  itemIds: const ['12345', '12346', '12347'],
-  mode: 'Queue',
+  itemIds: const ['12348'],
+  mode: 'QueueNext',
 );
 
 // Reorder and remove.
@@ -1801,9 +2162,10 @@ final nextUp = await jellyfin.tvShows.nextUp(
 );
 ```
 
-`disableFirstEpisode` skips never-watched series. `nextUpDateCutoff`
-restricts results to episodes whose last-watched date is on or after
-the cutoff (ISO 8601 string).
+`nextUpDateCutoff` restricts results to episodes whose last-watched date is on or after
+the cutoff (ISO 8601 string). `disableFirstEpisode` was removed from
+`/Shows/NextUp` in Jellyfin 12: it is deprecated here and sent only when
+passed, for 10.11 servers.
 
 #### 20.4 Upcoming episodes
 
@@ -2010,7 +2372,7 @@ print('${prefs.viewType} sorted by ${prefs.sortBy}');
 await jellyfin.displayPreferences.update(
   displayPreferencesId: 'usersettings',
   client: 'my_app',
-  preferences: JellyfinDisplayPreferences(
+  preferences: const JellyfinDisplayPreferences(
     id: 'usersettings',
     client: 'my_app',
     viewType: 'Poster',
@@ -2030,9 +2392,9 @@ server itself doesn't interpret:
 await jellyfin.displayPreferences.update(
   displayPreferencesId: 'usersettings',
   client: 'my_app',
-  preferences: JellyfinDisplayPreferences(
+  preferences: const JellyfinDisplayPreferences(
     client: 'my_app',
-    customPrefs: const {
+    customPrefs: {
       'home.layout': 'compact',
       'home.rails': 'continueWatching,nextUp,recentlyAdded',
     },
@@ -2082,14 +2444,17 @@ await jellyfin.lyrics.delete(track.id);
 ```dart
 final hits = await jellyfin.lyrics.searchRemote(track.id);
 for (final hit in hits) {
-  print('${hit['ProviderName']}: ${hit['Id']}');
+  print('${hit.providerName}: ${hit.id} (${hit.lyrics?.lines.length} lines)');
 }
 
 final attached = await jellyfin.lyrics.downloadRemote(
   itemId: track.id,
-  lyricId: hits.first['Id'] as String,
+  lyricId: hits.first.id,
 );
 ```
+
+Each hit is a `JellyfinRemoteLyric` (`id`, `providerName`, and the
+lyric itself as `JellyfinLyrics` when the provider sent it).
 
 Use `previewRemote(lyricId)` to fetch a remote result without
 attaching it.
@@ -2127,7 +2492,7 @@ Pass `folderId` to drill into a sub-folder.
 
 ```dart
 final latest = await jellyfin.channels.latest(
-  channelIds: const [channelA, channelB],
+  channelIds: [channelA, channelB],
   limit: 20,
 );
 ```
@@ -2157,7 +2522,7 @@ the library like any other item, browsable through
 ```dart
 final result = await jellyfin.collection.create(
   name: 'Best of 2024',
-  ids: const [albumA, albumB, albumC],
+  ids: [albumA, albumB, albumC],
 );
 final id = result['Id'] as String;
 ```
@@ -2167,12 +2532,12 @@ final id = result['Id'] as String;
 ```dart
 await jellyfin.collection.addItems(
   collectionId: id,
-  ids: const [albumD, albumE],
+  ids: [albumD, albumE],
 );
 
 await jellyfin.collection.removeItems(
   collectionId: id,
-  ids: const [albumA],
+  ids: [albumA],
 );
 ```
 
@@ -2243,7 +2608,7 @@ final actors = await jellyfin.persons.list(
 final one = await jellyfin.persons.byName('Benedict Cumberbatch');
 ```
 
-Pass [appearsInItemId] to scope the list to people credited on a
+Pass `appearsInItemId` to scope the list to people credited on a
 specific item (e.g. cast for one movie). `parentId` scopes it to one
 library, `startIndex` pages it, and `nameStartsWith` /
 `nameStartsWithOrGreater` / `nameLessThan` drive an alphabet picker.
@@ -2296,7 +2661,9 @@ Jellyfin 12 folds music genres into the generic genre endpoints:
 `GET /MusicGenres` is hidden from the API document and
 `GET /MusicGenres/{name}` is obsolete. `musicGenres.list()` and
 `musicGenres.byName()` still answer but are deprecated; the `genres`
-calls above return the same buckets.
+calls above return the same buckets, with the same ids (verified on
+12.2), so `items.list(genreIds:)` and `instantMix.fromItem()` take them
+unchanged.
 
 #### 31.5 Years
 
@@ -2368,21 +2735,41 @@ try {
 ```
 
 `JellyfinErrorType` values: `connection`, `timeout`, `auth`,
-`notFound`, `badRequest`, `serverError`, `parse`, `state`, `unknown`.
+`notFound`, `badRequest`, `serverError`, `parse`, `state`, `cancelled`,
+`unknown`. The exception also carries `statusCode`, `path`, `cause`,
+`stackTrace` and `retryAfter` (the server's `Retry-After`, on a `429` or
+`503`).
 
 #### 33.2 Retriable vs terminal
 
 ```dart
+try {
+  await jellyfin.items.list(parentId: musicLibraryId);
 } on JellyfinException catch (e) {
-  if (e.isRetriable) {        // connection or timeout
+  if (e.isCancelled) {
+    // the caller cancelled: not a failure, ignore it
+  } else if (e.isTransient) { // network failure, 5xx or 429
     scheduleRetry();
   } else if (e.isAuthError) { // 401 or 403, token rejected
     await reAuthenticate();
+  } else if (e.isNotFound) { // confirmed absence
+    surfaceError('Gone from the server');
   } else {
     surfaceError(e.message);
   }
 }
 ```
+
+| Getter | True for |
+| :--- | :--- |
+| `isNetworkFailure` | no answer at all: connection failed or timed out (same as `isRetriable`) |
+| `isTransient` | may pass later: a network failure, a 5xx or `429` |
+| `isNotFound` | the server answered `404` |
+| `isCancelled` | the request was cancelled through a cancel token |
+| `isAuthError` | `401` or `403` |
+
+For idempotent reads, a `JellyfinRetryPolicy` ([1.8](#18-retries)) can
+do the retrying for you.
 
 #### 33.3 Auth invalidation
 
@@ -2399,7 +2786,7 @@ When the typed sub-APIs don't yet cover an endpoint, drop down to:
 #### 34.1 Raw request
 
 ```dart
-final response = await jellyfin.request<Map<String, dynamic>>(
+final response = await jellyfin.request<Map<String, Object?>>(
   '/Users/${jellyfin.userId}/Items',
   queryParameters: {
     'IncludeItemTypes': 'Audio',
@@ -2410,18 +2797,89 @@ final response = await jellyfin.request<Map<String, dynamic>>(
 final total = response.data?['TotalRecordCount'];
 ```
 
-Same Dio, same headers, same `JellyfinException` translation as the
-typed sub-APIs. Pass `method: 'POST'`/`'DELETE'`, `extraHeaders`,
-`data`, `absoluteUrl: true` as needed.
+Same HTTP client, headers, retry policy and `JellyfinException`
+translation as the typed sub-APIs. It returns a `JellyfinResponse<T>`
+(`data`, `statusCode`, `headers`, `uri`). Pass `method: 'POST'` /
+`'DELETE'`, `extraHeaders`, `data`, `absoluteUrl: true` and
+`cancelToken` as needed; a `List` in `queryParameters` repeats the key
+once per element. `responseType` picks the decoding:
+`JellyfinResponseType.json` (default: JSON when the server says so,
+otherwise text), `.plain` (UTF-8 text) or `.bytes` (a `Uint8List`).
+`get()`, `post()` and `delete()` are shorthands.
+
+```dart
+final m3u8 = await jellyfin.request<String>(
+  '/Audio/${track.id}/main.m3u8',
+  responseType: JellyfinResponseType.plain,
+);
+print(m3u8.data);
+```
 
 #### 34.2 Raw bytes
 
 ```dart
 final response = await jellyfin.requestBytes(
-  '${jellyfin.baseUrl}/Items/$id/Download?ApiKey=${jellyfin.token}',
+  '/Items/$id/Download',
+  absoluteUrl: false,
 );
 final bytes = response.data;
 ```
+
+`requestBytes()` holds the whole body in memory: fine for artwork and
+small files. `url` is absolute by default (pass a URL a builder made);
+with `absoluteUrl: false` it is a path on the server. For media, stream
+it ([34.3](#343-streamed-body)) or write it to disk
+([35](#35-downloads)).
+
+#### 34.3 Streamed body
+
+```dart
+final res = await jellyfin.requestStream(
+  jellyfin.audio.directStreamUrl(itemId: track.id).$1,
+);
+print('${res.contentLength} bytes, ${res.contentType}');
+await for (final chunk in res.stream) {
+  sink(chunk);
+}
+```
+
+`requestStream()` answers a `JellyfinStreamedResponse` as soon as the
+headers arrive. Listen to `stream` once; cancelling the subscription
+closes the connection. A pause in the body longer than `receiveTimeout`
+fails the stream unless you pass `stallTimeout: false`.
+
+---
+
+### 35. Downloads
+
+#### 35.1 Downloading to a file
+
+`downloadToFile()` is an extension in `package:dart_jellyfin/io.dart`,
+kept out of the main library so that one stays usable on the web:
+
+```dart
+import 'package:dart_jellyfin/dart_jellyfin.dart';
+import 'package:dart_jellyfin/io.dart';
+
+Future<void> saveTrack(JellyfinClient jellyfin, JellyfinItem track) async {
+  final token = JellyfinCancelToken();
+  final (url, _) = jellyfin.audio.directStreamUrl(itemId: track.id);
+  final written = await jellyfin.downloadToFile(
+    url,
+    '/music/${track.id}', // the original file, as stored on the server
+    cancelToken: token, // token.cancel() aborts and removes the file
+    onProgress: (received, total) => print('$received / ${total ?? '?'}'),
+  );
+  print('$written bytes');
+}
+```
+
+The body is written as it arrives to `<path>.part` and renamed to the
+target only once complete, so the target either holds the whole file or
+does not exist: a failure, a stall past the receive timeout or a
+cancellation removes the partial file and throws a `JellyfinException`
+(of type `cancelled` for a cancellation). `onProgress` gets the total
+when the server sent a `Content-Length`.
 
 ---
 

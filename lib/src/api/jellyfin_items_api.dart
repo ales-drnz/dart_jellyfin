@@ -484,8 +484,9 @@ class JellyfinItemsApi {
 
   /// `GET /Items/{itemId}/Download` — direct download URL (signed
   /// with the session token) for the item's primary media file.
-  /// Returns the URL string; pass to [JellyfinClient.requestBytes]
-  /// or to a `Dio` for a streaming download.
+  /// Returns the URL string; pass it to `downloadToFile`
+  /// (`package:dart_jellyfin/io.dart`) or [JellyfinClient.requestStream] to
+  /// stream it to disk.
   String downloadUrl(String itemId) {
     final base = _http.baseUrl;
     final token = _http.token ?? '';

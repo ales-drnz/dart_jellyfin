@@ -3,6 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import 'jellyfin_client.dart';
+import 'transport/jellyfin_cancel_token.dart';
 
 /// Semantic categories for failures coming out of [JellyfinClient].
 enum JellyfinErrorType {
@@ -30,8 +31,8 @@ enum JellyfinErrorType {
   /// Client used in an invalid state — e.g. no base URL set.
   state,
 
-  /// The request was cancelled by the caller via a `CancelToken` before it
-  /// completed. Not an error condition — distinct from [unknown] so callers
+  /// The request was cancelled by the caller via a [JellyfinCancelToken]
+  /// before it completed. Not an error condition — distinct from [unknown] so callers
   /// can ignore cancellations instead of logging them as failures.
   cancelled,
 

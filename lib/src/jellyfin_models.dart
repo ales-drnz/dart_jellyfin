@@ -710,9 +710,9 @@ final class JellyfinItem {
   /// Version of the cover named by [artworkItemId]: the image tag Jellyfin
   /// recomputes whenever the picture changes. Put it in an artwork cache
   /// key — and pass it as `tag` to [JellyfinImagesApi.url] — so a cover
-  /// replaced on the server is fetched again. Needs `ImageTags` (always
-  /// sent) and, for tracks, `AlbumPrimaryImageTag` in `fields` (both
-  /// presets have it).
+  /// replaced on the server is fetched again. Needs no `fields`: the
+  /// server always sends `ImageTags` and, on tracks, `AlbumPrimaryImageTag`
+  /// (verified on 12.0).
   String? get artworkVersion => primaryImageTag ?? albumPrimaryImageTag;
 }
 
