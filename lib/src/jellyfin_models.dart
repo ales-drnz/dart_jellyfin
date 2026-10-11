@@ -527,6 +527,20 @@ class JellyfinItem {
   /// Aspect ratio of the primary image (width/height).
   final double? primaryImageAspectRatio;
 
+  /// Gain in dB that brings this track to the server's loudness target
+  /// (`NormalizationGain`), from Jellyfin's own analysis of the file.
+  ///
+  /// Jellyfin keeps the measured loudness (LUFS) to itself — no DTO in the
+  /// 12.x API carries it, nor any loudness field on `MediaSourceInfo` or
+  /// `MediaStream` — and exposes only this gain. It survives a transcode
+  /// that drops the file's ReplayGain tags. Null until the server's
+  /// "audio normalization" task has run on the item.
+  final double? normalizationGain;
+
+  /// Album-level gain in dB (`AlbumNormalizationGain`), inherited from the
+  /// album's analysis; see [normalizationGain].
+  final double? albumNormalizationGain;
+
   /// Per-user state (play count, favorite, resume position, …).
   final JellyfinUserData? userData;
 
@@ -580,6 +594,8 @@ class JellyfinItem {
     this.childCount,
     this.albumPrimaryImageTag,
     this.primaryImageAspectRatio,
+    this.normalizationGain,
+    this.albumNormalizationGain,
     this.userData,
     this.width,
     this.height,
@@ -629,6 +645,8 @@ class JellyfinItem {
       albumPrimaryImageTag: _str(json['AlbumPrimaryImageTag']),
       imageBlurHashes: _flattenBlurHashes(json['ImageBlurHashes']),
       primaryImageAspectRatio: _double(json['PrimaryImageAspectRatio']),
+      normalizationGain: _double(json['NormalizationGain']),
+      albumNormalizationGain: _double(json['AlbumNormalizationGain']),
       userData: json['UserData'] is Map<String, dynamic>
           ? JellyfinUserData.fromJson(json['UserData'] as Map<String, dynamic>)
           : null,
@@ -647,6 +665,26 @@ class JellyfinItem {
 
   /// `true` when this item plays as audio.
   bool get isAudio => mediaType == 'Audio' || type == JellyfinItemKind.audio;
+
+  /// Tag of the item's own primary image (`ImageTags.Primary`), or `null`.
+  String? get primaryImageTag => imageTags['Primary'];
+
+  /// The id whose primary image is this item's cover: the item itself when
+  /// it has one, else its album (a track without art of its own), else
+  /// `null`.
+  String? get artworkItemId => primaryImageTag != null
+      ? id
+      : albumPrimaryImageTag != null
+          ? albumId
+          : null;
+
+  /// Version of the cover named by [artworkItemId]: the image tag Jellyfin
+  /// recomputes whenever the picture changes. Put it in an artwork cache
+  /// key — and pass it as `tag` to [JellyfinImagesApi.url] — so a cover
+  /// replaced on the server is fetched again. Needs `ImageTags` (always
+  /// sent) and, for tracks, `AlbumPrimaryImageTag` in `fields` (both
+  /// presets have it).
+  String? get artworkVersion => primaryImageTag ?? albumPrimaryImageTag;
 }
 
 /// Lightweight artist reference (`{Id, Name}`) used inside [JellyfinItem.artistItems].
@@ -887,9 +925,50 @@ class JellyfinUserData {
 // Lyrics
 // ---------------------------------------------------------------------------
 
-/// One synced line in a Jellyfin lyrics payload — `Start` is in 100-ns
-/// ticks (so divide by 10000 for milliseconds, or by 10_000_000 for
-/// seconds).
+/// One time-aligned piece of a [JellyfinLyricLine] — usually a word of an
+/// enhanced (word-by-word, "ELRC") lyric.
+class JellyfinLyricCue {
+  /// Index in [JellyfinLyricLine.text] where the piece starts.
+  final int position;
+
+  /// Index in [JellyfinLyricLine.text] where the piece ends. Jellyfin
+  /// 12.0 counts the space after a word into it (`"Hello world"` → cues
+  /// 0–6 and 6–11), but do not rely on that: [JellyfinLyricLine.toLrcLine]
+  /// slices from cue to cue, so no character is lost either way.
+  final int endPosition;
+
+  /// When the piece starts, in 100-ns ticks.
+  final int startTicks;
+
+  /// When the piece ends, in 100-ns ticks, when known.
+  final int? endTicks;
+
+  /// Builds a cue from already-parsed components.
+  const JellyfinLyricCue({
+    required this.position,
+    required this.endPosition,
+    required this.startTicks,
+    this.endTicks,
+  });
+
+  /// Decodes a `{Position, EndPosition, Start, End}` cue.
+  factory JellyfinLyricCue.fromJson(Map<String, dynamic> json) =>
+      JellyfinLyricCue(
+        position: _int(json['Position']) ?? 0,
+        endPosition: _int(json['EndPosition']) ?? 0,
+        startTicks: _int(json['Start']) ?? 0,
+        endTicks: _int(json['End']),
+      );
+
+  /// [startTicks] as a [Duration].
+  Duration get start => Duration(microseconds: startTicks ~/ 10);
+
+  /// [endTicks] as a [Duration], when known.
+  Duration? get end =>
+      endTicks == null ? null : Duration(microseconds: endTicks! ~/ 10);
+}
+
+/// One line of a lyric (`LyricLine`).
 class JellyfinLyricLine {
   /// Start time in 100-ns ticks; `null` for unsynced lines.
   final int? startTicks;
@@ -897,46 +976,158 @@ class JellyfinLyricLine {
   /// Line text.
   final String text;
 
-  /// Builds a lyric line from already-parsed components.
-  const JellyfinLyricLine({required this.text, this.startTicks});
+  /// Word-level timing, when the lyric is enhanced (ELRC); empty otherwise.
+  final List<JellyfinLyricCue> cues;
 
-  /// Decodes a `{Start, Text}` lyrics entry.
+  /// Builds a lyric line from already-parsed components.
+  const JellyfinLyricLine({
+    required this.text,
+    this.startTicks,
+    this.cues = const [],
+  });
+
+  /// Decodes a `{Start, Text, Cues}` lyrics entry.
   factory JellyfinLyricLine.fromJson(Map<String, dynamic> json) =>
       JellyfinLyricLine(
         startTicks: _int(json['Start']),
         text: _str(json['Text']) ?? '',
+        cues: _objList(json['Cues'], JellyfinLyricCue.fromJson),
       );
+
+  /// [startTicks] as a [Duration], or `null` for an unsynced line.
+  Duration? get start =>
+      startTicks == null ? null : Duration(microseconds: startTicks! ~/ 10);
 
   /// Convert to a single LRC line `[mm:ss.xx]text`, or just `text` if no
   /// timestamp is present.
-  String toLrcLine() {
+  ///
+  /// With [enhanced] and [cues], the words carry their own times in the
+  /// enhanced-LRC (ELRC) syntax: `[00:12.00]<00:12.00>Hello <00:12.40>world<00:13.10>`.
+  /// Each word runs from its cue to the next cue, so the spaces between
+  /// words are kept (attached to the word they follow); a last tag closes
+  /// the final word at its end time, when the server sent one. A line with
+  /// cues but no start of its own takes the first cue's.
+  String toLrcLine({bool enhanced = false}) {
+    if (enhanced && cues.isNotEmpty) {
+      final out = StringBuffer();
+      final lineStart = startTicks ?? cues.first.startTicks;
+      out.write('[${lrcTimestamp(lineStart)}]');
+      var consumed = 0;
+      int? lastEnd;
+      for (final cue in cues) {
+        final position = cue.position.clamp(0, text.length);
+        // Out-of-order or overlapping cues would slice backwards: skip.
+        if (position < consumed) continue;
+        if (position > consumed) out.write(text.substring(consumed, position));
+        out.write('<${lrcTimestamp(cue.startTicks)}>');
+        consumed = position;
+        lastEnd = cue.endTicks ?? lastEnd;
+      }
+      if (consumed < text.length) out.write(text.substring(consumed));
+      if (lastEnd != null) out.write('<${lrcTimestamp(lastEnd)}>');
+      return out.toString();
+    }
     final ticks = startTicks;
     if (ticks == null) return text;
-    final ms = (ticks / 10000).round();
-    final totalSec = ms ~/ 1000;
-    final cs = (ms - totalSec * 1000) ~/ 10;
-    final m = (totalSec ~/ 60).toString().padLeft(2, '0');
-    final s = (totalSec % 60).toString().padLeft(2, '0');
-    final c = cs.toString().padLeft(2, '0');
-    return '[$m:$s.$c]$text';
+    return '[${lrcTimestamp(ticks)}]$text';
+  }
+
+  /// Formats ticks as an LRC timestamp, `mm:ss.cc` (truncated, never
+  /// rounded up, so a line never shows before it is sung).
+  static String lrcTimestamp(int ticks) {
+    final ms = ticks ~/ 10000;
+    final m = (ms ~/ 60000).toString().padLeft(2, '0');
+    final s = ((ms % 60000) ~/ 1000).toString().padLeft(2, '0');
+    final c = ((ms % 1000) ~/ 10).toString().padLeft(2, '0');
+    return '$m:$s.$c';
   }
 }
 
-/// Payload of `GET /Audio/{id}/Lyrics`.
+/// Tags of a lyric file (`LyricMetadata`).
+class JellyfinLyricMetadata {
+  /// Song artist.
+  final String? artist;
+
+  /// Album the song is on.
+  final String? album;
+
+  /// Song title.
+  final String? title;
+
+  /// Author of the lyric data.
+  final String? author;
+
+  /// Song length in 100-ns ticks.
+  final int? lengthTicks;
+
+  /// Who made the LRC file.
+  final String? by;
+
+  /// Lyric offset against the audio, in 100-ns ticks.
+  final int? offsetTicks;
+
+  /// Software that made the LRC file.
+  final String? creator;
+
+  /// Version of [creator].
+  final String? version;
+
+  /// Whether the lyric is synced, as the server judged it.
+  final bool? isSynced;
+
+  /// Builds metadata from already-parsed components.
+  const JellyfinLyricMetadata({
+    this.artist,
+    this.album,
+    this.title,
+    this.author,
+    this.lengthTicks,
+    this.by,
+    this.offsetTicks,
+    this.creator,
+    this.version,
+    this.isSynced,
+  });
+
+  /// Decodes a `LyricMetadata` object.
+  factory JellyfinLyricMetadata.fromJson(Map<String, dynamic> json) =>
+      JellyfinLyricMetadata(
+        artist: _str(json['Artist']),
+        album: _str(json['Album']),
+        title: _str(json['Title']),
+        author: _str(json['Author']),
+        lengthTicks: _int(json['Length']),
+        by: _str(json['By']),
+        offsetTicks: _int(json['Offset']),
+        creator: _str(json['Creator']),
+        version: _str(json['Version']),
+        isSynced: json['IsSynced'] is bool ? json['IsSynced'] as bool : null,
+      );
+}
+
+/// Payload of `GET /Audio/{id}/Lyrics` (`LyricDto`).
 class JellyfinLyrics {
   /// Parsed lyric lines, in display order.
   final List<JellyfinLyricLine> lines;
+
+  /// The lyric file's tags, when the server sent them.
+  final JellyfinLyricMetadata? metadata;
 
   /// Untouched response body for fields not lifted above.
   final Map<String, dynamic> raw;
 
   /// Builds a lyrics payload from already-parsed components.
-  const JellyfinLyrics({required this.lines, required this.raw});
+  const JellyfinLyrics({required this.lines, required this.raw, this.metadata});
 
-  /// Decodes `{Lyrics: [...]}`. Tolerates missing or non-list `Lyrics`.
+  /// Decodes `{Lyrics: [...], Metadata: {...}}`. Tolerates missing or
+  /// non-list `Lyrics`.
   factory JellyfinLyrics.fromJson(Map<String, dynamic> json) {
+    final meta = json['Metadata'];
     return JellyfinLyrics(
       lines: _objList(json['Lyrics'], JellyfinLyricLine.fromJson),
+      metadata: meta is Map<String, dynamic>
+          ? JellyfinLyricMetadata.fromJson(meta)
+          : null,
       raw: json,
     );
   }
@@ -944,8 +1135,15 @@ class JellyfinLyrics {
   /// `true` when at least one line carries a timestamp.
   bool get isSynced => lines.any((l) => l.startTicks != null);
 
+  /// `true` when at least one line carries word-level cues (ELRC).
+  bool get hasCues => lines.any((l) => l.cues.isNotEmpty);
+
   /// Render as an LRC document, suitable for any synced-lyrics player.
-  String toLrc() => lines.map((l) => l.toLrcLine()).join('\n');
+  ///
+  /// With [enhanced], lines with cues are written word by word in the ELRC
+  /// syntax (see [JellyfinLyricLine.toLrcLine]); others stay plain LRC.
+  String toLrc({bool enhanced = false}) =>
+      lines.map((l) => l.toLrcLine(enhanced: enhanced)).join('\n');
 
   /// Render as plain text (one line per entry, timestamps dropped).
   String toPlainText() => lines.map((l) => l.text).join('\n');

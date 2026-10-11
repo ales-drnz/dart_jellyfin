@@ -48,6 +48,11 @@ class JellyfinLyricsApi {
   ///
   /// [body] is the raw file bytes. The server picks the parser from
   /// [fileName]'s extension.
+  ///
+  /// The answer is the lyric as the server parsed it — cues included for
+  /// an enhanced LRC. Prefer it to an immediate [forItem]: on Jellyfin 12.0
+  /// that was seen to answer "no lyrics" for a moment while the server
+  /// re-attached the new file.
   Future<JellyfinLyrics?> upload({
     required String itemId,
     required String fileName,
