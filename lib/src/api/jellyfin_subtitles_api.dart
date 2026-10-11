@@ -7,6 +7,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../transport/jellyfin_response.dart';
+import 'jellyfin_text_body.dart';
 import 'jellyfin_videos_api.dart';
 
 /// Subtitle endpoints — `Subtitle` OpenAPI tag.
@@ -205,7 +206,11 @@ class JellyfinSubtitlesApi {
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/subtitles.m3u8?segmentLength=$segmentLength&${_encode(qp)}';
   }
 
-  /// Fetch the subtitle body as raw text. Returns null on 404.
+  /// Fetch the subtitle body as text. Returns null on 404.
+  ///
+  /// The bytes are decoded by their byte-order mark, then the response's
+  /// `charset`, then as UTF-8 with a Latin-1 fallback, so a UTF-8 file
+  /// keeps its accented characters and a BOM is not returned.
   Future<String?> fetch({
     required String itemId,
     required String mediaSourceId,
@@ -219,7 +224,7 @@ class JellyfinSubtitlesApi {
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;
-      return String.fromCharCodes(body);
+      return decodeTextBody(body, contentType: res.contentType);
     } on JellyfinException catch (e) {
       if (e.type == JellyfinErrorType.notFound) return null;
       rethrow;
@@ -245,7 +250,7 @@ class JellyfinSubtitlesApi {
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;
-      return String.fromCharCodes(body);
+      return decodeTextBody(body, contentType: res.contentType);
     } on JellyfinException catch (e) {
       if (e.type == JellyfinErrorType.notFound) return null;
       rethrow;

@@ -7,6 +7,8 @@
 /// the `fields` presets and the HLS audio URL.
 library;
 
+import 'dart:convert';
+
 import 'package:dart_jellyfin/dart_jellyfin.dart';
 import 'package:test/test.dart';
 
@@ -103,6 +105,96 @@ void main() {
     test('timestamps truncate instead of rounding up', () {
       expect(JellyfinLyricLine.lrcTimestamp(15999999), '00:01.59');
       expect(JellyfinLyricLine.lrcTimestamp(61 * _s), '01:01.00');
+    });
+
+    test('audio.lyrics is null on 404 and rethrows other errors', () async {
+      adapter.respond = (_) => CannedResponse(404, const []);
+      expect(await client.audio.lyrics('none'), isNull);
+      expect(adapter.path, '/Audio/none/Lyrics');
+
+      adapter.respond = (_) => CannedResponse(500, const []);
+      await expectLater(
+        client.audio.lyrics('t1'),
+        throwsA(
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.serverError,
+          ),
+        ),
+      );
+    });
+
+    test('lyricsRaw decodes the body as UTF-8', () async {
+      adapter.respond = (_) => CannedResponse(
+            200,
+            utf8.encode('{"Lyrics":[{"Text":"Perché sì"}]}'),
+            contentType: 'application/json; charset=utf-8',
+          );
+      // ignore: deprecated_member_use_from_same_package
+      expect(await client.audio.lyricsRaw('t1'), contains('Perché sì'));
+    });
+  });
+
+  group('text bodies', () {
+    const text = 'WEBVTT\n\n00:01.000 --> 00:02.000\nPerché sì, è già\n';
+
+    Future<String?> fetch(List<int> body, {String contentType = 'text/vtt'}) {
+      adapter.respond =
+          (_) => CannedResponse(200, body, contentType: contentType);
+      return client.subtitles.fetch(
+        itemId: 'i',
+        mediaSourceId: 'm',
+        index: 2,
+      );
+    }
+
+    test('UTF-8 keeps its accented characters', () async {
+      expect(await fetch(utf8.encode(text)), text);
+    });
+
+    test('a UTF-8 BOM is consumed', () async {
+      expect(await fetch([0xEF, 0xBB, 0xBF, ...utf8.encode(text)]), text);
+    });
+
+    test('UTF-16 with a BOM decodes, either byte order', () async {
+      final units = text.codeUnits;
+      final le = [
+        0xFF,
+        0xFE,
+        for (final u in units) ...[u & 0xFF, u >> 8],
+      ];
+      final be = [
+        0xFE,
+        0xFF,
+        for (final u in units) ...[u >> 8, u & 0xFF],
+      ];
+      expect(await fetch(le), text);
+      expect(await fetch(be), text);
+    });
+
+    test('bytes that are not UTF-8 fall back to Latin-1', () async {
+      expect(await fetch(latin1.encode(text)), text);
+    });
+
+    test('a declared Latin-1 charset is honoured', () async {
+      // Valid UTF-8 too, so only the header can say it is Latin-1.
+      final bytes = utf8.encode('è');
+      expect(
+        await fetch(bytes, contentType: 'text/plain; charset=ISO-8859-1'),
+        latin1.decode(bytes),
+      );
+    });
+
+    test('fetchFromPosition decodes the same way', () async {
+      adapter.respond = (_) => CannedResponse(200, utf8.encode(text));
+      final body = await client.subtitles.fetchFromPosition(
+        itemId: 'i',
+        mediaSourceId: 'm',
+        index: 2,
+        startPosition: const Duration(seconds: 1),
+      );
+      expect(body, text);
     });
   });
 

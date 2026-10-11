@@ -1158,12 +1158,17 @@ word-level `JellyfinLyricCue`s with their own start and end), the lyric
 file's tags as `metadata` (`JellyfinLyricMetadata`: artist, album,
 title, offset, …) and the renderers. `toLrc(enhanced: true)` writes
 lines that have cues in the enhanced LRC syntax and the others as plain
-LRC. To grab the
-raw `.lrc` or `.txt` body without going through `JellyfinLyrics`:
+LRC.
 
-```dart
-final raw = await jellyfin.audio.lyricsRaw(track.id);
-```
+`lyrics()` returns `null` on a 404, which Jellyfin answers both for a
+track without lyrics and for an id that names no item. `metadata` is
+often empty: 12.2 answered `Metadata: {}` for an LRC with `[ar:]` and
+`[ti:]` tags.
+
+No route serves the original `.lrc` or `.txt` file: `GET
+/Audio/{id}/Lyrics` answers the parsed lyric as JSON whatever the
+`Accept` header. `audio.lyricsRaw()`, which returned that JSON as text,
+is deprecated; rebuild a file with `toLrc()` or `toPlainText()`.
 
 ---
 

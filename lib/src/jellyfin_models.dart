@@ -1073,6 +1073,9 @@ final class JellyfinLyricLine {
 }
 
 /// Tags of a lyric file (`LyricMetadata`).
+///
+/// Do not count on it: Jellyfin 12.2 answered `Metadata: {}` — every field
+/// here null — for an LRC that carried `[ar:]` and `[ti:]` tags.
 final class JellyfinLyricMetadata {
   /// Song artist.
   final String? artist;
@@ -1139,7 +1142,8 @@ final class JellyfinLyrics {
   /// Parsed lyric lines, in display order.
   final List<JellyfinLyricLine> lines;
 
-  /// The lyric file's tags, when the server sent them.
+  /// The lyric file's tags, when the server sent them. Often empty even
+  /// when the file has tags; see [JellyfinLyricMetadata].
   final JellyfinLyricMetadata? metadata;
 
   /// Untouched response body for fields not lifted above.

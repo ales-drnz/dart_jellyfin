@@ -31,8 +31,9 @@ class JellyfinLyricsApi {
   /// for a track. Mirror of [JellyfinAudioApi.lyrics] for
   /// `lyrics`-only call sites.
   ///
-  /// Returns `null` when the server has no lyrics for this item (404),
-  /// matching [JellyfinAudioApi.lyrics]'s behaviour.
+  /// Returns `null` on 404, matching [JellyfinAudioApi.lyrics]: Jellyfin
+  /// answers 404 both for a track without lyrics and for an id that names
+  /// no item.
   Future<JellyfinLyrics?> forItem(String itemId) async {
     try {
       final res = await _http.request<Map<String, Object?>>(

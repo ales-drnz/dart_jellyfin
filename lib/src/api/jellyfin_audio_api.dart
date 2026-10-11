@@ -8,6 +8,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../transport/jellyfin_response.dart';
+import 'jellyfin_text_body.dart';
 
 /// Audio streaming, lyrics, instant mix.
 ///
@@ -105,8 +106,12 @@ class JellyfinAudioApi {
   /// Lyrics for a track, parsed into [JellyfinLyrics].
   ///
   /// Returns `null` when:
-  ///   - the server returns 404 (no lyrics for this item), or
+  ///   - the server returns 404, or
   ///   - the response body is empty.
+  ///
+  /// Jellyfin answers 404 both for a track without lyrics and for an id
+  /// that names no item (12.2), so `null` does not tell the two apart.
+  /// Other errors (a malformed id is a 400) are thrown.
   Future<JellyfinLyrics?> lyrics(String itemId) async {
     try {
       final res = await _http.request<Map<String, Object?>>(
@@ -121,8 +126,18 @@ class JellyfinAudioApi {
     }
   }
 
-  /// Raw lyrics body as text — useful when you want to display the
-  /// original `.lrc` / `.txt` without going through [JellyfinLyrics].
+  /// The body of `GET /Audio/{itemId}/Lyrics` as text, decoded as UTF-8
+  /// (see [lyrics] for when it is null).
+  ///
+  /// Despite the name this is not the lyric file: the route answers the
+  /// server's parsed `LyricDto` as JSON, whatever the `Accept` header, and
+  /// no route in the 12.x API serves the original `.lrc` / `.txt`
+  /// (checked on 12.2). Use [lyrics] and [JellyfinLyrics.toLrc] or
+  /// [JellyfinLyrics.toPlainText] instead.
+  @Deprecated(
+    'Answers the parsed LyricDto JSON, not the lyric file; use lyrics() '
+    'and JellyfinLyrics.toLrc() / toPlainText() instead.',
+  )
   Future<String?> lyricsRaw(String itemId) async {
     try {
       final res = await _http.request<List<int>>(
@@ -131,7 +146,7 @@ class JellyfinAudioApi {
       );
       final body = res.data;
       if (body == null || body.isEmpty) return null;
-      return String.fromCharCodes(body);
+      return decodeTextBody(body, contentType: res.contentType);
     } on JellyfinException catch (e) {
       if (e.type == JellyfinErrorType.notFound) return null;
       rethrow;
