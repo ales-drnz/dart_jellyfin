@@ -188,10 +188,11 @@ def icon_svg():
             'C3.224 16.9 9.92 4.755 12.003 4.755c2.081 0 8.77 12.166 7.759 14.196zM12 9.198'
             'c-1.054 0-4.446 6.15-3.93 7.189.518 1.04 7.348 1.027 7.86 0 .511-1.027-2.874-7.19-3.93-7.19z')
     s = 600 / 24  # its box is exactly 24 units; as tall as mpv_audio_kit's bars
-    # Centred on the smallest circle around it, through the tip and the two
-    # base corners, so the three are equally far from the rim. A triangle
-    # holds its weight low: centred on its box it sits 52 px too low.
-    cx, cy = 12.0009, 14.0729
+    # The centre of the inner triangle, the core of the concentric mark (the
+    # centre of the smallest circle around it), sits on the disc's centre,
+    # as the Plex chevron's inner vertex does. Centred on its box the mark
+    # sat 52 px low: a triangle holds its weight in its base.
+    cx, cy = 12.0, 13.8674
     tx, ty = 512 - s * cx, 512 - s * cy
     return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" '
             'role="img" aria-label="dart_jellyfin">\n'
