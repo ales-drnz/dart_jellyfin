@@ -13,6 +13,7 @@
 library;
 
 import 'api/jellyfin_notifications_api.dart';
+import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 import 'jellyfin_server_models.dart';
 
@@ -51,7 +52,7 @@ sealed class JellyfinEvent {
   const JellyfinEvent(this.raw);
 
   /// The frame's `MessageId`, unique per frame; `null` when not sent.
-  String? get messageId => _str(raw['MessageId']);
+  String? get messageId => asString(raw['MessageId']);
 
   /// Decodes [notification]; same as `notification.event`.
   static JellyfinEvent fromNotification(JellyfinNotification notification) =>
@@ -59,7 +60,7 @@ sealed class JellyfinEvent {
 
   /// Decodes one `{MessageType, MessageId, Data}` frame.
   static JellyfinEvent fromFrame(Map<String, Object?> frame) {
-    final type = _str(frame['MessageType']) ?? 'Unknown';
+    final type = asString(frame['MessageType']) ?? 'Unknown';
     try {
       return _decode(type, frame) ?? JellyfinUnknownEvent(type, frame);
     } on Object {
@@ -108,7 +109,7 @@ final class JellyfinUserDataChangedEvent extends JellyfinEvent {
   final List<JellyfinUserDataChange> changes;
 
   JellyfinUserDataChangedEvent._(super.raw, Map<String, Object?> data)
-      : userId = _str(data['UserId']) ?? '',
+      : userId = asString(data['UserId']) ?? '',
         changes = [
           if (data['UserDataList'] is List)
             for (final e in data['UserDataList'] as List)
@@ -146,7 +147,7 @@ final class JellyfinUserDataChange {
   /// Decodes a `UserDataList` entry.
   factory JellyfinUserDataChange.fromJson(Map<String, Object?> json) =>
       JellyfinUserDataChange(
-        itemId: _str(json['ItemId']) ?? '',
+        itemId: asString(json['ItemId']) ?? '',
         userData: JellyfinUserData.fromJson(json),
         raw: json,
       );
@@ -171,7 +172,7 @@ final class JellyfinUserDataChange {
   bool? get likes => userData.likes;
 
   /// `Rating`, the user's star rating; left out of the frame until set.
-  double? get rating => _double(raw['Rating']);
+  double? get rating => asDouble(raw['Rating']);
 }
 
 /// `LibraryChanged`: items were added, updated or removed. The server
@@ -197,12 +198,12 @@ final class JellyfinLibraryChangedEvent extends JellyfinEvent {
   final List<String> collectionFolders;
 
   JellyfinLibraryChangedEvent._(super.raw, Map<String, Object?> data)
-      : itemsAdded = _strList(data['ItemsAdded']),
-        itemsUpdated = _strList(data['ItemsUpdated']),
-        itemsRemoved = _strList(data['ItemsRemoved']),
-        foldersAddedTo = _strList(data['FoldersAddedTo']),
-        foldersRemovedFrom = _strList(data['FoldersRemovedFrom']),
-        collectionFolders = _strList(data['CollectionFolders']);
+      : itemsAdded = asStringList(data['ItemsAdded']),
+        itemsUpdated = asStringList(data['ItemsUpdated']),
+        itemsRemoved = asStringList(data['ItemsRemoved']),
+        foldersAddedTo = asStringList(data['FoldersAddedTo']),
+        foldersRemovedFrom = asStringList(data['FoldersRemovedFrom']),
+        collectionFolders = asStringList(data['CollectionFolders']);
 
   /// No id in any list.
   bool get isEmpty =>
@@ -258,14 +259,14 @@ final class JellyfinPlayEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinPlayEvent._(super.raw, Map<String, Object?> data)
-      : itemIds = _strList(data['ItemIds']),
-        playCommand = _str(data['PlayCommand']) ?? '',
-        startPositionTicks = _int(data['StartPositionTicks']),
-        startIndex = _int(data['StartIndex']),
-        mediaSourceId = _str(data['MediaSourceId']),
-        audioStreamIndex = _int(data['AudioStreamIndex']),
-        subtitleStreamIndex = _int(data['SubtitleStreamIndex']),
-        controllingUserId = _str(data['ControllingUserId']);
+      : itemIds = asStringList(data['ItemIds']),
+        playCommand = asString(data['PlayCommand']) ?? '',
+        startPositionTicks = asInt(data['StartPositionTicks']),
+        startIndex = asInt(data['StartIndex']),
+        mediaSourceId = asString(data['MediaSourceId']),
+        audioStreamIndex = asInt(data['AudioStreamIndex']),
+        subtitleStreamIndex = asInt(data['SubtitleStreamIndex']),
+        controllingUserId = asString(data['ControllingUserId']);
 }
 
 /// `Playstate`: another client asked this one to pause, stop, seek, skip, …
@@ -281,9 +282,9 @@ final class JellyfinPlaystateEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinPlaystateEvent._(super.raw, Map<String, Object?> data)
-      : command = _str(data['Command']) ?? '',
-        seekPositionTicks = _int(data['SeekPositionTicks']),
-        controllingUserId = _str(data['ControllingUserId']);
+      : command = asString(data['Command']) ?? '',
+        seekPositionTicks = asInt(data['SeekPositionTicks']),
+        controllingUserId = asString(data['ControllingUserId']);
 
   /// [seekPositionTicks] as a [Duration].
   Duration? get seekPosition => seekPositionTicks == null
@@ -305,13 +306,13 @@ final class JellyfinGeneralCommandEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinGeneralCommandEvent._(super.raw, Map<String, Object?> data)
-      : name = _str(data['Name']) ?? '',
+      : name = asString(data['Name']) ?? '',
         arguments = {
           if (data['Arguments'] is Map)
             for (final e in (data['Arguments'] as Map).entries)
-              '${e.key}': _str(e.value),
+              '${e.key}': asString(e.value),
         },
-        controllingUserId = _str(data['ControllingUserId']);
+        controllingUserId = asString(data['ControllingUserId']);
 }
 
 /// `RefreshProgress`: a library (or the root folder) is being refreshed.
@@ -325,8 +326,8 @@ final class JellyfinRefreshProgressEvent extends JellyfinEvent {
   final double? progress;
 
   JellyfinRefreshProgressEvent._(super.raw, Map<String, Object?> data)
-      : itemId = _str(data['ItemId']) ?? '',
-        progress = _double(data['Progress']);
+      : itemId = asString(data['ItemId']) ?? '',
+        progress = asDouble(data['Progress']);
 
   /// The refresh reached 100.
   bool get isDone => progress != null && progress! >= 100;
@@ -363,10 +364,10 @@ final class JellyfinScheduledTaskEndedEvent extends JellyfinEvent {
       : result = JellyfinTaskResult.fromJson(data);
 
   /// The task's key, e.g. `RefreshLibrary`.
-  String? get key => _str(result.raw['Key']);
+  String? get key => asString(result.raw['Key']);
 
   /// The task's id.
-  String? get taskId => _str(result.raw['Id']);
+  String? get taskId => asString(result.raw['Id']);
 }
 
 /// `KeepAlive` (the answer to this client's keep-alive) or `ForceKeepAlive`
@@ -381,7 +382,7 @@ final class JellyfinKeepAliveEvent extends JellyfinEvent {
 
   JellyfinKeepAliveEvent._(super.raw, String type)
       : isForced = type == 'ForceKeepAlive',
-        timeout = switch (_int(raw['Data'])) {
+        timeout = switch (asInt(raw['Data'])) {
           final int s => Duration(seconds: s),
           null => null,
         };
@@ -400,25 +401,3 @@ final class JellyfinUnknownEvent extends JellyfinEvent {
   /// The frame's `Data`.
   Object? get data => raw['Data'];
 }
-
-String? _str(Object? v) => v == null ? null : '$v';
-
-int? _int(Object? v) => switch (v) {
-      int() => v,
-      double() => v.toInt(),
-      String() => int.tryParse(v),
-      _ => null,
-    };
-
-double? _double(Object? v) => switch (v) {
-      double() => v,
-      int() => v.toDouble(),
-      String() => double.tryParse(v),
-      _ => null,
-    };
-
-List<String> _strList(Object? v) => [
-      if (v is List)
-        for (final e in v)
-          if (e != null) '$e',
-    ];

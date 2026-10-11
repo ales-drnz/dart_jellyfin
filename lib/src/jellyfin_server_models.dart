@@ -9,6 +9,7 @@
 /// responses, not only the API document.
 library;
 
+import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 
 /// How the server sees this client's connection (`/System/Endpoint`).
@@ -59,8 +60,9 @@ final class JellyfinUtcTime {
   /// Decodes `{RequestReceptionTime, ResponseTransmissionTime}`.
   factory JellyfinUtcTime.fromJson(Map<String, Object?> json) =>
       JellyfinUtcTime(
-        requestReceptionTime: _dt(json['RequestReceptionTime']),
-        responseTransmissionTime: _dt(json['ResponseTransmissionTime']),
+        requestReceptionTime: asUtcDateTime(json['RequestReceptionTime']),
+        responseTransmissionTime:
+            asUtcDateTime(json['ResponseTransmissionTime']),
         raw: json,
       );
 }
@@ -118,16 +120,16 @@ final class JellyfinItemCounts {
   /// Decodes an `ItemCounts` body; a missing count is 0.
   factory JellyfinItemCounts.fromJson(Map<String, Object?> json) =>
       JellyfinItemCounts(
-        songCount: _int(json['SongCount']) ?? 0,
-        albumCount: _int(json['AlbumCount']) ?? 0,
-        artistCount: _int(json['ArtistCount']) ?? 0,
-        musicVideoCount: _int(json['MusicVideoCount']) ?? 0,
-        movieCount: _int(json['MovieCount']) ?? 0,
-        seriesCount: _int(json['SeriesCount']) ?? 0,
-        episodeCount: _int(json['EpisodeCount']) ?? 0,
-        boxSetCount: _int(json['BoxSetCount']) ?? 0,
-        bookCount: _int(json['BookCount']) ?? 0,
-        itemCount: _int(json['ItemCount']) ?? 0,
+        songCount: asInt(json['SongCount']) ?? 0,
+        albumCount: asInt(json['AlbumCount']) ?? 0,
+        artistCount: asInt(json['ArtistCount']) ?? 0,
+        musicVideoCount: asInt(json['MusicVideoCount']) ?? 0,
+        movieCount: asInt(json['MovieCount']) ?? 0,
+        seriesCount: asInt(json['SeriesCount']) ?? 0,
+        episodeCount: asInt(json['EpisodeCount']) ?? 0,
+        boxSetCount: asInt(json['BoxSetCount']) ?? 0,
+        bookCount: asInt(json['BookCount']) ?? 0,
+        itemCount: asInt(json['ItemCount']) ?? 0,
         raw: json,
       );
 }
@@ -184,13 +186,13 @@ final class JellyfinScheduledTask {
   factory JellyfinScheduledTask.fromJson(Map<String, Object?> json) {
     final last = json['LastExecutionResult'];
     return JellyfinScheduledTask(
-      id: _str(json['Id']) ?? '',
-      key: _str(json['Key']) ?? '',
-      name: _str(json['Name']) ?? '',
-      state: _str(json['State']) ?? '',
-      currentProgressPercentage: _double(json['CurrentProgressPercentage']),
-      category: _str(json['Category']),
-      description: _str(json['Description']),
+      id: asString(json['Id']) ?? '',
+      key: asString(json['Key']) ?? '',
+      name: asString(json['Name']) ?? '',
+      state: asString(json['State']) ?? '',
+      currentProgressPercentage: asDouble(json['CurrentProgressPercentage']),
+      category: asString(json['Category']),
+      description: asString(json['Description']),
       isHidden: json['IsHidden'] == true,
       lastExecutionResult: last is Map<String, Object?>
           ? JellyfinTaskResult.fromJson(last)
@@ -232,10 +234,10 @@ final class JellyfinTaskResult {
   /// Decodes a `TaskResult`.
   factory JellyfinTaskResult.fromJson(Map<String, Object?> json) =>
       JellyfinTaskResult(
-        status: _str(json['Status']) ?? '',
-        startTime: _dt(json['StartTimeUtc']),
-        endTime: _dt(json['EndTimeUtc']),
-        errorMessage: _str(json['ErrorMessage']),
+        status: asString(json['Status']) ?? '',
+        startTime: asUtcDateTime(json['StartTimeUtc']),
+        endTime: asUtcDateTime(json['EndTimeUtc']),
+        errorMessage: asString(json['ErrorMessage']),
         raw: json,
       );
 }
@@ -284,14 +286,14 @@ final class JellyfinDevice {
 
   /// Decodes a `DeviceInfoDto`.
   factory JellyfinDevice.fromJson(Map<String, Object?> json) => JellyfinDevice(
-        id: _str(json['Id']) ?? '',
-        name: _str(json['Name']),
-        customName: _str(json['CustomName']),
-        appName: _str(json['AppName']),
-        appVersion: _str(json['AppVersion']),
-        lastUserName: _str(json['LastUserName']),
-        lastUserId: _str(json['LastUserId']),
-        dateLastActivity: _dt(json['DateLastActivity']),
+        id: asString(json['Id']) ?? '',
+        name: asString(json['Name']),
+        customName: asString(json['CustomName']),
+        appName: asString(json['AppName']),
+        appVersion: asString(json['AppVersion']),
+        lastUserName: asString(json['LastUserName']),
+        lastUserId: asString(json['LastUserId']),
+        dateLastActivity: asUtcDateTime(json['DateLastActivity']),
         raw: json,
       );
 }
@@ -341,14 +343,14 @@ final class JellyfinActivityLogEntry {
   /// Decodes an `ActivityLogEntry`.
   factory JellyfinActivityLogEntry.fromJson(Map<String, Object?> json) =>
       JellyfinActivityLogEntry(
-        id: _int(json['Id']) ?? 0,
-        name: _str(json['Name']) ?? '',
-        type: _str(json['Type']) ?? '',
-        date: _dt(json['Date']),
-        itemId: _str(json['ItemId']),
-        userId: _str(json['UserId']),
-        severity: _str(json['Severity']),
-        overview: _str(json['Overview']),
+        id: asInt(json['Id']) ?? 0,
+        name: asString(json['Name']) ?? '',
+        type: asString(json['Type']) ?? '',
+        date: asUtcDateTime(json['Date']),
+        itemId: asString(json['ItemId']),
+        userId: asString(json['UserId']),
+        severity: asString(json['Severity']),
+        overview: asString(json['Overview']),
         raw: json,
       );
 }
@@ -398,14 +400,14 @@ final class JellyfinImageInfo {
   /// Decodes an `ImageInfo`.
   factory JellyfinImageInfo.fromJson(Map<String, Object?> json) =>
       JellyfinImageInfo(
-        type: _str(json['ImageType']) ?? '',
-        index: _int(json['ImageIndex']),
-        tag: _str(json['ImageTag']),
-        blurHash: _str(json['BlurHash']),
-        width: _int(json['Width']),
-        height: _int(json['Height']),
-        size: _int(json['Size']),
-        path: _str(json['Path']),
+        type: asString(json['ImageType']) ?? '',
+        index: asInt(json['ImageIndex']),
+        tag: asString(json['ImageTag']),
+        blurHash: asString(json['BlurHash']),
+        width: asInt(json['Width']),
+        height: asInt(json['Height']),
+        size: asInt(json['Size']),
+        path: asString(json['Path']),
         raw: json,
       );
 }
@@ -436,8 +438,8 @@ final class JellyfinRemoteLyric {
   factory JellyfinRemoteLyric.fromJson(Map<String, Object?> json) {
     final lyrics = json['Lyrics'];
     return JellyfinRemoteLyric(
-      id: _str(json['Id']) ?? '',
-      providerName: _str(json['ProviderName']),
+      id: asString(json['Id']) ?? '',
+      providerName: asString(json['ProviderName']),
       lyrics: lyrics is Map<String, Object?>
           ? JellyfinLyrics.fromJson(lyrics)
           : null,
@@ -479,15 +481,15 @@ final class JellyfinSyncPlayGroup {
   /// Decodes a `GroupInfoDto`.
   factory JellyfinSyncPlayGroup.fromJson(Map<String, Object?> json) =>
       JellyfinSyncPlayGroup(
-        id: _str(json['GroupId']) ?? '',
-        name: _str(json['GroupName']) ?? '',
-        state: _str(json['State']) ?? '',
+        id: asString(json['GroupId']) ?? '',
+        name: asString(json['GroupName']) ?? '',
+        state: asString(json['State']) ?? '',
         participants: [
           if (json['Participants'] is List)
             for (final p in json['Participants'] as List)
               if (p != null) '$p',
         ],
-        lastUpdatedAt: _dt(json['LastUpdatedAt']),
+        lastUpdatedAt: asUtcDateTime(json['LastUpdatedAt']),
         raw: json,
       );
 }
@@ -513,26 +515,8 @@ final class JellyfinPlaylistUserPermission {
   /// Decodes `{UserId, CanEdit}`.
   factory JellyfinPlaylistUserPermission.fromJson(Map<String, Object?> json) =>
       JellyfinPlaylistUserPermission(
-        userId: _str(json['UserId']) ?? '',
+        userId: asString(json['UserId']) ?? '',
         canEdit: json['CanEdit'] == true,
         raw: json,
       );
 }
-
-String? _str(Object? v) => v == null ? null : '$v';
-
-int? _int(Object? v) => switch (v) {
-      int() => v,
-      double() => v.toInt(),
-      String() => int.tryParse(v),
-      _ => null,
-    };
-
-double? _double(Object? v) => switch (v) {
-      double() => v,
-      int() => v.toDouble(),
-      String() => double.tryParse(v),
-      _ => null,
-    };
-
-DateTime? _dt(Object? v) => v is String ? DateTime.tryParse(v)?.toUtc() : null;
