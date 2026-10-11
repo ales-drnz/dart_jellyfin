@@ -1,0 +1,74 @@
+{
+ "Items": [
+  {
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    },
+    {
+     "Id": "39d63c85b067c03f3f213117df62bd2f",
+     "Name": "MusicBrainz Test Artist"
+    }
+   ],
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "ChildCount": 3,
+   "DateCreated": "2026-08-11T16:12:02.4129254Z",
+   "GenreItems": [
+    {
+     "Id": "7566ee57563df93ee76cce4f2c4349a7",
+     "Name": "Ambient"
+    },
+    {
+     "Id": "b51d0202462c9ba6834f6c35acbcecb9",
+     "Name": "Field Recording"
+    }
+   ],
+   "Genres": [
+    "Ambient",
+    "Field Recording"
+   ],
+   "Id": "72839210ba8018a1bf1039f340953486",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {
+    "Primary": "e8ee3c665767491920a412e20897ade3"
+   },
+   "IsFolder": true,
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "Name": "Test Album",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "PrimaryImageAspectRatio": 1,
+   "ProductionYear": 2020,
+   "RunTimeTicks": 90000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "test album",
+   "Type": "MusicAlbum",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "72839210ba8018a1bf1039f340953486",
+    "Key": "MusicAlbum-MusicBrainzReleaseGroup-5b35fbbc-3f45-45a8-95a9-2545dbf44e7c",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 1
+}

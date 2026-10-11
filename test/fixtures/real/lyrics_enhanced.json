@@ -1,0 +1,28 @@
+{
+ "Lyrics": [
+  {
+   "Cues": [
+    {
+     "End": 15000000,
+     "EndPosition": 6,
+     "Position": 0,
+     "Start": 10000000
+    },
+    {
+     "End": 20000000,
+     "EndPosition": 11,
+     "Position": 6,
+     "Start": 15000000
+    }
+   ],
+   "Start": 10000000,
+   "Text": "Hello world"
+  },
+  {
+   "Cues": [],
+   "Start": 25000000,
+   "Text": "second line"
+  }
+ ],
+ "Metadata": {}
+}

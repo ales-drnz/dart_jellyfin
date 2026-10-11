@@ -1,0 +1,50 @@
+{
+ "Items": [
+  {
+   "AlbumCount": 1,
+   "ArtistCount": 0,
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "ChildCount": 2,
+   "EpisodeCount": 0,
+   "Id": "a02615cf99bc5ba4fd4f9d8a5513ace1",
+   "ImageBlurHashes": {},
+   "ImageTags": {},
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "MovieCount": 0,
+   "MusicVideoCount": 0,
+   "Name": "Ambient",
+   "ProgramCount": 0,
+   "SeriesCount": 0,
+   "ServerId": "00000000000000000000000000000000",
+   "SongCount": 1,
+   "TrailerCount": 0,
+   "Type": "Genre"
+  },
+  {
+   "AlbumCount": 1,
+   "ArtistCount": 0,
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "ChildCount": 3,
+   "EpisodeCount": 0,
+   "Id": "576da573fae8a5c9fb413f33141e15b4",
+   "ImageBlurHashes": {},
+   "ImageTags": {},
+   "LocationType": "FileSystem",
+   "MediaType": "Unknown",
+   "MovieCount": 0,
+   "MusicVideoCount": 0,
+   "Name": "Field Recording",
+   "ProgramCount": 0,
+   "SeriesCount": 0,
+   "ServerId": "00000000000000000000000000000000",
+   "SongCount": 1,
+   "TrailerCount": 0,
+   "Type": "Genre"
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 2
+}

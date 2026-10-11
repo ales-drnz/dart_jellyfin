@@ -1,0 +1,132 @@
+{
+ "Items": [
+  {
+   "Album": "Test Album",
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "AlbumId": "72839210ba8018a1bf1039f340953486",
+   "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "Container": "mp3",
+   "DateCreated": "2026-08-11T16:13:56.4629745Z",
+   "GenreItems": [
+    {
+     "Id": "7566ee57563df93ee76cce4f2c4349a7",
+     "Name": "Ambient"
+    }
+   ],
+   "Genres": [
+    "Ambient"
+   ],
+   "HasLyrics": true,
+   "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {},
+   "IndexNumber": 1,
+   "IsFolder": false,
+   "LocationType": "FileSystem",
+   "MediaType": "Audio",
+   "Name": "Track 1",
+   "PlaylistItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "RunTimeTicks": 30000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "0001 - Track 1",
+   "Type": "Audio",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Key": "b5455b2d-caf6-4392-527a-5ae01dd1523f",
+    "LastPlayedDate": "2026-10-11T09:48:07.1815384Z",
+    "PlayCount": 1,
+    "PlaybackPositionTicks": 0,
+    "Played": true
+   }
+  },
+  {
+   "Album": "Test Album",
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "AlbumId": "72839210ba8018a1bf1039f340953486",
+   "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "Container": "mp3",
+   "DateCreated": "2026-08-11T16:13:56.4629745Z",
+   "GenreItems": [
+    {
+     "Id": "7566ee57563df93ee76cce4f2c4349a7",
+     "Name": "Ambient"
+    }
+   ],
+   "Genres": [
+    "Ambient"
+   ],
+   "HasLyrics": true,
+   "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {},
+   "IndexNumber": 1,
+   "IsFolder": false,
+   "LocationType": "FileSystem",
+   "MediaType": "Audio",
+   "Name": "Track 1",
+   "PlaylistItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "RunTimeTicks": 30000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "0001 - Track 1",
+   "Type": "Audio",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Key": "b5455b2d-caf6-4392-527a-5ae01dd1523f",
+    "LastPlayedDate": "2026-10-11T09:48:07.1815384Z",
+    "PlayCount": 1,
+    "PlaybackPositionTicks": 0,
+    "Played": true
+   }
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 2
+}

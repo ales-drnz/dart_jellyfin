@@ -1,0 +1,488 @@
+{
+ "Items": [
+  {
+   "Album": "Test Album",
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "AlbumId": "72839210ba8018a1bf1039f340953486",
+   "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "Container": "mp3",
+   "DateCreated": "2026-08-11T16:13:56.4629745Z",
+   "GenreItems": [
+    {
+     "Id": "7566ee57563df93ee76cce4f2c4349a7",
+     "Name": "Ambient"
+    }
+   ],
+   "Genres": [
+    "Ambient"
+   ],
+   "HasLyrics": true,
+   "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {},
+   "IndexNumber": 1,
+   "IsFolder": false,
+   "LocationType": "FileSystem",
+   "MediaSources": [
+    {
+     "Bitrate": 130816,
+     "Container": "mp3",
+     "DefaultAudioStreamIndex": 0,
+     "ETag": "e02b128117ef79d3c70804ab2cb8ea06",
+     "Formats": [],
+     "GenPtsInput": false,
+     "HasSegments": false,
+     "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+     "IgnoreDts": false,
+     "IgnoreIndex": false,
+     "IsInfiniteStream": false,
+     "IsRemote": false,
+     "MediaAttachments": [],
+     "MediaStreams": [
+      {
+       "AudioSpatialFormat": "None",
+       "BitRate": 128000,
+       "ChannelLayout": "stereo",
+       "Channels": 2,
+       "Codec": "mp3",
+       "DisplayTitle": "MP3 - Stereo",
+       "Index": 0,
+       "IsDefault": false,
+       "IsExternal": false,
+       "IsForced": false,
+       "IsHearingImpaired": false,
+       "IsInterlaced": false,
+       "IsOriginal": false,
+       "IsTextSubtitleStream": false,
+       "LocalizedDefault": "Default",
+       "LocalizedExternal": "External",
+       "LocalizedOriginal": "Original",
+       "SampleRate": 44100,
+       "SupportsExternalStream": false,
+       "TimeBase": "1/14112000",
+       "Type": "Audio",
+       "VideoRange": "Unknown",
+       "VideoRangeType": "Unknown"
+      },
+      {
+       "AudioSpatialFormat": "None",
+       "Index": 1,
+       "IsDefault": false,
+       "IsExternal": false,
+       "IsForced": false,
+       "IsHearingImpaired": false,
+       "IsInterlaced": false,
+       "IsOriginal": false,
+       "IsTextSubtitleStream": false,
+       "Path": "/config/metadata/library/b5/b5455b2dcaf64392527a5ae01dd1523f/01 - Track 1.lrc",
+       "SupportsExternalStream": false,
+       "Type": "Lyric",
+       "VideoRange": "Unknown",
+       "VideoRangeType": "Unknown"
+      }
+     ],
+     "Name": "01 - Track 1",
+     "Path": "/media/Music/Test Artist/Test Album/01 - Track 1.mp3",
+     "Protocol": "File",
+     "ReadAtNativeFramerate": false,
+     "RequiredHttpHeaders": {},
+     "RequiresClosing": false,
+     "RequiresLooping": false,
+     "RequiresOpening": false,
+     "RunTimeTicks": 30000000,
+     "Size": 49056,
+     "SupportsDirectPlay": true,
+     "SupportsDirectStream": true,
+     "SupportsProbing": true,
+     "SupportsTranscoding": true,
+     "TranscodingSubProtocol": "http",
+     "Type": "Default",
+     "UseMostCompatibleTranscodingProfile": false
+    }
+   ],
+   "MediaStreams": [
+    {
+     "AudioSpatialFormat": "None",
+     "BitRate": 128000,
+     "ChannelLayout": "stereo",
+     "Channels": 2,
+     "Codec": "mp3",
+     "DisplayTitle": "MP3 - Stereo",
+     "Index": 0,
+     "IsDefault": false,
+     "IsExternal": false,
+     "IsForced": false,
+     "IsHearingImpaired": false,
+     "IsInterlaced": false,
+     "IsOriginal": false,
+     "IsTextSubtitleStream": false,
+     "LocalizedDefault": "Default",
+     "LocalizedExternal": "External",
+     "LocalizedOriginal": "Original",
+     "SampleRate": 44100,
+     "SupportsExternalStream": false,
+     "TimeBase": "1/14112000",
+     "Type": "Audio",
+     "VideoRange": "Unknown",
+     "VideoRangeType": "Unknown"
+    },
+    {
+     "AudioSpatialFormat": "None",
+     "Index": 1,
+     "IsDefault": false,
+     "IsExternal": false,
+     "IsForced": false,
+     "IsHearingImpaired": false,
+     "IsInterlaced": false,
+     "IsOriginal": false,
+     "IsTextSubtitleStream": false,
+     "Path": "/config/metadata/library/b5/b5455b2dcaf64392527a5ae01dd1523f/01 - Track 1.lrc",
+     "SupportsExternalStream": false,
+     "Type": "Lyric",
+     "VideoRange": "Unknown",
+     "VideoRangeType": "Unknown"
+    }
+   ],
+   "MediaType": "Audio",
+   "Name": "Track 1",
+   "ParentId": "72839210ba8018a1bf1039f340953486",
+   "Path": "/media/Music/Test Artist/Test Album/01 - Track 1.mp3",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "ProviderIds": {},
+   "RunTimeTicks": 30000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "0001 - Track 1",
+   "Type": "Audio",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Key": "b5455b2d-caf6-4392-527a-5ae01dd1523f",
+    "LastPlayedDate": "2026-10-11T09:48:07.1815384Z",
+    "PlayCount": 1,
+    "PlaybackPositionTicks": 0,
+    "Played": true
+   }
+  },
+  {
+   "Album": "Test Album",
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "AlbumId": "72839210ba8018a1bf1039f340953486",
+   "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "Container": "mp3",
+   "DateCreated": "2026-08-11T16:13:56.514974Z",
+   "GenreItems": [
+    {
+     "Id": "b51d0202462c9ba6834f6c35acbcecb9",
+     "Name": "Field Recording"
+    }
+   ],
+   "Genres": [
+    "Field Recording"
+   ],
+   "HasLyrics": false,
+   "Id": "1a4ef9cc5ee2701bc170693e353ac6d0",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {},
+   "IndexNumber": 2,
+   "IsFolder": false,
+   "LocationType": "FileSystem",
+   "MediaSources": [
+    {
+     "Bitrate": 130837,
+     "Container": "mp3",
+     "DefaultAudioStreamIndex": 0,
+     "ETag": "c63122f332bc1f20268bb61486fda8b0",
+     "Formats": [],
+     "GenPtsInput": false,
+     "HasSegments": false,
+     "Id": "1a4ef9cc5ee2701bc170693e353ac6d0",
+     "IgnoreDts": false,
+     "IgnoreIndex": false,
+     "IsInfiniteStream": false,
+     "IsRemote": false,
+     "MediaAttachments": [],
+     "MediaStreams": [
+      {
+       "AudioSpatialFormat": "None",
+       "BitRate": 128000,
+       "ChannelLayout": "stereo",
+       "Channels": 2,
+       "Codec": "mp3",
+       "DisplayTitle": "MP3 - Stereo",
+       "Index": 0,
+       "IsDefault": false,
+       "IsExternal": false,
+       "IsForced": false,
+       "IsHearingImpaired": false,
+       "IsInterlaced": false,
+       "IsOriginal": false,
+       "IsTextSubtitleStream": false,
+       "LocalizedDefault": "Default",
+       "LocalizedExternal": "External",
+       "LocalizedOriginal": "Original",
+       "SampleRate": 44100,
+       "SupportsExternalStream": false,
+       "TimeBase": "1/14112000",
+       "Type": "Audio",
+       "VideoRange": "Unknown",
+       "VideoRangeType": "Unknown"
+      }
+     ],
+     "Name": "02 - Track 2",
+     "Path": "/media/Music/Test Artist/Test Album/02 - Track 2.mp3",
+     "Protocol": "File",
+     "ReadAtNativeFramerate": false,
+     "RequiredHttpHeaders": {},
+     "RequiresClosing": false,
+     "RequiresLooping": false,
+     "RequiresOpening": false,
+     "RunTimeTicks": 30000000,
+     "Size": 49064,
+     "SupportsDirectPlay": true,
+     "SupportsDirectStream": true,
+     "SupportsProbing": true,
+     "SupportsTranscoding": true,
+     "TranscodingSubProtocol": "http",
+     "Type": "Default",
+     "UseMostCompatibleTranscodingProfile": false
+    }
+   ],
+   "MediaStreams": [
+    {
+     "AudioSpatialFormat": "None",
+     "BitRate": 128000,
+     "ChannelLayout": "stereo",
+     "Channels": 2,
+     "Codec": "mp3",
+     "DisplayTitle": "MP3 - Stereo",
+     "Index": 0,
+     "IsDefault": false,
+     "IsExternal": false,
+     "IsForced": false,
+     "IsHearingImpaired": false,
+     "IsInterlaced": false,
+     "IsOriginal": false,
+     "IsTextSubtitleStream": false,
+     "LocalizedDefault": "Default",
+     "LocalizedExternal": "External",
+     "LocalizedOriginal": "Original",
+     "SampleRate": 44100,
+     "SupportsExternalStream": false,
+     "TimeBase": "1/14112000",
+     "Type": "Audio",
+     "VideoRange": "Unknown",
+     "VideoRangeType": "Unknown"
+    }
+   ],
+   "MediaType": "Audio",
+   "Name": "Track 2",
+   "ParentId": "72839210ba8018a1bf1039f340953486",
+   "Path": "/media/Music/Test Artist/Test Album/02 - Track 2.mp3",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "ProviderIds": {},
+   "RunTimeTicks": 30000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "0002 - Track 2",
+   "Type": "Audio",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "1a4ef9cc5ee2701bc170693e353ac6d0",
+    "Key": "Test Artist-Test Album-0002Track 2",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  },
+  {
+   "Album": "Test Album",
+   "AlbumArtist": "Test Artist",
+   "AlbumArtists": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "AlbumId": "72839210ba8018a1bf1039f340953486",
+   "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+   "ArtistItems": [
+    {
+     "Id": "2ac1215700ad5ae5e300de65949c5647",
+     "Name": "Test Artist"
+    }
+   ],
+   "Artists": [
+    "Test Artist"
+   ],
+   "BackdropImageTags": [],
+   "ChannelId": null,
+   "Container": "mp3",
+   "DateCreated": "2026-08-11T16:13:56.5649735Z",
+   "GenreItems": [],
+   "Genres": [],
+   "HasLyrics": false,
+   "Id": "f680233429f72250f907f57f0332c1e4",
+   "ImageBlurHashes": {
+    "Primary": {
+     "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+    }
+   },
+   "ImageTags": {},
+   "IndexNumber": 3,
+   "IsFolder": false,
+   "LocationType": "FileSystem",
+   "MediaSources": [
+    {
+     "Bitrate": 130765,
+     "Container": "mp3",
+     "DefaultAudioStreamIndex": 0,
+     "ETag": "2564e5b864d8fef51412a58f0b05e24b",
+     "Formats": [],
+     "GenPtsInput": false,
+     "HasSegments": false,
+     "Id": "f680233429f72250f907f57f0332c1e4",
+     "IgnoreDts": false,
+     "IgnoreIndex": false,
+     "IsInfiniteStream": false,
+     "IsRemote": false,
+     "MediaAttachments": [],
+     "MediaStreams": [
+      {
+       "AudioSpatialFormat": "None",
+       "BitRate": 128000,
+       "ChannelLayout": "stereo",
+       "Channels": 2,
+       "Codec": "mp3",
+       "DisplayTitle": "MP3 - Stereo",
+       "Index": 0,
+       "IsDefault": false,
+       "IsExternal": false,
+       "IsForced": false,
+       "IsHearingImpaired": false,
+       "IsInterlaced": false,
+       "IsOriginal": false,
+       "IsTextSubtitleStream": false,
+       "LocalizedDefault": "Default",
+       "LocalizedExternal": "External",
+       "LocalizedOriginal": "Original",
+       "SampleRate": 44100,
+       "SupportsExternalStream": false,
+       "TimeBase": "1/14112000",
+       "Type": "Audio",
+       "VideoRange": "Unknown",
+       "VideoRangeType": "Unknown"
+      }
+     ],
+     "Name": "03 - Track 3",
+     "Path": "/media/Music/Test Artist/Test Album/03 - Track 3.mp3",
+     "Protocol": "File",
+     "ReadAtNativeFramerate": false,
+     "RequiredHttpHeaders": {},
+     "RequiresClosing": false,
+     "RequiresLooping": false,
+     "RequiresOpening": false,
+     "RunTimeTicks": 30000000,
+     "Size": 49037,
+     "SupportsDirectPlay": true,
+     "SupportsDirectStream": true,
+     "SupportsProbing": true,
+     "SupportsTranscoding": true,
+     "TranscodingSubProtocol": "http",
+     "Type": "Default",
+     "UseMostCompatibleTranscodingProfile": false
+    }
+   ],
+   "MediaStreams": [
+    {
+     "AudioSpatialFormat": "None",
+     "BitRate": 128000,
+     "ChannelLayout": "stereo",
+     "Channels": 2,
+     "Codec": "mp3",
+     "DisplayTitle": "MP3 - Stereo",
+     "Index": 0,
+     "IsDefault": false,
+     "IsExternal": false,
+     "IsForced": false,
+     "IsHearingImpaired": false,
+     "IsInterlaced": false,
+     "IsOriginal": false,
+     "IsTextSubtitleStream": false,
+     "LocalizedDefault": "Default",
+     "LocalizedExternal": "External",
+     "LocalizedOriginal": "Original",
+     "SampleRate": 44100,
+     "SupportsExternalStream": false,
+     "TimeBase": "1/14112000",
+     "Type": "Audio",
+     "VideoRange": "Unknown",
+     "VideoRangeType": "Unknown"
+    }
+   ],
+   "MediaType": "Audio",
+   "Name": "Track 3",
+   "ParentId": "72839210ba8018a1bf1039f340953486",
+   "Path": "/media/Music/Test Artist/Test Album/03 - Track 3.mp3",
+   "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+   "ProductionYear": 2020,
+   "ProviderIds": {},
+   "RunTimeTicks": 30000000,
+   "ServerId": "00000000000000000000000000000000",
+   "SortName": "0003 - Track 3",
+   "Type": "Audio",
+   "UserData": {
+    "IsFavorite": false,
+    "ItemId": "f680233429f72250f907f57f0332c1e4",
+    "Key": "Test Artist-Test Album-0003Track 3",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  }
+ ],
+ "StartIndex": 0,
+ "TotalRecordCount": 3
+}
