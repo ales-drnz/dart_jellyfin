@@ -1,3 +1,51 @@
+## [0.3.0] - 11-10-2026
+
+Targets Jellyfin `12.2` (the integration stack now runs `jellyfin/jellyfin:12.2`); behaviours noted as verified were checked against 12.0 and 12.2 servers.
+
+### Breaking
+- **The transport is `package:http`, not Dio.** `JellyfinClient(dio:)` is gone: pass any `http.Client` as `httpClient:` (a `CupertinoClient` or `CronetClient` for HTTP/2 and the system proxy, a `MockClient` in tests), or none for the default `dart:io` one. `request()` / `get()` / `post()` / `delete()` return a `JellyfinResponse<T>` (`.data`, `.statusCode`, `.headers`, `.contentType`) instead of Dio's `Response<T>`, take a `JellyfinResponseType` instead of Dio's `ResponseType`, and a `JellyfinCancelToken` instead of Dio's `CancelToken`. `requestBytes()` answers a `JellyfinResponse<Uint8List>`. `JellyfinException.fromDio` and the deprecated `fetchBytes()` are gone. The query string, body and headers on the wire are unchanged.
+- **Typed answers instead of maps**: `system.endpointInfo()` / `utcTime()`, `scheduledTasks.list()` / `byId()`, `library.counts()` (`JellyfinItemCounts`), `devices.list()` / `info()`, `activityLog.entries()` (a paged `JellyfinQueryResult`), `images.listItemImages()`, `lyrics.searchRemote()`, `syncPlay.list()` / `group()` and `playlists.users()`. Each model keeps the body in `raw`.
+- **`Object?` instead of `dynamic`** in every map and list the API exposes. Reading and assigning work as before; a chained dynamic access such as `raw['a']['b']` now needs a type check.
+- **Models are `final`**: they can no longer be extended or implemented outside the package. `JellyfinClient` and the sub-API classes stay open, so test fakes still work.
+- `JellyfinItemsApi.musicFields` no longer lists `AlbumPrimaryImageTag`: it is not an `ItemFields` member, and the server sends it on every track regardless (verified), so nothing on the wire changes in effect.
+
+### Added
+- `JellyfinClient.withCancelToken(token)`: a view of the client whose every sub-API call is cancelled by `token.cancel()`.
+- `JellyfinRetryPolicy` (`retryPolicy:`): opt-in resend of `GET` / `HEAD` after a network failure, `502`, `503`, `504` or `429`, with backoff, jitter and `Retry-After`.
+- `JellyfinException.isNetworkFailure`, `isTransient`, `isNotFound`, `isCancelled`, `retryAfter`, with the same meaning as in `dart_plex`.
+- `requestStream()`, and `downloadToFile()` in the new `package:dart_jellyfin/io.dart` (streams to disk, whole file or none, with progress).
+- Lyrics: `JellyfinLyricLine.cues` (`JellyfinLyricCue`, word-level ELRC timing), `JellyfinLyrics.metadata`, `hasCues`, and `toLrc(enhanced: true)` writing the enhanced-LRC form (verified with an enhanced `.lrc` uploaded to the server).
+- `JellyfinItem.normalizationGain` / `albumNormalizationGain` (Jellyfin exposes no LUFS value, only the gain), `primaryImageTag`, `artworkItemId`, `artworkVersion`, `genreItems` (ids for `genreIds:`), `albumArtistItems`, `playlistItemId`.
+- `JellyfinItemsApi.browseFields`: the light `fields` set for grids (~1.2 KB a track against ~3.2 KB with `musicFields`, measured).
+- `images.url()` takes `maxWidth`, `maxHeight`, `blur` and `backgroundColor`; `fetch()` takes the same sizing parameters (`maxWidth`, `maxHeight`, `width`, `height`, `fill*`, `quality`, `format`) and a cancel token. Measured: `max*` fit inside the box, `fill*` cover it, `width`/`height` stretch, and `format=Jpg` is honoured together with `maxWidth`.
+- `hls.audioVariantUrl()` / `audioMasterUrl()` take `segmentContainer`, `segmentLength`, `minSegments`, `enableAutoStreamCopy`, `allowAudioStreamCopy`, `audioSampleRate`, `maxAudioBitDepth` and `context`, under the names the route reads.
+- `playback.start()` / `progress()` take `method:` (`JellyfinPlayMethod`), `order:` (`JellyfinPlaybackOrder`) and `repeat:` (`JellyfinRepeatMode`).
+- `subtitles.streamWithTicksUrl(endPositionTicks:)`.
+- `JellyfinPaging.pages()` / `items()`.
+
+### Changed
+- JSON decoding, model parsing and gzip inflation run on a background isolate above `jsonIsolateThreshold` (50 KB by default, now a constructor argument). Measured on six parallel 1.5 MB pages, the stall of the calling isolate went from 38–64 ms to 14–23 ms.
+- Stricter lints; every documentation reference resolves.
+
+### Fixed
+- Parameters the routes do not read, found by the new spec contract test and no longer sent: `liveTv.channels(searchTerm:)`, the video builders' `maxStreamingBitrate` (use `videoBitRate` / `audioBitRate`), `subtitles.streamWithTicksUrl(segmentLength:)`, and `DeviceId` on the legacy HLS segment URLs. `tvShows.nextUp(disableFirstEpisode:)` was removed in 12.x and is now sent only when passed.
+
+### Deprecated
+- `playback.start/progress(playMethod:, playbackOrder:, repeatMode:)` (`String`) → `method:`, `order:`, `repeat:`.
+- `liveTv.channels(searchTerm:)`, `tvShows.nextUp(disableFirstEpisode:)`, `videos.streamUrl(maxStreamingBitrate:)` and the video HLS builders' `maxStreamingBitrate`, `subtitles.streamWithTicksUrl(segmentLength:)`.
+
+### Notes (verified)
+- `/Genres` with `includeItemTypes: [MusicAlbum, Audio]` answers the same ids as `/MusicGenres`, and those ids filter albums and tracks; `instantMix.fromItem(itemId: genreId)` answers that genre's tracks.
+- `items.list(parentId:)` scopes albums and tracks to one library but **not** `MusicArtist` items; `artists.albumArtists(parentId:)` does (two music libraries, 12.0).
+- A playlist entry id is the item id on 12.2: removing it removes every copy of a duplicated track, moving it moves the first.
+- A playlist rename sent within ~0.5 s of an entry change is lost (10/10), and a read right after a move can show the old order.
+- `audio.universalStreamUrl()` keeps `PlaySessionId`: `/universal` does not declare it, but copies it into the HLS variant URL, which reads it.
+- An HLS transcode is filed under the URL's `DeviceId` (the auth header's in every builder here); a paused session that reported `isPaused` kept its job for the 130 s observed without `ping()`.
+
+### Tests
+- A spec contract test calls every public method and checks each request's route, method and query parameters against the pinned 12.2 document (plus the 10.11.6 routes 12.x hides).
+- Wire tests for the new surface, real anonymised fixtures, integration tests against 12.2, and read-only live tests against any server (`JELLYFIN_URL` / `JELLYFIN_TOKEN`, tag `live`).
+
 ## [0.2.1] - 22-09-2026
 
 ### Changed
