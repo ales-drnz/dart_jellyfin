@@ -1,0 +1,8 @@
+{
+ "Data": {
+  "Command": "Pause",
+  "ControllingUserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ },
+ "MessageId": "00000000000000000000000000000007",
+ "MessageType": "Playstate"
+}

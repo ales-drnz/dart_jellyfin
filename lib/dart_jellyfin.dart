@@ -97,6 +97,7 @@ export 'src/jellyfin_auth_header.dart' show JellyfinAuthHeader;
 export 'src/jellyfin_client.dart';
 export 'src/jellyfin_credentials.dart';
 export 'src/jellyfin_error_type.dart';
+export 'src/jellyfin_events.dart';
 export 'src/jellyfin_exception.dart';
 export 'src/jellyfin_models.dart';
 export 'src/jellyfin_paging.dart';

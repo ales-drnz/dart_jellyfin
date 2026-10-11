@@ -1,0 +1,179 @@
+{
+ "Data": [
+  {
+   "AdditionalUsers": [],
+   "ApplicationVersion": "0.0.1",
+   "Capabilities": {
+    "PlayableMediaTypes": [
+     "Audio"
+    ],
+    "SupportedCommands": [
+     "Play",
+     "PlayState",
+     "SetVolume",
+     "DisplayMessage"
+    ],
+    "SupportsMediaControl": true,
+    "SupportsPersistentIdentifier": true
+   },
+   "Client": "Test Client",
+   "DeviceId": "test-device",
+   "DeviceName": "Test Device",
+   "HasCustomDeviceName": false,
+   "Id": "cccccccccccccccccccccccccccc0001",
+   "IsActive": true,
+   "LastActivityDate": "2026-10-11T15:47:52.8170024Z",
+   "LastPlaybackCheckIn": "2026-10-11T15:47:52.8170024Z",
+   "NowPlayingItem": {
+    "Album": "Test Album",
+    "AlbumArtist": "Test Artist",
+    "AlbumArtists": [
+     {
+      "Id": "2ac1215700ad5ae5e300de65949c5647",
+      "Name": "Test Artist"
+     }
+    ],
+    "AlbumId": "72839210ba8018a1bf1039f340953486",
+    "AlbumPrimaryImageTag": "e8ee3c665767491920a412e20897ade3",
+    "ArtistItems": [
+     {
+      "Id": "2ac1215700ad5ae5e300de65949c5647",
+      "Name": "Test Artist"
+     }
+    ],
+    "Artists": [
+     "Test Artist"
+    ],
+    "BackdropImageTags": [],
+    "ChannelId": null,
+    "Chapters": [],
+    "Container": "mp3",
+    "DateCreated": "2026-08-11T16:13:56.4629745Z",
+    "EnableMediaSourceDisplay": true,
+    "ExternalUrls": [],
+    "GenreItems": [
+     {
+      "Id": "7566ee57563df93ee76cce4f2c4349a7",
+      "Name": "Ambient"
+     }
+    ],
+    "Genres": [
+     "Ambient"
+    ],
+    "HasLyrics": false,
+    "Id": "b5455b2dcaf64392527a5ae01dd1523f",
+    "ImageBlurHashes": {
+     "Primary": {
+      "e8ee3c665767491920a412e20897ade3": "e9SPX|D+8|%K-n~oxCavjIM|nPaxV@t6jGkDMyt7oJt6n$W;s:R+a}"
+     }
+    },
+    "ImageTags": {},
+    "IndexNumber": 1,
+    "IsFolder": false,
+    "LocalTrailerCount": 0,
+    "LocationType": "FileSystem",
+    "MediaStreams": [
+     {
+      "AudioSpatialFormat": "None",
+      "BitRate": 128000,
+      "ChannelLayout": "stereo",
+      "Channels": 2,
+      "Codec": "mp3",
+      "DisplayTitle": "MP3 - Stereo",
+      "Index": 0,
+      "IsDefault": false,
+      "IsExternal": false,
+      "IsForced": false,
+      "IsHearingImpaired": false,
+      "IsInterlaced": false,
+      "IsOriginal": false,
+      "IsTextSubtitleStream": false,
+      "LocalizedDefault": "Default",
+      "LocalizedExternal": "External",
+      "LocalizedOriginal": "Original",
+      "SampleRate": 44100,
+      "SupportsExternalStream": false,
+      "TimeBase": "1/14112000",
+      "Type": "Audio",
+      "VideoRange": "Unknown",
+      "VideoRangeType": "Unknown"
+     }
+    ],
+    "MediaType": "Audio",
+    "Name": "Track 1",
+    "ParentId": "72839210ba8018a1bf1039f340953486",
+    "Path": "/media/Music/Test Artist/Test Album/01 - Track 1.mp3",
+    "PremiereDate": "2020-01-01T00:00:00.0000000Z",
+    "ProductionYear": 2020,
+    "ProviderIds": {},
+    "RunTimeTicks": 30000000,
+    "ServerId": "00000000000000000000000000000000",
+    "SpecialFeatureCount": 0,
+    "Studios": [],
+    "Taglines": [],
+    "Type": "Audio"
+   },
+   "NowPlayingQueue": [],
+   "PlayState": {
+    "CanSeek": true,
+    "IsMuted": false,
+    "IsPaused": false,
+    "MediaSourceId": "b5455b2dcaf64392527a5ae01dd1523f",
+    "PlayMethod": "DirectPlay",
+    "PlaybackOrder": "Default",
+    "RepeatMode": "RepeatNone"
+   },
+   "PlayableMediaTypes": [
+    "Audio"
+   ],
+   "RemoteEndPoint": "192.0.2.10",
+   "ServerId": "00000000000000000000000000000000",
+   "SupportedCommands": [
+    "Play",
+    "PlayState",
+    "SetVolume",
+    "DisplayMessage"
+   ],
+   "SupportsMediaControl": false,
+   "SupportsRemoteControl": false,
+   "UserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "UserName": "test_user"
+  },
+  {
+   "AdditionalUsers": [],
+   "ApplicationVersion": "0.0.1",
+   "Capabilities": {
+    "PlayableMediaTypes": [],
+    "SupportedCommands": [],
+    "SupportsMediaControl": false,
+    "SupportsPersistentIdentifier": true
+   },
+   "Client": "Client 1",
+   "DeviceId": "device-1",
+   "DeviceName": "Device 1",
+   "HasCustomDeviceName": false,
+   "Id": "cccccccccccccccccccccccccccc0002",
+   "IsActive": true,
+   "LastActivityDate": "2026-10-11T15:47:43.6311032Z",
+   "LastPlaybackCheckIn": "0001-01-01T00:00:00.0000000Z",
+   "NowPlayingQueue": [],
+   "PlayState": {
+    "CanSeek": false,
+    "IsMuted": false,
+    "IsPaused": false,
+    "PlaybackOrder": "Default",
+    "RepeatMode": "RepeatNone"
+   },
+   "PlayableMediaTypes": [],
+   "RemoteEndPoint": "192.0.2.10",
+   "ServerId": "00000000000000000000000000000000",
+   "SupportedCommands": [],
+   "SupportsMediaControl": false,
+   "SupportsRemoteControl": false,
+   "UserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "UserName": "test_user"
+  }
+ ],
+ "MessageId": "00000000000000000000000000000005",
+ "MessageType": "Sessions"
+}

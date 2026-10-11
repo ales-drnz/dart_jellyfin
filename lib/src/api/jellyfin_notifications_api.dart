@@ -10,6 +10,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
+import '../jellyfin_events.dart';
 import '../jellyfin_exception.dart';
 
 /// `/socket` — server-push notifications stream.
@@ -18,6 +19,27 @@ import '../jellyfin_exception.dart';
 /// OpenAPI operation). After [connect] the server starts pushing
 /// events: session updates, library refreshes, scheduled-task
 /// progress, user-data changes, etc.
+///
+/// [connect] emits untyped [JellyfinNotification] frames; the
+/// [JellyfinNotificationEvents.events] stream extension (or
+/// [JellyfinNotification.event]) decodes them into typed [JellyfinEvent]s:
+///
+/// ```dart
+/// final socket = await jf.notifications.connect();
+/// socket.events().listen((event) {
+///   switch (event) {
+///     case JellyfinUserDataChangedEvent(:final changes):
+///       for (final c in changes) favorites.set(c.itemId, c.isFavorite);
+///     case JellyfinLibraryChangedEvent():
+///       library.reload();
+///     case _:
+///   }
+/// });
+/// ```
+///
+/// Remote-control frames (`Play`, `Playstate`, `GeneralCommand`) reach the
+/// socket of the session that owns the access token — the device that
+/// signed in — not a session another client opened with the same token.
 ///
 /// The transport speaks the upstream protocol:
 ///   * client sends `{"MessageType":"KeepAlive"}` every ~30 s
@@ -229,7 +251,7 @@ final class JellyfinNotification {
   final Object? data;
 
   /// Raw frame, useful when the message type is not yet promoted to
-  /// a typed accessor.
+  /// a typed [JellyfinEvent].
   final Map<String, Object?> raw;
 
   /// Build a [JellyfinNotification] from its decomposed fields.
@@ -247,6 +269,18 @@ final class JellyfinNotification {
         raw: json,
       );
 
+  /// This frame as a typed [JellyfinEvent]; a [JellyfinUnknownEvent] for a
+  /// type without one or a payload of an unexpected shape. Never throws.
+  JellyfinEvent get event => JellyfinEvent.fromNotification(this);
+
   @override
   String toString() => 'JellyfinNotification($messageType)';
+}
+
+/// Typed decoding of a [JellyfinNotificationsApi.connect] stream.
+extension JellyfinNotificationEvents on Stream<JellyfinNotification> {
+  /// Every frame as a [JellyfinEvent]: user-data and library changes,
+  /// sessions, remote-control commands, refresh and task progress,
+  /// keep-alives; [JellyfinUnknownEvent] for the rest.
+  Stream<JellyfinEvent> events() => map((n) => n.event);
 }

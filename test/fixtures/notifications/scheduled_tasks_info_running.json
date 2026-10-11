@@ -1,0 +1,359 @@
+{
+ "Data": [
+  {
+   "Category": "Library",
+   "Description": "Scans files for audio normalization data.",
+   "Id": "ec2f221fd8e7706b3d3afd2c4591b4d7",
+   "IsHidden": false,
+   "Key": "AudioNormalization",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:55.7218297Z",
+    "Id": "ec2f221fd8e7706b3d3afd2c4591b4d7",
+    "Key": "AudioNormalization",
+    "Name": "Audio Normalization",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174742Z",
+    "Status": "Completed"
+   },
+   "Name": "Audio Normalization",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Deletes activity log entries older than the configured age.",
+   "Id": "b461ef918ab28520928183e794350e3c",
+   "IsHidden": false,
+   "Key": "CleanActivityLog",
+   "Name": "Clean Activity Log",
+   "State": "Idle",
+   "Triggers": []
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Deletes cache files no longer needed by the system.",
+   "Id": "241d4fcb19a1d557ee62428e411da609",
+   "IsHidden": false,
+   "Key": "DeleteCacheFiles",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:55.7250772Z",
+    "Id": "241d4fcb19a1d557ee62428e411da609",
+    "Key": "DeleteCacheFiles",
+    "Name": "Clean Cache Directory",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174759Z",
+    "Status": "Completed"
+   },
+   "Name": "Clean Cache Directory",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Deletes log files that are more than 3 days old.",
+   "Id": "1c8ede62c521bea0bf851344f5b8ca40",
+   "IsHidden": false,
+   "Key": "CleanLogFiles",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:55.7226335Z",
+    "Id": "1c8ede62c521bea0bf851344f5b8ca40",
+    "Key": "CleanLogFiles",
+    "Name": "Clean Log Directory",
+    "StartTimeUtc": "2026-09-08T15:42:55.717473Z",
+    "Status": "Completed"
+   },
+   "Name": "Clean Log Directory",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Deletes transcode files more than one day old.",
+   "Id": "7d8088c10902f1bf4072ded42437bcfb",
+   "IsHidden": false,
+   "Key": "DeleteTranscodeFiles",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-10-11T15:48:07.6189216Z",
+    "Id": "7d8088c10902f1bf4072ded42437bcfb",
+    "Key": "DeleteTranscodeFiles",
+    "Name": "Clean Transcode Directory",
+    "StartTimeUtc": "2026-10-11T15:48:07.6154879Z",
+    "Status": "Completed"
+   },
+   "Name": "Clean Transcode Directory",
+   "State": "Running",
+   "Triggers": [
+    {
+     "Type": "StartupTrigger"
+    },
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Downloads lyrics for songs",
+   "Id": "26649fe0aad57557245351f220da916c",
+   "IsHidden": false,
+   "Key": "DownloadLyrics",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:56.0543797Z",
+    "Id": "26649fe0aad57557245351f220da916c",
+    "Key": "DownloadLyrics",
+    "Name": "Download missing lyrics",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174758Z",
+    "Status": "Completed"
+   },
+   "Name": "Download missing lyrics",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Searches the internet for missing subtitles based on metadata configuration.",
+   "Id": "2c66a88bca43e565d7f8099f825478f1",
+   "IsHidden": false,
+   "Key": "DownloadSubtitles",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:55.7218315Z",
+    "Id": "2c66a88bca43e565d7f8099f825478f1",
+    "Key": "DownloadSubtitles",
+    "Name": "Download missing subtitles",
+    "StartTimeUtc": "2026-09-08T15:42:55.717485Z",
+    "Status": "Completed"
+   },
+   "Name": "Download missing subtitles",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Creates thumbnails for videos that have chapters.",
+   "Id": "4e6637c832ed644d1af3370a2506e80a",
+   "IsHidden": false,
+   "Key": "RefreshChapterImages",
+   "Name": "Extract Chapter Images",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "MaxRuntimeTicks": 144000000000,
+     "TimeOfDayTicks": 72000000000,
+     "Type": "DailyTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Creates trickplay previews for videos in enabled libraries.",
+   "Id": "64f5f44cd30dc273cb9890205473bbcc",
+   "IsHidden": false,
+   "Key": "RefreshTrickplayImages",
+   "Name": "Generate Trickplay Images",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "TimeOfDayTicks": 108000000000,
+     "Type": "DailyTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Extracts keyframes from video files to create more precise HLS playlists. This task may run for a long time.",
+   "Id": "f302d80f31bcacf76f979d277d448581",
+   "IsHidden": false,
+   "Key": "KeyframeExtraction",
+   "Name": "Keyframe Extractor",
+   "State": "Idle",
+   "Triggers": []
+  },
+  {
+   "Category": "Library",
+   "Description": "Extracts or obtains media segments from MediaSegment enabled plugins.",
+   "Id": "f861734dd71b37f9482b52a820e39013",
+   "IsHidden": false,
+   "Key": "TaskExtractMediaSegments",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:56.009243Z",
+    "Id": "f861734dd71b37f9482b52a820e39013",
+    "Key": "TaskExtractMediaSegments",
+    "Name": "Media Segment Scan",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174876Z",
+    "Status": "Completed"
+   },
+   "Name": "Media Segment Scan",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 432000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Moves existing trickplay files according to the library settings.",
+   "Id": "ebb6e58c4e9a8f5d1f77ab6ddefb3143",
+   "IsHidden": false,
+   "Key": "MoveTrickplayImages",
+   "Name": "Migrate Trickplay Image Location",
+   "State": "Idle",
+   "Triggers": []
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Compacts database and truncates free space. Running this task after scanning the library or doing other changes that imply database modifications might improve performance.",
+   "Id": "31de9ce83b9223d338c77b1a635e144b",
+   "IsHidden": false,
+   "Key": "OptimizeDatabaseTask",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-10-11T15:16:59.1515093Z",
+    "Id": "31de9ce83b9223d338c77b1a635e144b",
+    "Key": "OptimizeDatabaseTask",
+    "Name": "Optimize database",
+    "StartTimeUtc": "2026-10-11T15:16:59.1013222Z",
+    "Status": "Completed"
+   },
+   "Name": "Optimize database",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 216000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Updates metadata for actors and directors in your media library.",
+   "Id": "866456ed0d44e15468124ce33d85961e",
+   "IsHidden": false,
+   "Key": "RefreshPeople",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:55.9787167Z",
+    "Id": "866456ed0d44e15468124ce33d85961e",
+    "Key": "RefreshPeople",
+    "Name": "Refresh People",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174876Z",
+    "Status": "Completed"
+   },
+   "Name": "Refresh People",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 6048000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Checks TheMovieDb for newly announced episodes and creates virtual entries for unaired and missing episodes, according to the TMDb plugin settings. When both options are disabled, removes any virtual entries previously created.",
+   "Id": "1ee23a5dd39fb4225715375c91bc2990",
+   "IsHidden": false,
+   "Key": "TmdbRefreshUpcomingEpisodes",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-09-08T15:42:56.0787155Z",
+    "Id": "1ee23a5dd39fb4225715375c91bc2990",
+    "Key": "TmdbRefreshUpcomingEpisodes",
+    "Name": "Refresh upcoming and missing episodes (TheMovieDb)",
+    "StartTimeUtc": "2026-09-08T15:42:55.7174871Z",
+    "Status": "Completed"
+   },
+   "Name": "Refresh upcoming and missing episodes (TheMovieDb)",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 6048000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Library",
+   "Description": "Scans your media library for new files and refreshes metadata.",
+   "Id": "7738148ffcd07979c7ceb148e06b3aed",
+   "IsHidden": false,
+   "Key": "RefreshLibrary",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-10-11T09:04:36.5910468Z",
+    "Id": "7738148ffcd07979c7ceb148e06b3aed",
+    "Key": "RefreshLibrary",
+    "Name": "Scan Media Library",
+    "StartTimeUtc": "2026-10-11T09:04:36.5383666Z",
+    "Status": "Completed"
+   },
+   "Name": "Scan Media Library",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "IntervalTicks": 432000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Application",
+   "Description": "Downloads and installs updates for plugins that are configured to update automatically.",
+   "Id": "f9b057c054e9e6daee4a88ffd146a403",
+   "IsHidden": false,
+   "Key": "PluginUpdates",
+   "LastExecutionResult": {
+    "EndTimeUtc": "2026-10-11T09:16:02.8523155Z",
+    "Id": "f9b057c054e9e6daee4a88ffd146a403",
+    "Key": "PluginUpdates",
+    "Name": "Update Plugins",
+    "StartTimeUtc": "2026-10-11T09:16:02.1027831Z",
+    "Status": "Completed"
+   },
+   "Name": "Update Plugins",
+   "State": "Idle",
+   "Triggers": [
+    {
+     "Type": "StartupTrigger"
+    },
+    {
+     "IntervalTicks": 864000000000,
+     "Type": "IntervalTrigger"
+    }
+   ]
+  },
+  {
+   "Category": "Maintenance",
+   "Description": "Cleans all user data (Watch state, favorite status etc) from media that is no longer present for at least 90 days.",
+   "Id": "8240e309407dbbf43c99d30a6cbd239e",
+   "IsHidden": false,
+   "Key": "CleanupUserDataTask",
+   "Name": "User data cleanup task",
+   "State": "Idle",
+   "Triggers": []
+  }
+ ],
+ "MessageId": "0000000000000000000000000000000c",
+ "MessageType": "ScheduledTasksInfo"
+}

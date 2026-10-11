@@ -1,0 +1,9 @@
+{
+ "Data": {
+  "Command": "Seek",
+  "ControllingUserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "SeekPositionTicks": 20000000
+ },
+ "MessageId": "00000000000000000000000000000008",
+ "MessageType": "Playstate"
+}

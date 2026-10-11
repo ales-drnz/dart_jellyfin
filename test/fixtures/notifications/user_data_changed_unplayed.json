@@ -1,0 +1,25 @@
+{
+ "Data": {
+  "UserDataList": [
+   {
+    "IsFavorite": false,
+    "ItemId": "b5455b2dcaf64392527a5ae01dd1523f",
+    "Key": "Test Artist-Test Album-0001Track 1",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   },
+   {
+    "IsFavorite": false,
+    "ItemId": "72839210ba8018a1bf1039f340953486",
+    "Key": "MusicAlbum-MusicBrainzReleaseGroup-5b35fbbc-3f45-45a8-95a9-2545dbf44e7c",
+    "PlayCount": 0,
+    "PlaybackPositionTicks": 0,
+    "Played": false
+   }
+  ],
+  "UserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ },
+ "MessageId": "00000000000000000000000000000004",
+ "MessageType": "UserDataChanged"
+}

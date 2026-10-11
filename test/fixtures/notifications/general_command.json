@@ -1,0 +1,11 @@
+{
+ "Data": {
+  "Arguments": {
+   "Volume": "50"
+  },
+  "ControllingUserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "Name": "SetVolume"
+ },
+ "MessageId": "00000000000000000000000000000009",
+ "MessageType": "GeneralCommand"
+}

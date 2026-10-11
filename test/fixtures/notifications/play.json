@@ -1,0 +1,12 @@
+{
+ "Data": {
+  "ControllingUserId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "ItemIds": [
+   "b5455b2dcaf64392527a5ae01dd1523f"
+  ],
+  "PlayCommand": "PlayNow",
+  "StartPositionTicks": 10000000
+ },
+ "MessageId": "00000000000000000000000000000006",
+ "MessageType": "Play"
+}
