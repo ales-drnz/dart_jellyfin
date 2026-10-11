@@ -160,6 +160,8 @@ Object? _value(TypeMirror type, String name) {
   if (type is! ClassMirror) return #skip;
   final t = type.reflectedType;
   if (t == String) {
+    // images.url validates its colour.
+    if (name == 'backgroundColor') return '000000';
     return name.toLowerCase().contains('date') ? '2026-01-01' : 'x';
   }
   if (t == int) return 1;

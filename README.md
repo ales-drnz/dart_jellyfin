@@ -1592,8 +1592,15 @@ final bps = (size ?? 0) * 8 * 1000 ~/ stopwatch.elapsedMilliseconds;
 Jellyfin's image URLs are deterministic: `/Items/{id}/Images/{type}`
 with a `tag` query parameter (the hash from
 `JellyfinItem.imageTags[type]`) for cache busting. The server resizes,
-so no client-side scaling is needed. Without `format` it answers in the
-source's own format (a PNG upload comes back as PNG).
+so no client-side scaling is needed.
+
+With no parameter but `tag`, the server sends the stored file as it is
+(a PNG upload comes back as PNG). Any processing parameter (sizing,
+`quality`, `blur`, `percentPlayed`, `unplayedCount`, `backgroundColor`)
+makes it re-encode, and without `format` it picks the output from the
+request's `Accept` header: WebP when that lists `image/webp`, as
+browsers and most image widgets do, JPEG otherwise (as for
+`images.fetch()`). Measured on 12.2.
 
 #### 13.1 Building an image URL
 
@@ -1617,13 +1624,16 @@ final url = jellyfin.images.url(
 | `fillWidth` / `fillHeight` | *cover* the box, aspect kept | 768×512 |
 | `width` / `height` | exactly those dimensions, stretched | 512×512 |
 
-`format` re-encodes (`formatJpg`, `formatPng`, `formatWebp`, `formatGif`,
-`formatBmp`, `formatSvg`), and `format=Jpg` together with `maxWidth` is
+`format` picks the encoding (`formatJpg`, `formatPng`, `formatWebp`,
+`formatGif`, `formatBmp`, `formatSvg`), and `format=Jpg` together with `maxWidth` is
 honoured. `quality` (0–100) applies to the lossy formats:
 `maxWidth=512&format=Jpg&quality=85` measured 9.8 KB against 22 KB at the
 server's default. `url()` also takes `percentPlayed` and
 `unplayedCount` (baked-in progress bar and badge), `blur` (radius) and
-`backgroundColor` (fills transparency, e.g. `'000000'`). The entity
+`backgroundColor` (fills transparency; a hex `RGB`, `ARGB`, `RRGGBB` or
+`AARRGGBB`, `#` optional, e.g. `'000000'`). Any other `backgroundColor`
+throws `ArgumentError`: the server would silently drop the sizing too and
+send the full original. The entity
 builders (`artistImageUrl`, `genreImageUrl`, `studioImageUrl`,
 `personImageUrl`, …) take `maxWidth` / `maxHeight` too, and
 `images.listItemImages(itemId)` lists an item's images as

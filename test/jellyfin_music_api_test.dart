@@ -382,6 +382,29 @@ void main() {
       });
     });
 
+    test('backgroundColor takes the hex forms the server parses', () {
+      for (final c in ['fff', '#8fff', '000000', '#aBcDeF', 'FF000000']) {
+        final url = Uri.parse(
+          client.images.url(itemId: 'al', maxWidth: 64, backgroundColor: c),
+        );
+        expect(url.queryParameters['backgroundColor'], c);
+      }
+    });
+
+    test('any other backgroundColor throws instead of losing the sizing', () {
+      for (final c in ['', 'red', '00000', '1234567', '0x000000', '##000']) {
+        expect(
+          () => client.images.url(
+            itemId: 'al',
+            maxWidth: 64,
+            backgroundColor: c,
+          ),
+          throwsArgumentError,
+          reason: c,
+        );
+      }
+    });
+
     test('fetch sends the same sizing and returns the bytes', () async {
       adapter.respond =
           (_) => CannedResponse(200, [1, 2, 3], contentType: 'image/jpeg');

@@ -17,8 +17,9 @@ import '../transport/jellyfin_cancel_token.dart';
 ///
 /// Jellyfin's image URLs are deterministic: `/Items/{id}/Images/{type}`
 /// with a `tag` parameter (the hash from `ImageTags[type]`) for cache
-/// busting. Width/height are server-side resize hints — the response is
-/// pre-sized JPEG, no client-side scaling needed.
+/// busting. Width/height are server-side resize hints, so the response is
+/// already sized and needs no client-side scaling; see [url] for the
+/// format it comes back in.
 class JellyfinImagesApi {
   /// Front cover / poster — the most common image type.
   static const String typePrimary = 'Primary';
@@ -59,6 +60,11 @@ class JellyfinImagesApi {
   /// `format` value for SVG output (`ImageFormat.Svg`).
   static const String formatSvg = 'Svg';
 
+  /// The `backgroundColor` forms the server parses (12.2).
+  static final RegExp _hexColor = RegExp(
+    r'^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$',
+  );
+
   final JellyfinConnection _http;
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
@@ -80,10 +86,15 @@ class JellyfinImagesApi {
   /// * [width] / [height] force those exact dimensions, stretching the
   ///   image (→ 300×300).
   ///
-  /// Without [format] the server answers in the source's own format (a
-  /// PNG upload comes back as PNG); pass one of the
+  /// Format, as measured on Jellyfin 12.2: with no parameter but [tag]
+  /// the server sends the stored file as it is. Any processing parameter
+  /// — sizing, [quality], [blur], [percentPlayed], [unplayedCount],
+  /// [backgroundColor] — makes it re-encode, and without [format] it picks
+  /// the output from the request's `Accept` header: WebP when that lists
+  /// `image/webp` (as browsers and most image widgets do), JPEG otherwise
+  /// (as for [fetch], which asks for JSON). Pass one of the
   /// [formatBmp]/[formatGif]/[formatJpg]/[formatPng]/[formatWebp]/[formatSvg]
-  /// constants to re-encode — `format=Jpg` together with `maxWidth` is
+  /// constants to choose — `format=Jpg` together with `maxWidth` is
   /// honoured. [quality] (0–100) applies to the lossy formats:
   /// `maxWidth=512&format=Jpg&quality=85` measured 9.8 KB against 22 KB at
   /// the server's default.
@@ -91,7 +102,12 @@ class JellyfinImagesApi {
   /// `percentPlayed` (0–100, fractional allowed) and `unplayedCount` ask
   /// the server to bake a watched-progress bar or an unplayed-count badge
   /// into the image; [blur] blurs it by that radius and [backgroundColor]
-  /// fills transparency (e.g. `'000000'`).
+  /// fills transparency.
+  ///
+  /// [backgroundColor] is a hex colour — `RGB`, `ARGB`, `RRGGBB` or
+  /// `AARRGGBB`, with or without a leading `#` (e.g. `'000000'`). Anything
+  /// else throws [ArgumentError]: the server would not fail it, but would
+  /// silently drop the sizing too and send the full original.
   String url({
     required String itemId,
     String type = typePrimary,
@@ -125,7 +141,16 @@ class JellyfinImagesApi {
     if (percentPlayed != null) qp['percentPlayed'] = '$percentPlayed';
     if (unplayedCount != null) qp['unplayedCount'] = '$unplayedCount';
     if (blur != null) qp['blur'] = '$blur';
-    if (backgroundColor != null) qp['backgroundColor'] = backgroundColor;
+    if (backgroundColor != null) {
+      if (!_hexColor.hasMatch(backgroundColor)) {
+        throw ArgumentError.value(
+          backgroundColor,
+          'backgroundColor',
+          'not a hex colour (RGB, ARGB, RRGGBB or AARRGGBB, optional #)',
+        );
+      }
+      qp['backgroundColor'] = backgroundColor;
+    }
     final indexPart = imageIndex == null ? '' : '/$imageIndex';
     return '$base/Items/$itemId/Images/$type$indexPart${_query(qp)}';
   }
