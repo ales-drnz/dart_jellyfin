@@ -1924,12 +1924,15 @@ final fromSong   = await jellyfin.instantMix.fromSong(songId: track.id);
 final fromAlbum  = await jellyfin.instantMix.fromAlbum(albumId: album.id);
 final fromArtist = await jellyfin.instantMix.fromArtist(artistId: artist.id);
 final fromList   = await jellyfin.instantMix.fromPlaylist(playlistId: playlist.id);
-final rock       = await jellyfin.genres.byName('Rock');
+final rock       = await jellyfin.musicGenres.byName('Rock');
 final fromGenre  = await jellyfin.instantMix.fromItem(itemId: rock!.id);
 ```
 
-A genre id from `genres.list()`, `genres.byName()` or a track's
-`genreItems` is a valid seed for `fromItem()`.
+A genre seeds a mix by its music-genre id: from a track's `genreItems`,
+`genres.list(parentId: musicLibraryId)` or `musicGenres.byName()`.
+`genres.byName()` and `genres.list()` without `parentId` answer the
+generic genre item instead, with another id — `fromItem()` takes it
+and answers an empty mix (see [31.4](#314-music-genres)).
 
 Each helper returns a `JellyfinQueryResult<JellyfinItem>`, the same
 shape as `items.list()`, so the result drops straight into a UI list.
@@ -2650,20 +2653,27 @@ Generic across-library variant.
 #### 31.4 Music genres
 
 ```dart
-final musicGenres = await jellyfin.genres.list(
-  parentId: musicLibraryId,
-  includeItemTypes: const ['MusicAlbum', 'Audio'],
-);
-final ambient = await jellyfin.genres.byName('Ambient');
+final musicGenres = await jellyfin.genres.list(parentId: musicLibraryId);
+final ambient = await jellyfin.musicGenres.byName('Ambient');
 ```
 
-Jellyfin 12 folds music genres into the generic genre endpoints:
-`GET /MusicGenres` is hidden from the API document and
-`GET /MusicGenres/{name}` is obsolete. `musicGenres.list()` and
-`musicGenres.byName()` still answer but are deprecated; the `genres`
-calls above return the same buckets, with the same ids (verified on
-12.2), so `items.list(genreIds:)` and `instantMix.fromItem()` take them
-unchanged.
+Jellyfin keeps two items per genre name: a generic `Genre` and, for
+music, a `MusicGenre`, with different ids. `genres.list()` answers the
+music genres only when `parentId` is a music library's id; without it,
+it answers the generic ones, even with
+`includeItemTypes: ['MusicAlbum', 'Audio']`. `genres.byName()` takes no
+`parentId` and always answers the generic one. Both ids filter
+`items.list(genreIds:)`, but only the music-genre id seeds an instant
+mix: `instantMix.fromItem()` with a generic genre id answers an empty
+mix (verified on 12.2).
+
+Jellyfin 12 also hides `GET /MusicGenres` from the API document and marks
+`GET /MusicGenres/{name}` obsolete; both still answer on 12.2.
+`musicGenres.list()` is deprecated in favour of
+`genres.list(parentId: musicLibraryId)`, which answers the same genres
+with the same ids. `musicGenres.byName()` is not: no other route looks up
+a music genre by exact name. `genres.list(parentId: musicLibraryId,
+searchTerm: name)` finds it too, among partial matches.
 
 #### 31.5 Years
 

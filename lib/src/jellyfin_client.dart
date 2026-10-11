@@ -186,7 +186,9 @@ class JellyfinClient {
   /// `/Genres` operations — list and fetch genres.
   late final JellyfinGenresApi genres;
 
-  /// `/MusicGenres` operations — obsolete in Jellyfin 12; use [genres].
+  /// `/MusicGenres` operations — obsolete in Jellyfin 12. `list` is
+  /// deprecated for `genres.list(parentId: musicLibraryId)`; `byName` has
+  /// no exact replacement.
   late final JellyfinMusicGenresApi musicGenres;
 
   /// `/Years` operations — list and fetch year groupings.

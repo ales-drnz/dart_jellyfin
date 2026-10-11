@@ -20,7 +20,7 @@ import '../jellyfin_parsing.dart';
 ///
 /// Jellyfin 12 marks the music-genre and artist-by-name variants
 /// obsolete: [fromItem] accepts any seed id (song, album, artist,
-/// genre, playlist) and is the one to reach for.
+/// music genre, playlist) and is the one to reach for.
 class JellyfinInstantMixApi {
   final JellyfinConnection _http;
 
@@ -29,6 +29,12 @@ class JellyfinInstantMixApi {
 
   /// `/Items/{itemId}/InstantMix` — works on any item kind the server
   /// understands as a seed (song, album, artist, mixed item id).
+  ///
+  /// A genre seeds a mix by its `MusicGenre` id — from a track's
+  /// `genreItems`, `genres.list(parentId: musicLibraryId)` or
+  /// `musicGenres.byName()`. The generic `Genre` id that
+  /// `genres.byName()` and an unscoped `genres.list()` answer gets 200
+  /// with an empty mix (12.2).
   Future<JellyfinQueryResult<JellyfinItem>> fromItem({
     required String itemId,
     int? limit,
@@ -103,10 +109,12 @@ class JellyfinInstantMixApi {
   /// `/MusicGenres/{name}/InstantMix` (by name).
   ///
   /// Obsolete in Jellyfin 12: resolve the genre with
-  /// `genres.byName()` and pass its id to [fromItem].
+  /// `musicGenres.byName()` (or `genres.list(parentId: musicLibraryId)`)
+  /// and pass its id to [fromItem]. Not `genres.byName()`: that answers
+  /// the generic `Genre` item, whose id seeds an empty mix.
   @Deprecated(
-    'Obsolete in Jellyfin 12; resolve the genre id with genres.byName() '
-    'and call fromItem() instead.',
+    'Obsolete in Jellyfin 12; resolve the genre id with '
+    'musicGenres.byName() and call fromItem() instead.',
   )
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenre({
     required String name,
@@ -127,7 +135,10 @@ class JellyfinInstantMixApi {
 
   /// `/MusicGenres/InstantMix?id={genreId}` (by id).
   ///
-  /// Obsolete in Jellyfin 12: [fromItem] takes the same genre id.
+  /// Obsolete in Jellyfin 12: [fromItem] takes the same genre id — a
+  /// `MusicGenre` id, as `musicGenres.byName()`,
+  /// `genres.list(parentId: musicLibraryId)` and a track's `genreItems`
+  /// answer.
   @Deprecated('Obsolete in Jellyfin 12; call fromItem(itemId: genreId).')
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenreById({
     required String genreId,

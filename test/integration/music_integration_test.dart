@@ -101,14 +101,9 @@ void main() {
         expect(await jf.syncPlay.list(), isA<List<JellyfinSyncPlayGroup>>());
       });
 
-      test('/Genres ids are the /MusicGenres ids and filter music', () async {
-        final genres = await jf.genres.list(
-          parentId: musicId,
-          includeItemTypes: const [
-            JellyfinItemKind.musicAlbum,
-            JellyfinItemKind.audio,
-          ],
-        );
+      test('/Genres scoped to the library answers the /MusicGenres ids',
+          () async {
+        final genres = await jf.genres.list(parentId: musicId);
         // ignore: deprecated_member_use
         final legacy = await jf.musicGenres.list(parentId: musicId);
         expect(
@@ -165,14 +160,10 @@ void main() {
         }
       });
 
-      test('instant mix from a genre id answers that genre\'s tracks',
+      test('instant mix from a scoped genre id answers that genre\'s tracks',
           () async {
-        final genre = (await jf.genres.list(
-          parentId: musicId,
-          includeItemTypes: const [JellyfinItemKind.audio],
-        ))
-            .items
-            .first;
+        final genre = (await jf.genres.list(parentId: musicId)).items.first;
+        expect(genre.type, 'MusicGenre');
         final mix = await jf.instantMix.fromItem(
           itemId: genre.id,
           limit: 50,
@@ -181,6 +172,42 @@ void main() {
         expect(mix.items, isNotEmpty);
         expect(mix.items.every((i) => i.isAudio), isTrue);
         expect(mix.items.every((i) => i.genres.contains(genre.name)), isTrue);
+      });
+
+      test('an unscoped genre id filters, but seeds an empty mix', () async {
+        // Pinned server behaviour (12.2): without parentId, /Genres and
+        // /Genres/{name} answer the generic Genre item, not the MusicGenre
+        // one. If the mix stops being empty, revisit JellyfinGenresApi.
+        final music = (await jf.genres.list(parentId: musicId)).items.first;
+        final unscoped = (await jf.genres.list(
+          includeItemTypes: const [
+            JellyfinItemKind.musicAlbum,
+            JellyfinItemKind.audio,
+          ],
+        ))
+            .items
+            .firstWhere((g) => g.name == music.name);
+        final byName = await jf.genres.byName(music.name);
+        expect(unscoped.type, 'Genre');
+        expect(byName!.id, unscoped.id);
+        expect(unscoped.id, isNot(music.id));
+
+        final filtered = await jf.items.count(
+          includeItemTypes: const [JellyfinItemKind.audio],
+          genreIds: [unscoped.id],
+        );
+        expect(
+          filtered,
+          await jf.items.count(
+            includeItemTypes: const [JellyfinItemKind.audio],
+            genreIds: [music.id],
+          ),
+        );
+        final mix = await jf.instantMix.fromItem(itemId: unscoped.id);
+        expect(mix.items, isEmpty);
+
+        final exact = await jf.musicGenres.byName(music.name);
+        expect(exact!.id, music.id);
       });
 
       test('a track carries its album cover version without any field',

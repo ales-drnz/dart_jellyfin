@@ -13,6 +13,12 @@ import 'jellyfin_music_genres_api.dart';
 ///
 /// Wraps the `Genres` OpenAPI tag (2 operations). For music-specific
 /// genres see [JellyfinMusicGenresApi].
+///
+/// Jellyfin keeps two genre items per name: a `Genre` and, for music, a
+/// `MusicGenre`, with different ids. Both ids filter
+/// `items.list(genreIds:)`, but only the `MusicGenre` id seeds an instant
+/// mix — `/Items/{GenreId}/InstantMix` answers 200 with an empty mix. See
+/// [list] for which one each call returns.
 class JellyfinGenresApi {
   final JellyfinConnection _http;
 
@@ -21,6 +27,19 @@ class JellyfinGenresApi {
 
   /// `GET /Genres` — list genres, scoped to [parentId] and filtered
   /// by item kind.
+  ///
+  /// Which genre item comes back depends on [parentId], not on
+  /// [includeItemTypes] (verified on 12.2):
+  ///
+  /// * with the id of a music library, the `MusicGenre` items — the ids
+  ///   `/MusicGenres` answers and a track's `genreItems` carry, which
+  ///   `instantMix.fromItem` takes;
+  /// * without [parentId], the `Genre` items, even with
+  ///   `includeItemTypes: ['MusicAlbum', 'Audio']`. Their ids filter
+  ///   `items.list(genreIds:)` just as well, but an instant mix seeded by
+  ///   one is empty.
+  ///
+  /// So for music, pass the music library's id as [parentId].
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,
@@ -59,6 +78,13 @@ class JellyfinGenresApi {
 
   /// `GET /Genres/{genreName}` — lookup a genre by exact name.
   /// Returns null on 404.
+  ///
+  /// Answers the `Genre` item, never the `MusicGenre` one: the route
+  /// takes no `parentId`. Its id filters `items.list(genreIds:)`, but an
+  /// instant mix seeded by it is empty (verified on 12.2). For a music
+  /// genre use [JellyfinMusicGenresApi.byName], or
+  /// `list(parentId: musicLibraryId, searchTerm: name)` and keep the
+  /// exact match — `searchTerm` also matches parts of names.
   Future<JellyfinItem?> byName(String name) =>
       lookupItemByName('/Genres', name, _http);
 

@@ -14,9 +14,15 @@ import 'jellyfin_lookup_helpers.dart';
 /// Jellyfin 12 folds music genres into the generic genre endpoints:
 /// `GET /MusicGenres` is hidden from the OpenAPI document and
 /// `GET /MusicGenres/{name}` is marked obsolete. Both still answer on
-/// 12.0, but [JellyfinGenresApi] is the supported path —
-/// `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])` returns
-/// the same buckets and `genres.byName()` the same lookup.
+/// 12.2.
+///
+/// `genres.list(parentId: musicLibraryId)` replaces [list]: it answers
+/// the same `MusicGenre` items, with the same ids. Without `parentId`,
+/// `/Genres` answers the generic `Genre` items instead, whose ids seed an
+/// empty instant mix — see [JellyfinGenresApi.list].
+///
+/// [byName] has no exact replacement — `genres.byName()` answers the
+/// `Genre` item — so it is not deprecated here.
 class JellyfinMusicGenresApi {
   final JellyfinConnection _http;
 
@@ -28,13 +34,13 @@ class JellyfinMusicGenresApi {
   ///
   /// The route still works, but it is hidden from the published
   /// OpenAPI document and marked obsolete upstream in favour of
-  /// `GET /Genres`. Prefer
-  /// `genres.list(includeItemTypes: ['MusicAlbum', 'Audio'])`, which is
-  /// the supported way to get the same buckets and will outlive this
-  /// endpoint.
+  /// `GET /Genres`. Prefer `genres.list(parentId: musicLibraryId)`, which
+  /// answers the same genres with the same ids and will outlive this
+  /// endpoint. The `parentId` is what matters: without it `/Genres`
+  /// answers `Genre` items whose ids seed an empty instant mix.
   @Deprecated(
     'Hidden from the Jellyfin 12 API; use '
-    "genres.list(includeItemTypes: ['MusicAlbum', 'Audio']) instead.",
+    'genres.list(parentId: <music library id>) instead.',
   )
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
@@ -93,8 +99,13 @@ class JellyfinMusicGenresApi {
   /// `GET /MusicGenres/{genreName}` — lookup a music genre by exact
   /// name. Returns null on 404.
   ///
-  /// Obsolete in Jellyfin 12; `genres.byName()` is the replacement.
-  @Deprecated('Obsolete in Jellyfin 12; use genres.byName() instead.')
+  /// Answers the `MusicGenre` item, whose id seeds
+  /// `instantMix.fromItem`. Jellyfin 12 marks the route obsolete but
+  /// still serves it (12.2), and offers no exact replacement:
+  /// `genres.byName()` answers the generic `Genre` item, whose id seeds an
+  /// empty mix. Should the route go, `genres.list(parentId:
+  /// musicLibraryId, searchTerm: name)` finds the same item among partial
+  /// matches.
   Future<JellyfinItem?> byName(String name) =>
       lookupItemByName('/MusicGenres', name, _http);
 }
