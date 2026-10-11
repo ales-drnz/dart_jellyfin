@@ -6,8 +6,10 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dart_jellyfin/dart_jellyfin.dart';
+import 'package:dart_jellyfin/io.dart';
 import 'package:test/test.dart';
 
 import '_fixture.dart';
@@ -230,6 +232,27 @@ void main() {
         );
         expect(counted.totalRecordCount, tracks.length);
         expect(uncounted.totalRecordCount, 1);
+      });
+
+      test('downloadToFile writes the original file', () async {
+        final t = tracks.first;
+        final source = t.mediaSources.single;
+        final (url, _) = jf.audio.directStreamUrl(itemId: t.id);
+        final dir = await Directory.systemTemp.createTemp('jf_dl');
+        try {
+          final path = '${dir.path}/track.mp3';
+          var calls = 0;
+          final n = await jf.downloadToFile(
+            url,
+            path,
+            onProgress: (_, __) => calls++,
+          );
+          expect(n, source.size);
+          expect(await File(path).length(), source.size);
+          expect(calls, greaterThan(0));
+        } finally {
+          await dir.delete(recursive: true);
+        }
       });
 
       test('enhanced lyrics keep their word cues', () async {
