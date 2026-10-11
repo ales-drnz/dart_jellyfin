@@ -35,6 +35,29 @@ class JellyfinException implements Exception {
     this.stackTrace,
   });
 
+  /// No answer from the server at all: the connection failed or timed out.
+  /// The server may be down or unreachable — not the same as an answer that
+  /// says no. Same as [JellyfinErrorType.isRetriable].
+  bool get isNetworkFailure =>
+      type == JellyfinErrorType.connection || type == JellyfinErrorType.timeout;
+
+  /// A failure that may pass if the same request is sent again later: a
+  /// network failure, a 5xx (the server failed or is overloaded), or
+  /// `429 Too Many Requests`. Not an auth error, another 4xx, a parse or
+  /// state error, or a cancellation.
+  bool get isTransient =>
+      isNetworkFailure ||
+      type == JellyfinErrorType.serverError ||
+      statusCode == 429;
+
+  /// The server answered `404`: what was asked for does not exist. For a
+  /// read this is a confirmed absence, not a failure to answer.
+  bool get isNotFound => type == JellyfinErrorType.notFound;
+
+  /// The caller cancelled the request. Not a failure: ignore it rather
+  /// than reporting it.
+  bool get isCancelled => type == JellyfinErrorType.cancelled;
+
   /// Whether [type] is an authentication/authorization failure.
   bool get isAuthError => type.isAuthError;
 
