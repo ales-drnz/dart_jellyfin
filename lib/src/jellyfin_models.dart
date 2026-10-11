@@ -470,6 +470,25 @@ class JellyfinItem {
   /// Artist references with ids, when the server returns them.
   final List<JellyfinArtistRef> artistItems;
 
+  /// Album artists with their ids (`AlbumArtists`), the id form of
+  /// [albumArtists] — what a "go to artist" link needs.
+  final List<JellyfinArtistRef> albumArtistItems;
+
+  /// Genres with their ids (`GenreItems`, sent with the `Genres` field):
+  /// the ids `items.list(genreIds:)` and `instantMix.fromItem` take, so a
+  /// genre chip needs no lookup by name.
+  final List<JellyfinGenreRef> genreItems;
+
+  /// The entry id inside a playlist (`PlaylistItemId`), present only on
+  /// items read from `playlists.items`; pass it to
+  /// `playlists.removeItems(entryIds:)` / `playlists.moveItem`.
+  ///
+  /// On Jellyfin 12.2 it is the *item* id (verified): two copies of one
+  /// track share it, removing it removes every copy, and moving it moves
+  /// the first. The server offers no way to address one copy of a
+  /// duplicate.
+  final String? playlistItemId;
+
   /// Track number / episode number / generic index within the parent.
   final int? indexNumber;
 
@@ -560,6 +579,9 @@ class JellyfinItem {
     required this.albumArtists,
     required this.artists,
     required this.artistItems,
+    this.albumArtistItems = const [],
+    this.genreItems = const [],
+    this.playlistItemId,
     required this.mediaSources,
     required this.mediaStreams,
     required this.isFolder,
@@ -624,6 +646,10 @@ class JellyfinItem {
       albumArtists: _stringList(json['AlbumArtists'], 'Name'),
       artists: _strList(json['Artists']),
       artistItems: _objList(json['ArtistItems'], JellyfinArtistRef.fromJson),
+      albumArtistItems:
+          _objList(json['AlbumArtists'], JellyfinArtistRef.fromJson),
+      genreItems: _objList(json['GenreItems'], JellyfinGenreRef.fromJson),
+      playlistItemId: _str(json['PlaylistItemId']),
       indexNumber: _int(json['IndexNumber']),
       parentIndexNumber: _int(json['ParentIndexNumber']),
       productionYear: _int(json['ProductionYear']),
@@ -701,6 +727,25 @@ class JellyfinArtistRef {
   /// Decodes a `{Id, Name}` artist reference.
   factory JellyfinArtistRef.fromJson(Map<String, dynamic> json) =>
       JellyfinArtistRef(
+        id: _str(json['Id']) ?? '',
+        name: _str(json['Name']) ?? '',
+      );
+}
+
+/// A genre as items name it (`GenreItems` entry, a `NameGuidPair`).
+class JellyfinGenreRef {
+  /// Genre id — the value `genreIds` filters take.
+  final String id;
+
+  /// Genre display name.
+  final String name;
+
+  /// Builds a genre reference from already-parsed components.
+  const JellyfinGenreRef({required this.id, required this.name});
+
+  /// Decodes a `{Id, Name}` genre reference.
+  factory JellyfinGenreRef.fromJson(Map<String, dynamic> json) =>
+      JellyfinGenreRef(
         id: _str(json['Id']) ?? '',
         name: _str(json['Name']) ?? '',
       );

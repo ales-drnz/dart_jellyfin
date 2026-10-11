@@ -111,8 +111,11 @@ class JellyfinPlaylistsApi {
     );
   }
 
-  /// Remove items by their playlist entry id (NOT by underlying item id).
-  /// Get the entry ids from `items(...).raw['PlaylistItemId']`.
+  /// Remove entries by their [JellyfinItem.playlistItemId].
+  ///
+  /// On Jellyfin 12.2 an entry id is the item id, so this removes *every*
+  /// copy of a track listed more than once (verified) — the server cannot
+  /// remove a single copy.
   Future<void> removeItems({
     required String playlistId,
     required List<String> entryIds,

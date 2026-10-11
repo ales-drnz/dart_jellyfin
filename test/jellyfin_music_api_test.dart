@@ -137,6 +137,25 @@ void main() {
       expect(bare.artworkVersion, isNull);
     });
 
+    test('genre, album-artist and playlist entry ids are typed', () {
+      final item = JellyfinItem.fromJson(const {
+        'Id': 't',
+        'Name': 'Track',
+        'GenreItems': [
+          {'Name': 'Ambient', 'Id': 'g1'},
+        ],
+        'AlbumArtists': [
+          {'Name': 'Test Artist', 'Id': 'a1'},
+        ],
+        'PlaylistItemId': 'e1',
+      });
+      expect(item.genreItems.single.id, 'g1');
+      expect(item.genreItems.single.name, 'Ambient');
+      expect(item.albumArtistItems.single.id, 'a1');
+      expect(item.albumArtists, ['Test Artist']);
+      expect(item.playlistItemId, 'e1');
+    });
+
     test('browseFields is light and repeated on the wire', () async {
       await client.items.list(
         includeItemTypes: const ['MusicAlbum'],

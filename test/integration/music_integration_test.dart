@@ -78,6 +78,37 @@ void main() {
         }
       });
 
+      test('items carry genre and artist ids; entry ids are item ids on 12.2',
+          () async {
+        final t = tracks.first;
+        expect(t.genreItems, isNotEmpty);
+        expect(t.genreItems.map((g) => g.name), t.genres);
+        expect(t.albumArtistItems.single.name, t.albumArtists.single);
+        expect(t.albumArtistItems.single.id, isNotEmpty);
+
+        final playlist = await jf.playlists.create(
+          name: 'IT probe entries',
+          itemIds: [t.id, t.id, tracks[1].id],
+        );
+        try {
+          final entries = await jf.playlists.items(playlistId: playlist.id);
+          expect(entries.items, hasLength(3));
+          expect(entries.items.every((e) => e.playlistItemId != null), isTrue);
+          // Pinned server behaviour (12.2): the entry id is the item id, so
+          // removing it removes both copies. If this starts failing, the
+          // server gained real entry ids — revisit the docs.
+          expect(entries.items.first.playlistItemId, t.id);
+          await jf.playlists.removeItems(
+            playlistId: playlist.id,
+            entryIds: [entries.items.first.playlistItemId!],
+          );
+          final left = await jf.playlists.items(playlistId: playlist.id);
+          expect(left.items.map((e) => e.id), [tracks[1].id]);
+        } finally {
+          await jf.playlists.delete(playlist.id);
+        }
+      });
+
       test('instant mix from a genre id answers that genre\'s tracks',
           () async {
         final genre = (await jf.genres.list(
