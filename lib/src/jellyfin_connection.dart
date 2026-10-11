@@ -72,6 +72,11 @@ final class JellyfinConnection {
   /// saves. In a Flutter app the caller's isolate is the UI thread, so
   /// above it this is the difference between a smooth list and a dropped
   /// frame. Override per client with the `jsonIsolateThreshold` argument.
+  ///
+  /// Parsing elsewhere is not free for the caller either: on a 5 MB page
+  /// the worker still cost the calling isolate about a third of an inline
+  /// parse in pauses (shared-heap garbage collection, most likely). It cuts
+  /// jank, it does not remove it — fetch pages, not whole libraries.
   static const int defaultJsonIsolateThreshold = 50 * 1024;
 
   /// Creates a connection bound to [credentials] and an optional [baseUrl].
@@ -915,7 +920,7 @@ final class JellyfinConnection {
 ///
 /// The fused UTF-8 + JSON decoder parses straight from the bytes, without
 /// first building the whole body as a `String`: about half the time of
-/// `jsonDecode(utf8.decode(bytes))` on a 1.5 MB Jellyfin page.
+/// `jsonDecode(utf8.decode(bytes))` on a 1.5 MB list page.
 Object? _jsonOf(Uint8List bytes) =>
     bytes.isEmpty ? null : _utf8Json.convert(bytes);
 
