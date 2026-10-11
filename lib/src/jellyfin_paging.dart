@@ -7,7 +7,7 @@
 /// ```dart
 /// final albums = JellyfinPaging.items(
 ///   (start, size) async => (await jf.items.list(
-///     includeItemTypes: const ['MusicAlbum'],
+///     includeItemTypes: const [JellyfinItemKind.musicAlbum],
 ///     fields: JellyfinItemsApi.browseFields,
 ///     enableTotalRecordCount: false,
 ///     startIndex: start,

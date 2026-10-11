@@ -249,7 +249,7 @@ class JellyfinClient {
   late final JellyfinDevicesApi devices;
 
   /// `/Trailers` operations — obsolete in Jellyfin 12; use
-  /// `items.list(includeItemTypes: ['Trailer'])`.
+  /// `items.list(includeItemTypes: [JellyfinItemKind.trailer])`.
   late final JellyfinTrailersApi trailers;
 
   /// `/Notifications` operations — server notification feed.
@@ -311,7 +311,7 @@ class JellyfinClient {
   /// final albums = await jf
   ///     .withCancelToken(token)
   ///     .items
-  ///     .list(includeItemTypes: const ['MusicAlbum'], limit: 50);
+  ///     .list(includeItemTypes: const [JellyfinItemKind.musicAlbum], limit: 50);
   /// ```
   ///
   /// A cancelled call throws a [JellyfinException] of type

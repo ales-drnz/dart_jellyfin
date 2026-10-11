@@ -2,34 +2,34 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-/// Pure-Dart client for Jellyfin.
+/// A Dart client for Jellyfin 12.2.
 ///
-/// Entry point is [JellyfinClient] — a stateful façade that holds the
-/// device identity, access token, and user id across calls and exposes
+/// [JellyfinClient] holds the device identity and the session, and exposes
 /// one sub-API per domain:
 ///
 /// ```dart
 /// final jf = JellyfinClient(
 ///   baseUrl: 'https://jellyfin.example.com',
 ///   credentials: const JellyfinCredentials(
-///     client: 'Finova',
+///     client: 'MyApp',
 ///     device: 'iPhone',
-///     deviceId: '2f5b-uuid',
+///     deviceId: 'a-stable-id-per-install',
 ///     version: '1.0.0',
 ///   ),
 /// );
 ///
 /// final auth = await jf.user.authenticateByName(
-///   username: 'me', password: 'pw',
+///   username: 'me',
+///   password: 'pw',
 /// );
 /// jf.setSession(token: auth.accessToken, userId: auth.user.id);
 ///
 /// final views = await jf.library.userViews();
-/// final music = views.firstWhere((v) => v.collectionType == 'music');
+/// final music = views.firstWhere((v) => v.isMusic);
 /// final albums = await jf.items.list(
 ///   parentId: music.id,
-///   includeItemTypes: const ['MusicAlbum'],
-///   sortBy: const ['SortName'],
+///   includeItemTypes: const [JellyfinItemKind.musicAlbum],
+///   sortBy: const [JellyfinSortField.sortName],
 ///   limit: 50,
 /// );
 /// ```

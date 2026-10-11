@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_playback_api.dart';
 
 /// `/Sessions/*` — list active sessions, send remote-control commands,
@@ -60,7 +61,9 @@ class JellyfinSessionsApi {
   /// [sendPlaystateCommand]; the `PlayState` capability advertises that
   /// this client accepts them.
   Future<void> postCapabilities({
-    List<String> playableMediaTypes = const ['Audio'],
+    List<JellyfinMediaType> playableMediaTypes = const [
+      JellyfinMediaType.audio,
+    ],
     List<String> supportedCommands = const ['Play', 'PlayState'],
     bool supportsMediaControl = false,
     bool supportsPersistentIdentifier = true,

@@ -36,7 +36,7 @@ class JellyfinGenresApi {
   ///   `/MusicGenres` answers and a track's `genreItems` carry, which
   ///   `instantMix.fromItem` takes;
   /// * without [parentId], the `Genre` items, even with
-  ///   `includeItemTypes: ['MusicAlbum', 'Audio']`. Their ids filter
+  ///   `includeItemTypes` set to albums and tracks. Their ids filter
   ///   `items.list(genreIds:)` just as well, but an instant mix seeded by
   ///   one is empty.
   ///

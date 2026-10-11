@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/dart_jellyfin.png" width="70" alt="logo"></td>
-<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin 12. It covers libraries, playlists, streaming, lyrics, playback reporting, remote control and search through typed Dart objects, and keeps the session for you.</td>
+<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin 12.2. It covers libraries, playlists, streaming, lyrics, playback reporting, remote control and search through typed Dart objects, and keeps the session for you.</td>
 </tr>
 </table>
 
@@ -27,10 +27,6 @@ Add `dart_jellyfin` to your `pubspec.yaml`:
 dependencies:
   dart_jellyfin: ^0.3.0
 ```
-
-`package:dart_jellyfin/dart_jellyfin.dart` is the library. File downloads
-live in `package:dart_jellyfin/io.dart`, because they need `dart:io` (see
-[Downloads](#28-downloads)).
 
 ---
 

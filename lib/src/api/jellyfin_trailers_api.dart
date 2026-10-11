@@ -13,7 +13,7 @@ import '../jellyfin_vocabulary.dart';
 /// Wraps the `Trailers` OpenAPI tag (1 operation). Jellyfin 12 marks
 /// `GET /Trailers` obsolete: it is a thin alias of `GET /Items` with
 /// `includeItemTypes=Trailer`, so
-/// `items.list(includeItemTypes: ['Trailer'])` takes the same filters
+/// `items.list(includeItemTypes: [JellyfinItemKind.trailer])` takes the same filters
 /// and is the supported path.
 class JellyfinTrailersApi {
   final JellyfinConnection _http;
@@ -25,7 +25,8 @@ class JellyfinTrailersApi {
   ///
   /// Obsolete in Jellyfin 12; still served through the 12.x cycle.
   @Deprecated(
-    "Obsolete in Jellyfin 12; use items.list(includeItemTypes: ['Trailer']).",
+    'Obsolete in Jellyfin 12; use '
+    'items.list(includeItemTypes: [JellyfinItemKind.trailer]).',
   )
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,

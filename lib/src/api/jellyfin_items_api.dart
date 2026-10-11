@@ -68,17 +68,13 @@ class JellyfinItemsApi {
 
   /// Page through items.
   ///
-  /// Pass [includeItemTypes] with values from [JellyfinItemKind] to
-  /// scope the result (e.g. `['MusicAlbum']`, `['Audio']`,
-  /// `['MusicArtist']`).
-  ///
-  /// [sortBy] accepts: `'SortName' | 'Album' | 'AlbumArtist' |
-  /// 'Artist' | 'Random' | 'DateCreated' | 'CommunityRating' |
-  /// 'PlayCount' | 'PremiereDate' | 'ProductionYear' | …`. It is only
-  /// sent when non-empty, and [descending] travels with it — the server
-  /// ignores a sort order that has no sort column to apply it to.
-  ///
-  /// Filters: pass [filters] like `['IsFavorite']`.
+  /// [includeItemTypes] scopes the result to item kinds
+  /// ([JellyfinItemKind.musicAlbum], [JellyfinItemKind.audio], …), [sortBy]
+  /// orders it ([JellyfinSortField.sortName], [JellyfinSortField.random],
+  /// …) and [filters] narrows it ([JellyfinItemFilter.isFavorite], …).
+  /// [sortBy] is only sent when non-empty, and [descending] travels with
+  /// it — the server ignores a sort order that has no sort column to apply
+  /// it to.
   ///
   /// The narrowing parameters split into id-based and name-based pairs:
   /// [genreIds] / [genres], [studioIds] / [studios],

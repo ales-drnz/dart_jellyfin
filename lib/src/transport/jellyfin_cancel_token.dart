@@ -24,7 +24,7 @@ import '../jellyfin_exception.dart';
 /// ```dart
 /// final token = JellyfinCancelToken();
 /// final scoped = jf.withCancelToken(token);
-/// final albums = scoped.items.list(includeItemTypes: const ['MusicAlbum']);
+/// final albums = scoped.items.list(includeItemTypes: const [JellyfinItemKind.musicAlbum]);
 /// // The user left the page:
 /// token.cancel();
 /// ```
