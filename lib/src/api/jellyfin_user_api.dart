@@ -2,11 +2,13 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import 'jellyfin_quick_connect_api.dart';
 
 /// `/Users/*` endpoints — authentication + profile.
 class JellyfinUserApi {
@@ -18,7 +20,7 @@ class JellyfinUserApi {
   /// Authenticate with username + password.
   ///
   /// On success, both [JellyfinAuthResult.accessToken] and
-  /// [JellyfinAuthResult.user.id] should be propagated to the client
+  /// `JellyfinAuthResult.user.id` should be propagated to the client
   /// via [JellyfinClient.setSession].
   Future<JellyfinAuthResult> authenticateByName({
     required String username,

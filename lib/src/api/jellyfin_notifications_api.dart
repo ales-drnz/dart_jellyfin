@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
@@ -89,7 +90,7 @@ class JellyfinNotificationsApi {
       onCancel: () {
         // Idempotent — close() releases the underlying channel.
         if (!(_controller?.hasListener ?? false)) {
-          close();
+          unawaited(close());
         }
       },
     );
@@ -114,7 +115,7 @@ class JellyfinNotificationsApi {
         );
       },
       onDone: () {
-        controller.close();
+        unawaited(controller.close());
         _cleanup();
       },
       cancelOnError: false,
@@ -183,11 +184,11 @@ class JellyfinNotificationsApi {
   void _cleanup() {
     _keepAlive?.cancel();
     _keepAlive = null;
-    _socketSub?.cancel();
+    unawaited(_socketSub?.cancel());
     _socketSub = null;
     _channel = null;
     if (!(_controller?.isClosed ?? true)) {
-      _controller?.close();
+      unawaited(_controller?.close());
     }
     _controller = null;
   }

@@ -2,9 +2,11 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import 'jellyfin_playback_api.dart';
 
 /// `/Sessions/*` — list active sessions, send remote-control commands,
 /// register your own client as a cast target.
@@ -138,7 +140,7 @@ class JellyfinSessionsApi {
 
   /// POST `/Sessions/{sessionId}/Playing/{command}` — send a
   /// playstate command (Pause, NextTrack, Seek, …) to a remote
-  /// session. See [PlaystateCommand] for the accepted values.
+  /// session. The accepted values are the server's `PlaystateCommand` enum.
   Future<void> sendPlaystateCommand({
     required String sessionId,
     required String command,

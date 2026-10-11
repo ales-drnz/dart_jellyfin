@@ -24,7 +24,7 @@
 /// 6. Triggers a library scan and waits for it to finish.
 /// 7. Writes a JSON bootstrap cache to
 ///    `test/integration/.bootstrap-cache.json` that integration
-///    tests pick up via [bootstrapCache] in their fixtures.
+///    tests pick up via `bootstrapCache` in their fixtures.
 ///
 /// Run this instead of `docker compose up`, not after it. Step 2 has
 /// to happen before step 3: the compose file bind-mounts the seed

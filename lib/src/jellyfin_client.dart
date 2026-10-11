@@ -64,6 +64,8 @@ import 'api/jellyfin_videos_api.dart';
 import 'api/jellyfin_years_api.dart';
 import 'jellyfin_connection.dart';
 import 'jellyfin_credentials.dart';
+import 'jellyfin_error_type.dart';
+import 'jellyfin_exception.dart';
 import 'transport/jellyfin_cancel_token.dart';
 import 'transport/jellyfin_response.dart';
 import 'transport/jellyfin_retry_policy.dart';

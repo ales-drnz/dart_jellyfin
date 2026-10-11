@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
@@ -21,7 +22,7 @@ class JellyfinPersonsApi {
 
   /// `GET /Persons` — search people; filter by [personTypes]
   /// (e.g. `['Actor', 'Director']`) or to people who appear in a
-  /// specific item via [appearsInItemId]. [parentId] scopes the
+  /// specific item via `appearsInItemId`. [parentId] scopes the
   /// result to one library; [nameStartsWith], [nameStartsWithOrGreater]
   /// and [nameLessThan] drive an alphabet picker; [startIndex] and
   /// [limit] page it.

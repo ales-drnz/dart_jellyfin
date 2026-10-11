@@ -11,6 +11,9 @@
 /// anything not yet lifted onto a typed property.
 library;
 
+import 'api/jellyfin_images_api.dart';
+import 'api/jellyfin_sessions_api.dart';
+
 // ---------------------------------------------------------------------------
 // QueryResult — the standard `{Items, TotalRecordCount, StartIndex}` envelope
 // ---------------------------------------------------------------------------

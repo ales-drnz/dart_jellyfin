@@ -2,6 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
+
 /// How [JellyfinClient.request] decodes a response body.
 enum JellyfinResponseType {
   /// JSON when the server says so (`Content-Type: application/json`),

@@ -284,6 +284,9 @@ final class JellyfinConnection {
       rethrow;
     } on FormatException catch (e, st) {
       throw _parseError(e, st, exchange.uri);
+      // A parser meeting a body of the wrong shape fails with a TypeError
+      // (`as Map` on a list): that is a malformed response, not a bug here.
+      // ignore: avoid_catching_errors
     } on TypeError catch (e, st) {
       throw _parseError(e, st, exchange.uri);
     }
@@ -573,7 +576,7 @@ final class JellyfinConnection {
       onListen: () {
         if (token != null) {
           if (token.isCancelled) return fail(_cancelled(uri));
-          token.whenCancelled.then((_) => fail(_cancelled(uri)));
+          unawaited(token.whenCancelled.then((_) => fail(_cancelled(uri))));
         }
         arm();
         sub = opened.response.stream.listen(

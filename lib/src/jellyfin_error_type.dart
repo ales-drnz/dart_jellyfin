@@ -2,6 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import 'jellyfin_client.dart';
+
 /// Semantic categories for failures coming out of [JellyfinClient].
 enum JellyfinErrorType {
   /// Transport-level failure — DNS, TCP, TLS, socket reset.

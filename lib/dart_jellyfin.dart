@@ -35,6 +35,8 @@
 /// ```
 library;
 
+import 'src/jellyfin_client.dart';
+
 export 'src/api/jellyfin_activity_log_api.dart';
 export 'src/api/jellyfin_api_key_api.dart';
 export 'src/api/jellyfin_artists_api.dart';

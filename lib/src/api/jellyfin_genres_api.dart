@@ -2,10 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import 'jellyfin_lookup_helpers.dart';
+import 'jellyfin_music_genres_api.dart';
 
 /// `/Genres*` — generic genres across the library.
 ///

@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 
 /// `/ClientLog` — upload a client-side log file to the server.

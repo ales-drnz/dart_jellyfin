@@ -2,9 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
+import 'jellyfin_audio_api.dart';
+import 'jellyfin_media_info_api.dart';
 
 /// Video streaming, additional parts, alternate sources.
 ///

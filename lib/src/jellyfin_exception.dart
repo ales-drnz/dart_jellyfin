@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import 'jellyfin_client.dart';
 import 'jellyfin_error_type.dart';
 
 /// Exception thrown by [JellyfinClient] for any failed operation.
