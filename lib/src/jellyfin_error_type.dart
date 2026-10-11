@@ -3,6 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import 'jellyfin_client.dart';
+import 'jellyfin_exception.dart';
 import 'transport/jellyfin_cancel_token.dart';
 
 /// Semantic categories for failures coming out of [JellyfinClient].
@@ -39,7 +40,12 @@ enum JellyfinErrorType {
   /// Anything that doesn't fit the other categories.
   unknown;
 
-  /// Whether a retry might succeed (connection/timeout only).
+  /// Whether no answer came back at all (a connection failure or a
+  /// timeout). Same as [JellyfinException.isNetworkFailure].
+  @Deprecated(
+    'Use JellyfinException.isNetworkFailure, or isTransient to include 5xx '
+    'and 429. Removed in 0.4.',
+  )
   bool get isRetriable =>
       this == JellyfinErrorType.connection || this == JellyfinErrorType.timeout;
 

@@ -48,6 +48,12 @@ void main() {
     );
   });
 
+  /// Temporary files left in the download folder.
+  List<String> leftovers() => [
+        for (final f in dir.listSync(recursive: true))
+          if (f.path.endsWith('.part')) f.path,
+      ];
+
   tearDown(() async {
     client.close();
     await server.close(force: true);
@@ -65,7 +71,7 @@ void main() {
     );
     expect(n, body.length);
     expect(await File(path).readAsBytes(), body);
-    expect(File('$path.part').existsSync(), isFalse);
+    expect(leftovers(), isEmpty);
     expect(progress.last, (body.length, body.length));
     expect(progress.length, greaterThan(1));
   });
@@ -90,7 +96,44 @@ void main() {
       ),
     );
     expect(File(path).existsSync(), isFalse);
-    expect(File('$path.part').existsSync(), isFalse);
+    expect(leftovers(), isEmpty);
+  });
+
+  test('a failure leaves the file already at the path alone', () async {
+    final path = '${dir.path}/kept.flac';
+    await File(path).writeAsString('old');
+    await expectLater(
+      client.downloadToFile('/missing', path, absoluteUrl: false),
+      throwsA(isA<JellyfinException>()),
+    );
+    expect(await File(path).readAsString(), 'old');
+    expect(leftovers(), isEmpty);
+  });
+
+  test('a folder that cannot be created is a JellyfinException', () async {
+    final blocker = File('${dir.path}/file')..writeAsStringSync('x');
+    await expectLater(
+      client.downloadToFile(
+        '/slow',
+        '${blocker.path}/sub/track.flac',
+        absoluteUrl: false,
+      ),
+      throwsA(
+        isA<JellyfinException>()
+            .having((e) => e.type, 'type', JellyfinErrorType.state),
+      ),
+    );
+  });
+
+  test('two downloads to one path do not share a temporary file', () async {
+    final path = '${dir.path}/same.flac';
+    final both = await Future.wait([
+      client.downloadToFile('/slow', path, absoluteUrl: false),
+      client.downloadToFile('/slow', path, absoluteUrl: false),
+    ]);
+    expect(both, [body.length, body.length]);
+    expect(await File(path).readAsBytes(), body);
+    expect(leftovers(), isEmpty);
   });
 
   test('a 404 throws and writes nothing', () async {

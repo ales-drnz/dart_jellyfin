@@ -74,18 +74,18 @@ final class JellyfinConnection {
   /// frame. Override per client with the `jsonIsolateThreshold` argument.
   static const int defaultJsonIsolateThreshold = 50 * 1024;
 
-  /// The default threshold. Kept under its 0.2 name.
-  static const int jsonIsolateThreshold = defaultJsonIsolateThreshold;
-
   /// Creates a connection bound to [credentials] and an optional [baseUrl].
   ///
   /// Without an [httpClient], one is created (and closed by [close]) with
   /// [connectTimeout] applied to the handshake. An injected client is never
   /// closed by this connection.
   ///
-  /// [receiveTimeout] bounds the wait for the response headers and every
-  /// pause between two chunks of the body — not the whole transfer, so a
-  /// long download that keeps flowing never times out.
+  /// [receiveTimeout] bounds every pause between two chunks of the body —
+  /// not the whole transfer, so a long download that keeps flowing never
+  /// times out. The wait for the response headers is bounded by
+  /// [connectTimeout] + [receiveTimeout] together: `package:http` does not
+  /// say when the connection is up, so the two cannot be told apart there.
+  /// An injected [httpClient] brings its own connect timeout, if any.
   JellyfinConnection({
     required this.credentials,
     String? baseUrl,
@@ -228,6 +228,7 @@ final class JellyfinConnection {
     } on FormatException catch (e, st) {
       throw _parseError(e, st, exchange.uri);
     }
+    _throwIfCancelled(cancelToken, exchange.uri);
     if (decoded != null && decoded is! T) {
       throw JellyfinException(
         'Expected a $T body, got ${decoded.runtimeType}',
@@ -273,23 +274,24 @@ final class JellyfinConnection {
     );
     final bytes = exchange.bytes;
     final gzipped = exchange.gzipped;
+    final R result;
     try {
-      if (_offIsolate(exchange)) {
-        return await platform.runOffIsolate(
-          () => parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes)),
-        );
-      }
-      return parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes));
+      result = _offIsolate(exchange)
+          ? await platform.runOffIsolate(
+              () => parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes)),
+            )
+          : parse(_jsonOf(gzipped ? platform.gunzip(bytes) : bytes));
     } on JellyfinException {
       rethrow;
-    } on FormatException catch (e, st) {
-      throw _parseError(e, st, exchange.uri);
-      // A parser meeting a body of the wrong shape fails with a TypeError
-      // (`as Map` on a list): that is a malformed response, not a bug here.
+      // Whatever else a parser throws — a FormatException, a TypeError from
+      // `as Map` on a list, a RangeError — means the body was not what the
+      // parser expects: a malformed response, reported as one.
       // ignore: avoid_catching_errors
-    } on TypeError catch (e, st) {
+    } catch (e, st) {
       throw _parseError(e, st, exchange.uri);
     }
+    _throwIfCancelled(cancelToken, exchange.uri);
+    return result;
   }
 
   /// Convenience for byte GETs (artwork, small files). The whole body is
@@ -314,7 +316,13 @@ final class JellyfinConnection {
   /// like [request]. The returned stream fails with a [JellyfinException]
   /// on cancellation and, unless [stallTimeout] is `false`, on a pause in
   /// the body longer than the receive timeout. Turn it off for event
-  /// streams that may stay quiet for minutes.
+  /// streams that may stay quiet for minutes. Time the listener spends
+  /// paused does not count as a stall.
+  ///
+  /// The connection stays open until the stream is listened to and
+  /// drained or cancelled: listen to it, or cancel the subscription, even
+  /// when the body is not wanted. A cancellation through the token closes
+  /// it either way.
   Future<JellyfinStreamedResponse> requestStream(
     String url, {
     Map<String, Object?>? queryParameters,
@@ -343,7 +351,7 @@ final class JellyfinConnection {
           res.statusCode,
           res.reasonPhrase,
           opened.uri,
-          gzipped ? platform.gunzip(body) : body,
+          gzipped ? _tryGunzip(body) : body,
           res.headers,
         );
       }
@@ -353,7 +361,13 @@ final class JellyfinConnection {
     final gzipped = _isGzipped(res.headers);
     final body = _guard(opened);
     return JellyfinStreamedResponse(
-      stream: gzipped ? platform.gunzipStream(body) : body,
+      stream: gzipped
+          ? platform.gunzipStream(body).handleError(
+                (Object e, StackTrace st) =>
+                    throw _parseError(e, st, opened.uri),
+                test: (e) => e is FormatException,
+              )
+          : body,
       statusCode: res.statusCode,
       headers: res.headers,
       contentLength: gzipped ? null : res.contentLength,
@@ -403,15 +417,17 @@ final class JellyfinConnection {
           method: method,
         );
         if (wait == null) rethrow;
-        final timer = Completer<void>();
-        final t = Timer(wait, timer.complete);
-        await Future.any([
-          timer.future,
-          if (token != null) token.whenCancelled,
-        ]);
-        t.cancel();
+        if (token != null && token.isCancelled) rethrow;
+        final waited = Completer<void>();
+        final timer = Timer(wait, waited.complete);
+        final unregister = token?.register(() {
+          timer.cancel();
+          if (!waited.isCompleted) waited.complete();
+        });
+        await waited.future;
+        unregister?.call();
         if (token != null && token.isCancelled) {
-          throw _cancelled(Uri.parse(e.path ?? ''));
+          throw _cancelled(Uri.tryParse(e.path ?? '') ?? Uri());
         }
       }
     }
@@ -443,7 +459,7 @@ final class JellyfinConnection {
         res.statusCode,
         res.reasonPhrase,
         opened.uri,
-        gzipped ? platform.gunzip(bytes) : bytes,
+        gzipped ? _tryGunzip(bytes) : bytes,
         res.headers,
       );
     }
@@ -466,10 +482,18 @@ final class JellyfinConnection {
         type: JellyfinErrorType.state,
       );
     }
-    final uri = buildUri(
-      absoluteUrl ? path : _resolve(path),
-      queryParameters,
-    );
+    final Uri uri;
+    try {
+      uri = buildUri(absoluteUrl ? path : _resolve(path), queryParameters);
+    } on FormatException catch (e, st) {
+      throw JellyfinException(
+        'Invalid request URL: ${e.message}',
+        type: JellyfinErrorType.state,
+        path: path,
+        cause: e,
+        stackTrace: st,
+      );
+    }
     final token = cancelToken ?? scopeToken;
     if (token != null && token.isCancelled) throw _cancelled(uri);
 
@@ -481,8 +505,8 @@ final class JellyfinConnection {
     );
     request.headers.addAll(_baseHeaders);
     if (_shared.inflates) request.headers['Accept-Encoding'] = 'gzip';
-    _encodeBody(request, data);
     if (extraHeaders != null) request.headers.addAll(extraHeaders);
+    _encodeBody(request, data);
 
     final opened = _Opened(uri, abort, token, _shared.receiveTimeout);
     final headers = Completer<http.StreamedResponse>();
@@ -496,9 +520,7 @@ final class JellyfinConnection {
       _shared.connectTimeout + _shared.receiveTimeout,
       () => lose(_timeout('No response within the timeout', uri)),
     );
-    if (token != null) {
-      unawaited(token.whenCancelled.then((_) => lose(_cancelled(uri))));
-    }
+    final unregister = token?.register(() => lose(_cancelled(uri)));
     try {
       final sent = _shared.client.send(request).then(
         (res) {
@@ -521,6 +543,7 @@ final class JellyfinConnection {
       return opened;
     } finally {
       timer.cancel();
+      unregister?.call();
     }
   }
 
@@ -542,14 +565,26 @@ final class JellyfinConnection {
     late final StreamController<List<int>> out;
     StreamSubscription<List<int>>? sub;
     Timer? stall;
+    void Function()? unregister;
+    var done = false;
     // One timer per body, not one per chunk: a chunk only stamps the time,
-    // and the timer checks the stamp when it fires.
+    // and the timer checks the stamp when it fires. The clock stops while
+    // the listener is paused — a slow consumer is not a stalled server.
     final sinceChunk = Stopwatch();
 
-    void fail(JellyfinException e) {
+    void finish() {
+      done = true;
       stall?.cancel();
+      unregister?.call();
+    }
+
+    void fail(JellyfinException e) {
+      if (done) return;
+      finish();
       opened.abort();
-      unawaited(sub?.cancel());
+      // An aborted `IOClient` response closes its socket only once it is
+      // listened to: drain it here when nobody has yet.
+      unawaited(sub?.cancel() ?? opened.response.stream.listen(null).cancel());
       if (!out.isClosed) {
         out.addError(e, e.stackTrace);
         unawaited(out.close());
@@ -558,7 +593,7 @@ final class JellyfinConnection {
 
     void arm() {
       final timeout = opened.receiveTimeout;
-      if (timeout == null) return;
+      if (timeout == null || done) return;
       sinceChunk.start();
       void check() {
         final idle = timeout - sinceChunk.elapsed;
@@ -569,15 +604,12 @@ final class JellyfinConnection {
         }
       }
 
-      stall = Timer(timeout, check);
+      stall = Timer(timeout - sinceChunk.elapsed, check);
     }
 
     out = StreamController<List<int>>(
       onListen: () {
-        if (token != null) {
-          if (token.isCancelled) return fail(_cancelled(uri));
-          unawaited(token.whenCancelled.then((_) => fail(_cancelled(uri))));
-        }
+        if (done) return;
         arm();
         sub = opened.response.stream.listen(
           (chunk) {
@@ -587,30 +619,61 @@ final class JellyfinConnection {
           onError: (Object e, StackTrace st) =>
               fail(_transportError(e, st, uri, token)),
           onDone: () {
-            stall?.cancel();
+            finish();
             unawaited(out.close());
           },
         );
       },
-      onPause: () => sub?.pause(),
-      onResume: () => sub?.resume(),
-      onCancel: () {
+      onPause: () {
         stall?.cancel();
+        sinceChunk.stop();
+        sub?.pause();
+      },
+      onResume: () {
+        sub?.resume();
+        arm();
+      },
+      onCancel: () {
+        finish();
         opened.abort();
         return sub?.cancel();
       },
     );
+    // Wired now, not on listen: a cancellation must also close a body that
+    // nobody has listened to yet.
+    if (token != null) {
+      if (token.isCancelled) {
+        fail(_cancelled(uri));
+      } else {
+        unregister = token.register(() => fail(_cancelled(uri)));
+      }
+    }
     return out.stream;
   }
 
+  /// Encodes [data] into [request]: raw bytes for a `List<int>`, a form
+  /// body for a `Map` when the caller set a form `Content-Type`, JSON
+  /// otherwise.
   void _encodeBody(http.Request request, Object? data) {
     if (data == null) return;
     if (data is List<int>) {
       request.bodyBytes = data;
       return;
     }
+    final contentType = request.headers.entries
+        .where((h) => h.key.toLowerCase() == 'content-type')
+        .map((h) => h.value.toLowerCase())
+        .firstOrNull;
+    if (data is Map &&
+        contentType != null &&
+        contentType.startsWith('application/x-www-form-urlencoded')) {
+      request.bodyBytes = utf8.encode(_formEncode(data));
+      return;
+    }
     if (data is Map || data is List || data is String) {
-      request.headers['Content-Type'] = 'application/json';
+      if (contentType == null) {
+        request.headers['Content-Type'] = 'application/json';
+      }
       request.bodyBytes = utf8.encode(data is String ? data : jsonEncode(data));
       return;
     }
@@ -675,37 +738,53 @@ final class JellyfinConnection {
     return '$base$path';
   }
 
-  /// Appends [queryParameters] to [url] the way the 0.2 transport did, so
-  /// the wire shape is unchanged: keys and string values are
-  /// form-encoded (`encodeQueryComponent`), a list repeats its key once per
-  /// element, and a `null` value sends the bare key.
+  /// Appends [queryParameters] to [url] the way the 0.2 transport (Dio)
+  /// did: keys and values are form-encoded (`encodeQueryComponent`, so a
+  /// space is `+`), a list repeats its key once per element, a `null`
+  /// value sends the bare key, and a map nests as `key[sub]=value`.
   @visibleForTesting
   static Uri buildUri(String url, Map<String, Object?>? queryParameters) {
     final qp = queryParameters;
     if (qp == null || qp.isEmpty) return Uri.parse(url).normalizePath();
+    final query = _encodePairs(qp, repeatLists: true);
+    if (query.isEmpty) return Uri.parse(url).normalizePath();
+    final sep = url.contains('?') ? '&' : '?';
+    return Uri.parse('$url$sep$query').normalizePath();
+  }
+
+  /// A form body (`application/x-www-form-urlencoded`) for [data], with
+  /// the same rules as the query string.
+  static String _formEncode(Map<Object?, Object?> data) =>
+      _encodePairs(data, repeatLists: true);
+
+  /// `k=v&k2=v2`, every key and value form-encoded. A top-level list
+  /// repeats its key when [repeatLists]; a nested map or list is written
+  /// `key[sub]` / `key[index]`.
+  static String _encodePairs(
+    Map<Object?, Object?> map, {
+    required bool repeatLists,
+  }) {
     final parts = <String>[];
-    void add(String key, Object? value) {
-      if (value == null) {
-        parts.add(key);
-      } else if (value is String) {
-        parts.add('$key=${Uri.encodeQueryComponent(value)}');
+    void add(String key, Object? value, {required bool top}) {
+      if (value is Map) {
+        value.forEach((k, v) => add('$key[$k]', v, top: false));
+      } else if (value is Iterable) {
+        var i = 0;
+        for (final e in value) {
+          add(top && repeatLists ? key : '$key[${i++}]', e, top: false);
+        }
+      } else if (value == null) {
+        parts.add(Uri.encodeQueryComponent(key));
       } else {
-        parts.add('$key=$value');
+        parts.add(
+          '${Uri.encodeQueryComponent(key)}='
+          '${Uri.encodeQueryComponent('$value')}',
+        );
       }
     }
 
-    qp.forEach((k, v) {
-      final key = Uri.encodeQueryComponent(k);
-      if (v is Iterable) {
-        for (final e in v) {
-          add(key, e);
-        }
-      } else {
-        add(key, v);
-      }
-    });
-    final sep = url.contains('?') ? '&' : '?';
-    return Uri.parse('$url$sep${parts.join('&')}').normalizePath();
+    map.forEach((k, v) => add('$k', v, top: true));
+    return parts.join('&');
   }
 
   static bool _isJson(String? contentType) {
@@ -736,11 +815,24 @@ final class JellyfinConnection {
   }
 
   /// `Retry-After` in seconds; `null` when absent or not a number (the
-  /// HTTP-date form is not read — neither server sends it).
+  /// HTTP-date form is not read — neither server sends it). Clamped to
+  /// `[0, 1 day]` so an absurd value cannot overflow [Duration].
   static Duration? _retryAfter(String? value) {
     final seconds = value == null ? null : int.tryParse(value.trim());
     if (seconds == null) return null;
-    return Duration(seconds: seconds < 0 ? 0 : seconds);
+    return Duration(seconds: seconds.clamp(0, _maxRetryAfterSeconds));
+  }
+
+  static const int _maxRetryAfterSeconds = 24 * 60 * 60;
+
+  /// Inflates an error body for its message; the raw bytes when it is not
+  /// really gzip, so a lying header cannot hide the status.
+  static Uint8List _tryGunzip(Uint8List bytes) {
+    try {
+      return platform.gunzip(bytes);
+    } on FormatException {
+      return bytes;
+    }
   }
 
   JellyfinException _transportError(
@@ -753,13 +845,25 @@ final class JellyfinConnection {
     if (e is http.RequestAbortedException || (token?.isCancelled ?? false)) {
       return _cancelled(uri);
     }
+    if (_shared.closed) {
+      return JellyfinException(
+        'JellyfinClient.close() was called while the request was in flight.',
+        type: JellyfinErrorType.state,
+        path: uri.toString(),
+        cause: e,
+        stackTrace: st,
+      );
+    }
     if (e is TimeoutException) return _timeout('$e', uri, e, st);
     final text = '$e';
+    // A redirect loop is an answer, not a lost connection: not retried.
     final type = text.contains('timed out')
         ? JellyfinErrorType.timeout
-        : e is http.ClientException
-            ? JellyfinErrorType.connection
-            : JellyfinErrorType.unknown;
+        : e is http.ClientException && text.contains('Redirect')
+            ? JellyfinErrorType.unknown
+            : e is http.ClientException
+                ? JellyfinErrorType.connection
+                : JellyfinErrorType.unknown;
     return JellyfinException(
       text,
       type: type,
@@ -791,6 +895,13 @@ final class JellyfinConnection {
         cause: cause,
         stackTrace: st ?? StackTrace.current,
       );
+
+  /// Throws a cancellation when the token for this request was cancelled
+  /// while its body was being decoded.
+  void _throwIfCancelled(JellyfinCancelToken? cancelToken, Uri uri) {
+    final token = cancelToken ?? scopeToken;
+    if (token != null && token.isCancelled) throw _cancelled(uri);
+  }
 
   static JellyfinException _cancelled(Uri uri) => JellyfinException(
         'Request cancelled',

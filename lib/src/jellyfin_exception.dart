@@ -43,7 +43,7 @@ final class JellyfinException implements Exception {
 
   /// No answer from the server at all: the connection failed or timed out.
   /// The server may be down or unreachable — not the same as an answer that
-  /// says no. Same as [JellyfinErrorType.isRetriable].
+  /// says no.
   bool get isNetworkFailure =>
       type == JellyfinErrorType.connection || type == JellyfinErrorType.timeout;
 
@@ -67,8 +67,12 @@ final class JellyfinException implements Exception {
   /// Whether [type] is an authentication/authorization failure.
   bool get isAuthError => type.isAuthError;
 
-  /// Whether a retry might succeed for this failure.
-  bool get isRetriable => type.isRetriable;
+  /// Same as [isNetworkFailure].
+  @Deprecated(
+    'Use isNetworkFailure, or isTransient to include 5xx and 429. '
+    'Removed in 0.4.',
+  )
+  bool get isRetriable => isNetworkFailure;
 
   @override
   String toString() {
