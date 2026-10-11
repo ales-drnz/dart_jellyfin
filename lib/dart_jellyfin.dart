@@ -101,6 +101,7 @@ export 'src/jellyfin_exception.dart';
 export 'src/jellyfin_models.dart';
 export 'src/jellyfin_paging.dart';
 export 'src/jellyfin_server_models.dart';
+export 'src/jellyfin_vocabulary.dart';
 export 'src/transport/jellyfin_cancel_token.dart';
 export 'src/transport/jellyfin_response.dart';
 export 'src/transport/jellyfin_retry_policy.dart';

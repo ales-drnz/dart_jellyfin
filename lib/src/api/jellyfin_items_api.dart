@@ -8,6 +8,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_artists_api.dart';
 import 'jellyfin_filter_api.dart';
 
@@ -35,19 +36,19 @@ class JellyfinItemsApi {
   /// `AlbumPrimaryImageTag` is not here because it is not a field: the
   /// server sends it on every track whose album has a cover, whatever
   /// `fields` says (verified on 12.0). 0.2 listed it; the server ignored it.
-  static const List<String> musicFields = [
-    'Overview',
-    'Genres',
-    'MediaSources',
-    'MediaStreams',
-    'ProviderIds',
-    'PrimaryImageAspectRatio',
-    'SortName',
-    'DateCreated',
-    'ChildCount',
-    'ParentId',
-    'Path',
-    'OriginalTitle',
+  static const List<JellyfinItemField> musicFields = [
+    JellyfinItemField.overview,
+    JellyfinItemField.genres,
+    JellyfinItemField.mediaSources,
+    JellyfinItemField.mediaStreams,
+    JellyfinItemField.providerIds,
+    JellyfinItemField.primaryImageAspectRatio,
+    JellyfinItemField.sortName,
+    JellyfinItemField.dateCreated,
+    JellyfinItemField.childCount,
+    JellyfinItemField.parentId,
+    JellyfinItemField.path,
+    JellyfinItemField.originalTitle,
   ];
 
   /// The light `fields` set for grids and lists of albums, artists,
@@ -57,12 +58,12 @@ class JellyfinItemsApi {
   ///
   /// Image tags (`ImageTags`, `AlbumPrimaryImageTag`) need no field — they
   /// always come — so covers and their versions work with this set too.
-  static const List<String> browseFields = [
-    'Genres',
-    'DateCreated',
-    'ChildCount',
-    'SortName',
-    'PrimaryImageAspectRatio',
+  static const List<JellyfinItemField> browseFields = [
+    JellyfinItemField.genres,
+    JellyfinItemField.dateCreated,
+    JellyfinItemField.childCount,
+    JellyfinItemField.sortName,
+    JellyfinItemField.primaryImageAspectRatio,
   ];
 
   /// Page through items.
@@ -108,15 +109,15 @@ class JellyfinItemsApi {
   /// the items in the page.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
-    List<String> includeItemTypes = const [],
-    List<String> excludeItemTypes = const [],
-    List<String> mediaTypes = const [],
-    List<String> sortBy = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
     int startIndex = 0,
     int? limit,
     String? searchTerm,
-    List<String> filters = const [],
+    List<JellyfinItemFilter> filters = const [],
     List<String> ids = const [],
     List<String> excludeItemIds = const [],
     List<String> genreIds = const [],
@@ -136,7 +137,7 @@ class JellyfinItemsApi {
     String? nameStartsWith,
     bool? isFavorite,
     bool? isPlayed,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool recursive = true,
     bool enableImages = true,
     bool enableUserData = true,
@@ -198,11 +199,11 @@ class JellyfinItemsApi {
   /// so any query you can page you can also count.
   Future<int> count({
     String? parentId,
-    List<String> includeItemTypes = const [],
-    List<String> excludeItemTypes = const [],
-    List<String> mediaTypes = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
     String? searchTerm,
-    List<String> filters = const [],
+    List<JellyfinItemFilter> filters = const [],
     List<String> ids = const [],
     List<String> excludeItemIds = const [],
     List<String> genreIds = const [],
@@ -276,11 +277,11 @@ class JellyfinItemsApi {
   /// transport unjoined — see [JellyfinConnection.request].
   Map<String, Object?> _narrowing({
     required String? parentId,
-    required List<String> includeItemTypes,
-    required List<String> excludeItemTypes,
-    required List<String> mediaTypes,
+    required List<JellyfinItemKind> includeItemTypes,
+    required List<JellyfinItemKind> excludeItemTypes,
+    required List<JellyfinMediaType> mediaTypes,
     required String? searchTerm,
-    required List<String> filters,
+    required List<JellyfinItemFilter> filters,
     required List<String> ids,
     required List<String> excludeItemIds,
     required List<String> genreIds,
@@ -372,7 +373,7 @@ class JellyfinItemsApi {
   /// "Continue Listening / Watching" — items with playback position > 0.
   Future<JellyfinQueryResult<JellyfinItem>> resume({
     String? parentId,
-    List<String> mediaTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
     int startIndex = 0,
     int? limit,
   }) async {
@@ -537,7 +538,7 @@ class JellyfinItemsApi {
   /// the server's `GetLatestMedia` default of returning every play state.
   Future<List<JellyfinItem>> latest({
     String? parentId,
-    List<String> includeItemTypes = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
     int limit = 20,
     bool? isPlayed,
   }) async {

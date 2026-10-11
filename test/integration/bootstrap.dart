@@ -357,7 +357,7 @@ Future<void> _waitForScan(
   var stableTicks = 0;
   while (DateTime.now().isBefore(deadline)) {
     final count = await client.items.count(
-      includeItemTypes: const ['Audio'],
+      includeItemTypes: const [JellyfinItemKind.audio],
     );
     if (count != lastCount) {
       lastCount = count;

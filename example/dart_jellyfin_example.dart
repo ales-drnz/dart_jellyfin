@@ -43,7 +43,7 @@ Future<void> main() async {
       (start, size) async => (await scoped.items.list(
         parentId: music.id,
         includeItemTypes: const [JellyfinItemKind.musicAlbum],
-        sortBy: const ['SortName'],
+        sortBy: const [JellyfinSortField.sortName],
         startIndex: start,
         limit: size,
         fields: JellyfinItemsApi.browseFields,

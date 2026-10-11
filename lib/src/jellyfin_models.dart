@@ -13,6 +13,7 @@ library;
 
 import 'api/jellyfin_images_api.dart';
 import 'api/jellyfin_sessions_api.dart';
+import 'jellyfin_vocabulary.dart';
 
 // ---------------------------------------------------------------------------
 // QueryResult — the standard `{Items, TotalRecordCount, StartIndex}` envelope
@@ -347,70 +348,6 @@ final class JellyfinView {
 // ---------------------------------------------------------------------------
 // Items (BaseItemDto subset)
 // ---------------------------------------------------------------------------
-
-/// Item kinds we recognise (a subset of the OpenAPI `BaseItemKind` enum).
-/// Strings match the wire values used in `Type` and `IncludeItemTypes`.
-abstract final class JellyfinItemKind {
-  /// A single audio track.
-  static const audio = 'Audio';
-
-  /// An audiobook track or container.
-  static const audioBook = 'AudioBook';
-
-  /// A music album.
-  static const musicAlbum = 'MusicAlbum';
-
-  /// A music artist.
-  static const musicArtist = 'MusicArtist';
-
-  /// A music genre.
-  static const musicGenre = 'MusicGenre';
-
-  /// A music video.
-  static const musicVideo = 'MusicVideo';
-
-  /// A user-created playlist.
-  static const playlist = 'Playlist';
-
-  /// A movie.
-  static const movie = 'Movie';
-
-  /// A TV series.
-  static const series = 'Series';
-
-  /// A TV season.
-  static const season = 'Season';
-
-  /// A single TV episode.
-  static const episode = 'Episode';
-
-  /// A photo.
-  static const photo = 'Photo';
-
-  /// A photo album.
-  static const photoAlbum = 'PhotoAlbum';
-
-  /// A generic folder.
-  static const folder = 'Folder';
-
-  /// A top-level library folder.
-  static const collectionFolder = 'CollectionFolder';
-
-  /// A per-user view (library facade).
-  static const userView = 'UserView';
-
-  /// A generic (non-music) genre.
-  static const genre = 'Genre';
-
-  /// A person (actor, director, …).
-  static const person = 'Person';
-
-  /// A studio.
-  static const studio = 'Studio';
-
-  /// A book.
-  static const book = 'Book';
-}
 
 /// Subset of `BaseItemDto`. Hand-rolled — the full DTO has 153 fields,
 /// here we lift only what music apps use today. Anything else lives in

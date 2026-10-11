@@ -8,6 +8,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Years*` — release-year browse buckets.
 ///
@@ -24,12 +25,12 @@ class JellyfinYearsApi {
     String? parentId,
     int startIndex = 0,
     int? limit,
-    List<String> sortBy = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
-    List<String> fields = const [],
-    List<String> includeItemTypes = const [],
-    List<String> excludeItemTypes = const [],
-    List<String> mediaTypes = const [],
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
     bool enableUserData = true,
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],

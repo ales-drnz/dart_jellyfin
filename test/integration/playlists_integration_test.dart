@@ -27,7 +27,7 @@ void main() {
         jf = jellyfinFromCache();
         if (bootstrapSkipReason != null) return;
         final tracks = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 3,
         );
         trackIds = [for (final t in tracks.items) t.id];

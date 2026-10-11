@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Channels` — plugin-provided IPTV / online-source channels.
 ///
@@ -55,10 +56,10 @@ class JellyfinChannelsApi {
     String? folderId,
     int? startIndex,
     int? limit,
-    List<String> sortBy = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
-    List<String> filters = const [],
-    List<String> fields = const [],
+    List<JellyfinItemFilter> filters = const [],
+    List<JellyfinItemField> fields = const [],
   }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;
@@ -85,8 +86,8 @@ class JellyfinChannelsApi {
     int? startIndex,
     int? limit,
     List<String> channelIds = const [],
-    List<String> filters = const [],
-    List<String> fields = const [],
+    List<JellyfinItemFilter> filters = const [],
+    List<JellyfinItemField> fields = const [],
   }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;

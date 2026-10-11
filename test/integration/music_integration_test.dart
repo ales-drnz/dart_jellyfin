@@ -42,7 +42,7 @@ void main() {
           parentId: album.id,
           includeItemTypes: const [JellyfinItemKind.audio],
           fields: JellyfinItemsApi.musicFields,
-          sortBy: const ['IndexNumber'],
+          sortBy: const [JellyfinSortField.indexNumber],
         ))
             .items;
       });
@@ -55,7 +55,7 @@ void main() {
             return (await jf.items.list(
               parentId: album.id,
               includeItemTypes: const [JellyfinItemKind.audio],
-              sortBy: const ['IndexNumber'],
+              sortBy: const [JellyfinSortField.indexNumber],
               enableTotalRecordCount: false,
               startIndex: start,
               limit: size,

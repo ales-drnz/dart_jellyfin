@@ -392,7 +392,7 @@ void main() {
       final token = JellyfinCancelToken();
       final view = client.withCancelToken(token);
       final calls = [
-        view.items.list(includeItemTypes: const ['MusicAlbum']),
+        view.items.list(includeItemTypes: const [JellyfinItemKind.musicAlbum]),
         view.playlists.items(playlistId: 'p1'),
         view.genres.list(),
       ];

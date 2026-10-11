@@ -7,6 +7,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/UserViews` and library-level helpers.
 class JellyfinLibraryApi {
@@ -46,7 +47,7 @@ class JellyfinLibraryApi {
     required String itemId,
     List<String> excludeArtistIds = const [],
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     String? userId,
   }) =>
       _similar(
@@ -61,7 +62,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> similarAlbums({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) =>
       _similar('/Albums/$itemId/Similar', limit: limit, fields: fields);
 
@@ -69,7 +70,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> similarArtists({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) =>
       _similar('/Artists/$itemId/Similar', limit: limit, fields: fields);
 
@@ -77,7 +78,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> similarMovies({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) =>
       _similar('/Movies/$itemId/Similar', limit: limit, fields: fields);
 
@@ -85,7 +86,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> similarShows({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) =>
       _similar('/Shows/$itemId/Similar', limit: limit, fields: fields);
 
@@ -93,7 +94,7 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> similarTrailers({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) =>
       _similar('/Trailers/$itemId/Similar', limit: limit, fields: fields);
 
@@ -121,7 +122,7 @@ class JellyfinLibraryApi {
     required String itemId,
     int? startIndex,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;
@@ -305,7 +306,7 @@ class JellyfinLibraryApi {
     String path, {
     List<String> excludeArtistIds = const [],
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     String? userId,
   }) async {
     final qp = <String, Object?>{};

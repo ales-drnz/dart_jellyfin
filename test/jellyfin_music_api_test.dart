@@ -328,7 +328,7 @@ void main() {
 
     test('browseFields is light and repeated on the wire', () async {
       await client.items.list(
-        includeItemTypes: const ['MusicAlbum'],
+        includeItemTypes: const [JellyfinItemKind.musicAlbum],
         fields: JellyfinItemsApi.browseFields,
         enableTotalRecordCount: false,
       );

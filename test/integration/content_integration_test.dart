@@ -27,7 +27,7 @@ void main() {
         jf = jellyfinFromCache();
         if (bootstrapSkipReason != null) return;
         final tracks = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 3,
         );
         trackIds = [for (final t in tracks.items) t.id];
@@ -76,14 +76,14 @@ void main() {
 
       test('filter.facets returns the Filters2 facet payload', () async {
         final f = await jf.filter.facets(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
         );
         expect(f, isA<JellyfinQueryFilters>());
       });
 
       test('filter.legacy returns the legacy filter payload', () async {
         final f = await jf.filter.legacy(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
         );
         expect(f, isA<JellyfinQueryFiltersLegacy>());
       });

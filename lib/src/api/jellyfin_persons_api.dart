@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_lookup_helpers.dart';
 
 /// `/Persons*` — actors, directors, composers, artists, etc.
@@ -34,8 +35,8 @@ class JellyfinPersonsApi {
     String? nameStartsWith,
     String? nameStartsWithOrGreater,
     String? nameLessThan,
-    List<String> fields = const [],
-    List<String> filters = const [],
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemFilter> filters = const [],
     bool? isFavorite,
     bool enableUserData = true,
     int? imageTypeLimit,

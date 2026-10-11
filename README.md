@@ -452,7 +452,7 @@ Future<void> main() async {
   final albums = await jellyfin.items.list(
     parentId: music.id,
     includeItemTypes: const [JellyfinItemKind.musicAlbum],
-    sortBy: const ['SortName'],
+    sortBy: const [JellyfinSortField.sortName],
     limit: 50,
   );
 
@@ -814,12 +814,12 @@ Pass them through `items.list()`:
 final page = await jellyfin.items.list(
   parentId: music.id,
   includeItemTypes: const [JellyfinItemKind.musicAlbum],
-  sortBy: const ['SortName', 'ProductionYear'],
+  sortBy: const [JellyfinSortField.sortName, JellyfinSortField.productionYear],
   descending: true,
   startIndex: 50, // second page
   limit: 50,
   searchTerm: 'pink',          // optional substring filter
-  filters: const ['IsFavorite'], // optional ItemFilters
+  filters: const [JellyfinItemFilter.isFavorite], // optional ItemFilters
   artistIds: [artistId],
   genreIds: [genreId],
   fields: JellyfinItemsApi.browseFields, // light set for a grid
@@ -896,7 +896,7 @@ Returns `null` on 404.
 
 ```dart
 final resume = await jellyfin.items.resume(
-  mediaTypes: const ['Audio'],
+  mediaTypes: const [JellyfinMediaType.audio],
   limit: 10,
 );
 final latest = await jellyfin.items.latest(
@@ -993,7 +993,7 @@ final tracks = JellyfinPaging.items(
   (start, size) async => (await jellyfin.items.list(
     parentId: music.id,
     includeItemTypes: const [JellyfinItemKind.audio],
-    sortBy: const ['SortName'],
+    sortBy: const [JellyfinSortField.sortName],
     startIndex: start,
     limit: size,
     enableTotalRecordCount: false,
@@ -1992,7 +1992,7 @@ admin-only and stay behind the escape hatch.
 final channels = await jellyfin.liveTv.channels(
   type: 'TV',           // or 'Radio'
   isFavorite: false,
-  sortBy: const ['Default'],
+  sortBy: const [JellyfinSortField.defaultOrder],
   limit: 50,
 );
 for (final ch in channels.items) {
@@ -2014,7 +2014,7 @@ final epg = await jellyfin.liveTv.programs(
   channelIds: const ['ch1', 'ch2', 'ch3'],
   minStartDate: now.toIso8601String(),
   maxStartDate: now.add(const Duration(hours: 6)).toIso8601String(),
-  sortBy: const ['StartDate'],
+  sortBy: const [JellyfinSortField.startDate],
 );
 
 // Recommended airings, server-curated.
@@ -2178,7 +2178,7 @@ for (final s in seasons.items) {
 final episodes = await jellyfin.tvShows.episodes(
   seriesId: someSeriesId,
   season: 2,
-  fields: const ['Overview', 'PrimaryImageAspectRatio'],
+  fields: const [JellyfinItemField.overview, JellyfinItemField.primaryImageAspectRatio],
   sortBy: 'PremiereDate',
 );
 ```
@@ -2306,7 +2306,7 @@ selection back into `items.list(genreIds: …)` to drive filter chips.
 ```dart
 final facets = await jellyfin.filter.facets(
   parentId: musicLibraryId,
-  includeItemTypes: const ['MusicAlbum'],
+  includeItemTypes: const [JellyfinItemKind.musicAlbum],
 );
 for (final g in facets.genres) {
   print('${g.id} ${g.name}');
@@ -2321,7 +2321,7 @@ as-is, the wrapper encodes it.
 ```dart
 final legacy = await jellyfin.filter.legacy(
   parentId: movieLibraryId,
-  includeItemTypes: const ['Movie'],
+  includeItemTypes: const [JellyfinItemKind.movie],
 );
 print(legacy.years);            // [1999, 2001, 2024, ...]
 print(legacy.officialRatings);  // ['PG-13', 'R', ...]
@@ -2519,7 +2519,7 @@ final channels = await jellyfin.channels.list(
 final episodes = await jellyfin.channels.items(
   channelId: someChannelId,
   limit: 50,
-  sortBy: const ['DateCreated'],
+  sortBy: const [JellyfinSortField.dateCreated],
   descending: true,
 );
 ```
@@ -2553,7 +2553,7 @@ call (useful for showing capability badges in a UI).
 
 Curated groupings of items (`BoxSet`-typed). Collections live in
 the library like any other item, browsable through
-`items.list(includeItemTypes: ['BoxSet'])`.
+`items.list(includeItemTypes: [JellyfinItemKind.boxSet])`.
 
 #### 29.1 Creating a collection
 
@@ -2678,7 +2678,7 @@ final pixar = await jellyfin.studios.byName(name: 'Pixar');
 ```dart
 final genres = await jellyfin.genres.list(
   parentId: movieLibraryId,
-  includeItemTypes: const ['Movie'],
+  includeItemTypes: const [JellyfinItemKind.movie],
 );
 final action = await jellyfin.genres.byName(name: 'Action');
 ```
@@ -2696,7 +2696,7 @@ Jellyfin keeps two items per genre name: a generic `Genre` and, for
 music, a `MusicGenre`, with different ids. `genres.list()` answers the
 music genres only when `parentId` is a music library's id; without it,
 it answers the generic ones, even with
-`includeItemTypes: ['MusicAlbum', 'Audio']`. `genres.byName()` takes no
+`includeItemTypes: [JellyfinItemKind.musicAlbum, JellyfinItemKind.audio]`. `genres.byName()` takes no
 `parentId` and always answers the generic one. Both ids filter
 `items.list(genreIds:)`, but only the music-genre id seeds an instant
 mix: `instantMix.fromItem()` with a generic genre id answers an empty
@@ -2715,8 +2715,8 @@ searchTerm: name)` finds it too, among partial matches.
 ```dart
 final yrs = await jellyfin.years.list(
   parentId: musicLibraryId,
-  includeItemTypes: const ['MusicAlbum'],
-  sortBy: const ['ProductionYear'],
+  includeItemTypes: const [JellyfinItemKind.musicAlbum],
+  sortBy: const [JellyfinSortField.productionYear],
   descending: true,
 );
 final y1999 = await jellyfin.years.byYear(year: 1999);

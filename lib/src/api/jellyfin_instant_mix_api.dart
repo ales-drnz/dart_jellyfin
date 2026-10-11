@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/{ItemType}/{id}/InstantMix` — server-side radio.
 ///
@@ -38,7 +39,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromItem({
     required String itemId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -56,7 +57,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromSong({
     required String songId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -74,7 +75,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromAlbum({
     required String albumId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -92,7 +93,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromArtist({
     required String artistId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -119,7 +120,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenre({
     required String name,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -143,7 +144,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenreById({
     required String genreId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -171,7 +172,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromArtistByName({
     required String name,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -190,7 +191,7 @@ class JellyfinInstantMixApi {
   Future<JellyfinQueryResult<JellyfinItem>> fromPlaylist({
     required String playlistId,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -210,7 +211,7 @@ class JellyfinInstantMixApi {
     String path, {
     Map<String, Object?> extra = const {},
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,

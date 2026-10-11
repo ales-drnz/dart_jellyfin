@@ -147,7 +147,10 @@ void main() {
 
     test('multi-column sortBy is repeated and carries sortOrder', () async {
       await client.items.list(
-        sortBy: const ['AlbumArtist', 'SortName'],
+        sortBy: const [
+          JellyfinSortField.albumArtist,
+          JellyfinSortField.sortName
+        ],
         descending: true,
       );
       expect(adapter.query['sortBy'], ['AlbumArtist', 'SortName']);
@@ -166,7 +169,7 @@ void main() {
     test('counts a genre- and search-scoped set without fetching it', () async {
       final total = await client.items.count(
         parentId: 'lib-1',
-        includeItemTypes: const ['Audio'],
+        includeItemTypes: const [JellyfinItemKind.audio],
         genreIds: const ['g1', 'g2'],
         searchTerm: 'bowie',
       );
@@ -217,11 +220,11 @@ void main() {
 
       await client.items.list(
         parentId: 'lib-1',
-        includeItemTypes: const ['Audio'],
-        excludeItemTypes: const ['Folder'],
-        mediaTypes: const ['Audio'],
+        includeItemTypes: const [JellyfinItemKind.audio],
+        excludeItemTypes: const [JellyfinItemKind.folder],
+        mediaTypes: const [JellyfinMediaType.audio],
         searchTerm: 'bowie',
-        filters: const ['IsFavorite'],
+        filters: const [JellyfinItemFilter.isFavorite],
         ids: const ['i1'],
         excludeItemIds: const ['x1'],
         genreIds: const ['g1'],
@@ -247,11 +250,11 @@ void main() {
 
       await client.items.count(
         parentId: 'lib-1',
-        includeItemTypes: const ['Audio'],
-        excludeItemTypes: const ['Folder'],
-        mediaTypes: const ['Audio'],
+        includeItemTypes: const [JellyfinItemKind.audio],
+        excludeItemTypes: const [JellyfinItemKind.folder],
+        mediaTypes: const [JellyfinMediaType.audio],
         searchTerm: 'bowie',
-        filters: const ['IsFavorite'],
+        filters: const [JellyfinItemFilter.isFavorite],
         ids: const ['i1'],
         excludeItemIds: const ['x1'],
         genreIds: const ['g1'],
@@ -308,7 +311,10 @@ void main() {
         tags: const ['live'],
         officialRatings: const ['PG'],
         years: const [1977, 1980],
-        sortBy: const ['SortName', 'DateCreated'],
+        sortBy: const [
+          JellyfinSortField.sortName,
+          JellyfinSortField.dateCreated
+        ],
       );
 
       expect(adapter.path, '/Artists/AlbumArtists');
@@ -363,7 +369,10 @@ void main() {
         itemId: 'item-1',
         startIndex: 10,
         limit: 5,
-        fields: const ['Overview', 'ChildCount'],
+        fields: const [
+          JellyfinItemField.overview,
+          JellyfinItemField.childCount
+        ],
       );
 
       expect(adapter.path, '/Items/item-1/Collections');
@@ -384,9 +393,12 @@ void main() {
   group('sibling browse endpoints use the same encoding', () {
     test('genres.list', () async {
       await client.genres.list(
-        includeItemTypes: const ['MusicAlbum', 'Audio'],
-        fields: const ['Overview', 'Genres'],
-        sortBy: const ['SortName'],
+        includeItemTypes: const [
+          JellyfinItemKind.musicAlbum,
+          JellyfinItemKind.audio
+        ],
+        fields: const [JellyfinItemField.overview, JellyfinItemField.genres],
+        sortBy: const [JellyfinSortField.sortName],
       );
       expect(adapter.query['includeItemTypes'], ['MusicAlbum', 'Audio']);
       expect(adapter.query['fields'], ['Overview', 'Genres']);
@@ -395,14 +407,20 @@ void main() {
 
     test('musicGenres.list', () async {
       await client.musicGenres.list(
-        includeItemTypes: const ['MusicAlbum', 'Audio'],
+        includeItemTypes: const [
+          JellyfinItemKind.musicAlbum,
+          JellyfinItemKind.audio
+        ],
       );
       expect(adapter.query['includeItemTypes'], ['MusicAlbum', 'Audio']);
     });
 
     test('studios.list', () async {
       await client.studios.list(
-        includeItemTypes: const ['Movie', 'Series'],
+        includeItemTypes: const [
+          JellyfinItemKind.movie,
+          JellyfinItemKind.series
+        ],
         enableImageTypes: const ['Primary', 'Thumb'],
       );
       expect(adapter.query['includeItemTypes'], ['Movie', 'Series']);
@@ -451,8 +469,8 @@ void main() {
 
     test('years.list', () async {
       await client.years.list(
-        mediaTypes: const ['Video', 'Audio'],
-        sortBy: const ['ProductionYear'],
+        mediaTypes: const [JellyfinMediaType.video, JellyfinMediaType.audio],
+        sortBy: const [JellyfinSortField.productionYear],
       );
       expect(adapter.query['mediaTypes'], ['Video', 'Audio']);
       expect(adapter.query['sortBy'], ['ProductionYear']);
@@ -466,8 +484,11 @@ void main() {
     test('search.hints', () async {
       await client.search.hints(
         query: 'bowie',
-        includeItemTypes: const ['Audio', 'MusicAlbum'],
-        mediaTypes: const ['Audio'],
+        includeItemTypes: const [
+          JellyfinItemKind.audio,
+          JellyfinItemKind.musicAlbum
+        ],
+        mediaTypes: const [JellyfinMediaType.audio],
       );
       expect(adapter.path, '/Search/Hints');
       expect(adapter.query['includeItemTypes'], ['Audio', 'MusicAlbum']);
@@ -476,7 +497,10 @@ void main() {
 
     test('filter.facets', () async {
       await client.filter.facets(
-        includeItemTypes: const ['Audio', 'MusicAlbum'],
+        includeItemTypes: const [
+          JellyfinItemKind.audio,
+          JellyfinItemKind.musicAlbum
+        ],
       );
       expect(adapter.path, '/Items/Filters2');
       expect(adapter.query['includeItemTypes'], ['Audio', 'MusicAlbum']);

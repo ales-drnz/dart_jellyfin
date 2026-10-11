@@ -8,6 +8,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/LiveTv/*` — live TV channels, EPG, recordings, timers.
 ///
@@ -41,7 +42,7 @@ class JellyfinLiveTvApi {
     bool? isFavorite,
     String? type, // TV | Radio
     bool enableUserData = true,
-    List<String> sortBy = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
   }) async {
     final qp = <String, Object?>{
@@ -99,7 +100,7 @@ class JellyfinLiveTvApi {
     bool? hasAired,
     int startIndex = 0,
     int? limit,
-    List<String> sortBy = const ['StartDate'],
+    List<JellyfinSortField> sortBy = const [JellyfinSortField.startDate],
     bool descending = false,
   }) async {
     final qp = <String, Object?>{
@@ -565,7 +566,7 @@ class JellyfinLiveTvApi {
     String? status,
     bool? isInProgress,
     String? seriesTimerId,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
   }) async {

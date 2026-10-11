@@ -36,7 +36,7 @@ void main() {
 
       test('items.list returns the seeded audio tracks', () async {
         final result = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 50,
         );
         expect(result.totalRecordCount, greaterThanOrEqualTo(3));
@@ -50,9 +50,10 @@ void main() {
 
       test('items.count for Audio matches items.list totalRecordCount',
           () async {
-        final count = await jf.items.count(includeItemTypes: const ['Audio']);
+        final count = await jf.items
+            .count(includeItemTypes: const [JellyfinItemKind.audio]);
         final result = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 0,
         );
         expect(count, result.totalRecordCount);
@@ -60,7 +61,7 @@ void main() {
 
       test('items.byId on a real audio item returns a populated DTO', () async {
         final list = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 1,
         );
         final id = list.items.first.id;

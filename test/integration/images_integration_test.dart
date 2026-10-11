@@ -41,7 +41,7 @@ void main() {
 
       test('fetch on an item with primary art returns bytes', () async {
         final tracks = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 1,
         );
         expect(tracks.items, isNotEmpty);

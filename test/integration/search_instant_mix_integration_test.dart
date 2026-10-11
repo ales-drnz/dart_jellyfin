@@ -24,7 +24,7 @@ void main() {
         jf = jellyfinFromCache();
         if (bootstrapSkipReason != null) return;
         final tracks = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 1,
         );
         firstTrack = tracks.items.first;
@@ -34,7 +34,7 @@ void main() {
           () async {
         final hints = await jf.search.hints(
           query: 'Track',
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           limit: 20,
         );
         expect(hints.items, isNotEmpty);
@@ -49,7 +49,7 @@ void main() {
           () async {
         final hints = await jf.search.hints(
           query: 'Track',
-          excludeItemTypes: const ['Audio'],
+          excludeItemTypes: const [JellyfinItemKind.audio],
           limit: 20,
         );
         for (final h in hints.items) {

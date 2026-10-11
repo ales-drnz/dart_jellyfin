@@ -9,6 +9,7 @@ import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Playlists/*`.
@@ -114,7 +115,7 @@ class JellyfinPlaylistsApi {
     required String playlistId,
     int startIndex = 0,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) async {
     final userId = _http.requireUserId();
     final qp = <String, Object?>{

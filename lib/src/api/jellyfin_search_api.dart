@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Search/Hints` — fast, type-as-you-go search.
 class JellyfinSearchApi {
@@ -30,9 +31,9 @@ class JellyfinSearchApi {
     required String query,
     String? userId,
     String? parentId,
-    List<String> includeItemTypes = const [],
-    List<String> excludeItemTypes = const [],
-    List<String> mediaTypes = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
     int startIndex = 0,
     int? limit,
     bool includeArtists = true,

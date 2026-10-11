@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Movies/*` — movie-specific browsing.
 ///
@@ -27,7 +28,7 @@ class JellyfinMoviesApi {
     String? parentId,
     int? categoryLimit,
     int? itemLimit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
   }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;

@@ -49,11 +49,11 @@ void main() {
         if (bootstrapSkipReason != null) return;
 
         unfilteredTotal = await jf.items.count(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
         );
 
         final facets = await jf.filter.facets(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
         );
         final ids = facets.genres
             .map((g) => g.id)
@@ -65,7 +65,7 @@ void main() {
 
       Future<Set<String>> audioIdsForGenres(List<String> ids) async {
         final page = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           genreIds: ids,
           limit: 500,
         );
@@ -127,11 +127,11 @@ void main() {
         // count() gained the full narrowing surface in 0.1.1; before,
         // a genre-scoped count was simply not expressible.
         final counted = await jf.items.count(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           genreIds: ids,
         );
         final listed = await jf.items.list(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           genreIds: ids,
           limit: 0,
         );
@@ -192,7 +192,7 @@ void main() {
         // The sharpest expression of the failure mode: a filter the
         // server cannot satisfy must empty the result, never widen it.
         final none = await jf.items.count(
-          includeItemTypes: const ['Audio'],
+          includeItemTypes: const [JellyfinItemKind.audio],
           genreIds: const ['00000000-0000-0000-0000-000000000000'],
         );
         expect(

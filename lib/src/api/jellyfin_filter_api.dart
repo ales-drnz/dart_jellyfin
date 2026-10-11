@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Items/Filters*` — dynamic facet endpoints.
@@ -23,7 +24,7 @@ class JellyfinFilterApi {
   /// [JellyfinNameGuidPair] with ids).
   Future<JellyfinQueryFilters> facets({
     String? parentId,
-    List<String> includeItemTypes = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
     bool? isAiring,
     bool? isMovie,
     bool? isSports,
@@ -57,8 +58,8 @@ class JellyfinFilterApi {
   /// years and official ratings).
   Future<JellyfinQueryFiltersLegacy> legacy({
     String? parentId,
-    List<String> includeItemTypes = const [],
-    List<String> mediaTypes = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinMediaType> mediaTypes = const [],
   }) async {
     final qp = <String, Object?>{};
     final userId = _http.userId;

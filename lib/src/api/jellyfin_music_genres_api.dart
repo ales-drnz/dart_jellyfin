@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_genres_api.dart';
 import 'jellyfin_lookup_helpers.dart';
 
@@ -47,16 +48,16 @@ class JellyfinMusicGenresApi {
     String? searchTerm,
     int startIndex = 0,
     int? limit,
-    List<String> fields = const [],
-    List<String> includeItemTypes = const [],
-    List<String> excludeItemTypes = const [],
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemKind> includeItemTypes = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
     bool? isFavorite,
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
     String? nameStartsWith,
     String? nameStartsWithOrGreater,
     String? nameLessThan,
-    List<String> sortBy = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
   }) async {
     final qp = <String, Object?>{'startIndex': startIndex};

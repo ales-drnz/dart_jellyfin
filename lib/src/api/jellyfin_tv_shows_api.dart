@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Shows/*` — TV-series-specific browsing.
@@ -37,7 +38,7 @@ class JellyfinTvShowsApi {
     String? startItemId,
     int? startIndex,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     String? sortBy,
     bool enableImages = true,
     bool enableUserData = true,
@@ -77,7 +78,7 @@ class JellyfinTvShowsApi {
     bool? isSpecialSeason,
     bool? isMissing,
     String? adjacentTo,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
@@ -111,7 +112,7 @@ class JellyfinTvShowsApi {
     String? parentId,
     int? startIndex,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     String? nextUpDateCutoff,
     bool enableImages = true,
     bool enableUserData = true,
@@ -160,7 +161,7 @@ class JellyfinTvShowsApi {
     String? parentId,
     int? startIndex,
     int? limit,
-    List<String> fields = const [],
+    List<JellyfinItemField> fields = const [],
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,

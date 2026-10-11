@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Trailers` — server-curated trailer browsing.
 ///
@@ -31,11 +32,11 @@ class JellyfinTrailersApi {
     String? searchTerm,
     int startIndex = 0,
     int? limit,
-    List<String> sortBy = const [],
+    List<JellyfinSortField> sortBy = const [],
     bool descending = false,
-    List<String> fields = const [],
-    List<String> excludeItemTypes = const [],
-    List<String> filters = const [],
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemKind> excludeItemTypes = const [],
+    List<JellyfinItemFilter> filters = const [],
     bool? isFavorite,
     List<String> genreIds = const [],
     bool enableUserData = true,
