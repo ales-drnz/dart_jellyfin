@@ -285,6 +285,38 @@ void main() {
       }
     });
 
+    test('playback reports send the enum wire values', () async {
+      await client.playback.progress(
+        itemId: 't1',
+        position: const Duration(seconds: 3),
+        isPaused: true,
+        method: JellyfinPlayMethod.transcode,
+        order: JellyfinPlaybackOrder.shuffle,
+        repeat: JellyfinRepeatMode.one,
+      );
+      final body = adapter.last!.json! as Map<String, dynamic>;
+      expect(body['PlayMethod'], 'Transcode');
+      expect(body['PlaybackOrder'], 'Shuffle');
+      expect(body['RepeatMode'], 'RepeatOne');
+      expect(body['PositionTicks'], 30000000);
+
+      await client.playback.start(itemId: 't1');
+      expect((adapter.last!.json! as Map)['PlayMethod'], 'DirectPlay');
+
+      // ignore: deprecated_member_use_from_same_package
+      await client.playback.start(itemId: 't1', playMethod: 'DirectStream');
+      expect((adapter.last!.json! as Map)['PlayMethod'], 'DirectStream');
+      expect(
+        () => client.playback.start(
+          itemId: 't1',
+          method: JellyfinPlayMethod.transcode,
+          // ignore: deprecated_member_use_from_same_package
+          playMethod: 'Transcode',
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('ping names the play session', () async {
       await client.playback.ping(playSessionId: 'ps1');
       expect(adapter.last!.method, 'POST');

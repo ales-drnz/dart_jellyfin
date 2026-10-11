@@ -279,7 +279,7 @@ void main() {
           await jf.playback.start(
             itemId: track.id,
             playSessionId: ps,
-            playMethod: 'Transcode',
+            method: JellyfinPlayMethod.transcode,
           );
           await jf.playback.ping(playSessionId: ps);
           // The server attaches the job to the session within ~10 s.

@@ -14,12 +14,17 @@ class JellyfinPlaybackApi {
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinPlaybackApi(this._http);
 
-  /// Report playback start.
+  /// Report playback start (`POST /Sessions/Playing`).
+  ///
+  /// [method] is how the client plays the item (default
+  /// [JellyfinPlayMethod.directPlay]); the `String` [playMethod] is
+  /// deprecated.
   Future<void> start({
     required String itemId,
     String? playSessionId,
     String? mediaSourceId,
-    String playMethod = 'DirectPlay', // DirectPlay | DirectStream | Transcode
+    JellyfinPlayMethod? method,
+    @Deprecated('Use method (a JellyfinPlayMethod)') String? playMethod,
     bool canSeek = true,
   }) async {
     await _http.request<void>(
@@ -29,13 +34,17 @@ class JellyfinPlaybackApi {
         'ItemId': itemId,
         if (playSessionId != null) 'PlaySessionId': playSessionId,
         if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-        'PlayMethod': playMethod,
+        'PlayMethod': _method(method, playMethod),
         'CanSeek': canSeek,
       },
     );
   }
 
-  /// Report playback progress (heartbeat). Recommended every 10 s.
+  /// Report playback progress (`POST /Sessions/Playing/Progress`) — the
+  /// heartbeat, recommended every 10 s, and on pause and resume.
+  ///
+  /// [method], [order] and [repeat] replace the deprecated `String`
+  /// parameters [playMethod], [playbackOrder] and [repeatMode].
   Future<void> progress({
     required String itemId,
     required Duration position,
@@ -44,10 +53,15 @@ class JellyfinPlaybackApi {
     bool isMuted = false,
     String? playSessionId,
     String? mediaSourceId,
-    String playMethod = 'DirectPlay',
-    String? playbackOrder, // Default | Shuffle
-    String? repeatMode, // RepeatNone | RepeatAll | RepeatOne
+    JellyfinPlayMethod? method,
+    JellyfinPlaybackOrder? order,
+    JellyfinRepeatMode? repeat,
+    @Deprecated('Use method (a JellyfinPlayMethod)') String? playMethod,
+    @Deprecated('Use order (a JellyfinPlaybackOrder)') String? playbackOrder,
+    @Deprecated('Use repeat (a JellyfinRepeatMode)') String? repeatMode,
   }) async {
+    final effectiveOrder = _either(order?.wire, playbackOrder, 'order');
+    final effectiveRepeat = _either(repeat?.wire, repeatMode, 'repeat');
     await _http.request<void>(
       '/Sessions/Playing/Progress',
       method: 'POST',
@@ -59,9 +73,9 @@ class JellyfinPlaybackApi {
         if (volumeLevel != null) 'VolumeLevel': volumeLevel,
         if (playSessionId != null) 'PlaySessionId': playSessionId,
         if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-        'PlayMethod': playMethod,
-        if (playbackOrder != null) 'PlaybackOrder': playbackOrder,
-        if (repeatMode != null) 'RepeatMode': repeatMode,
+        'PlayMethod': _method(method, playMethod),
+        if (effectiveOrder != null) 'PlaybackOrder': effectiveOrder,
+        if (effectiveRepeat != null) 'RepeatMode': effectiveRepeat,
       },
     );
   }
@@ -115,4 +129,65 @@ class JellyfinPlaybackApi {
   }
 
   static int _ticks(Duration d) => d.inMilliseconds * 10000;
+
+  static String _method(JellyfinPlayMethod? method, String? legacy) =>
+      _either(method?.wire, legacy, 'method') ??
+      JellyfinPlayMethod.directPlay.wire;
+
+  static String? _either(String? typed, String? legacy, String name) {
+    if (typed != null && legacy != null) {
+      throw ArgumentError(
+        'Pass $name or its deprecated String form, not both.',
+      );
+    }
+    return typed ?? legacy;
+  }
+}
+
+/// How a client plays an item (`PlayMethod`).
+enum JellyfinPlayMethod {
+  /// The file as it is.
+  directPlay('DirectPlay'),
+
+  /// Remuxed into another container, streams copied.
+  directStream('DirectStream'),
+
+  /// Re-encoded by the server.
+  transcode('Transcode');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinPlayMethod(this.wire);
+}
+
+/// Queue order (`PlaybackOrder`).
+enum JellyfinPlaybackOrder {
+  /// In order.
+  defaultOrder('Default'),
+
+  /// Shuffled.
+  shuffle('Shuffle');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinPlaybackOrder(this.wire);
+}
+
+/// Repeat mode (`RepeatMode`).
+enum JellyfinRepeatMode {
+  /// No repeat.
+  none('RepeatNone'),
+
+  /// Repeat the queue.
+  all('RepeatAll'),
+
+  /// Repeat the current item.
+  one('RepeatOne');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinRepeatMode(this.wire);
 }
