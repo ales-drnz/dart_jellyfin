@@ -92,17 +92,17 @@ def architecture(t):
     d.node(170, 105, 230, 64, 'Your code', 'widgets, services', role='app', mono=False)
     d.node(450, 105, 230, 64, 'JellyfinClient', 'one sub-API per domain', role='lib')
     d.node(730, 105, 230, 64, 'Typed models', 'each with its raw map', role='lib', mono=False)
-    d.arrow('M285,105 L333,105'); d.text(310, 94, 'calls', size=11)
-    d.arrow('M730,73 L730,55 L170,55 L170,71', kind='sec'); d.text(450, 47, 'answers', size=11)
+    d.arrow('M285,105 L333,105'); d.text(310, 92, 'calls', size=11)
+    d.arrow('M730,73 L730,55 L170,55 L170,71', kind='sec'); d.text(450, 43, 'answers', size=11)
     d.band(20, 200, 860, 110, 'Transport, the same in dart_plex and dart_jellyfin')
     d.node(170, 265, 230, 60, 'http.Client', 'dart:io, cupertino, cronet', role='neutral', mono=False)
-    d.node(450, 265, 230, 60, 'JellyfinConnection', 'cancel token, retry policy', role='lib')
+    d.node(450, 265, 210, 60, 'JellyfinConnection', 'cancel token, retry policy', role='lib')
     d.node(730, 265, 230, 60, 'Parsing isolate', 'gunzip, JSON, models', role='lib', mono=False)
-    d.arrow('M450,137 L450,233'); d.text(458, 190, 'requests', anchor='start', size=11)
-    d.arrow('M335,265 L287,265'); d.text(311, 255, 'send', size=11)
-    d.arrow('M565,265 L613,265'); d.text(589, 255, '50 KB+', size=11)
-    d.arrow('M730,233 L730,139', kind='sec'); d.text(738, 190, 'models', anchor='start', size=11)
-    d.text(450, 305, 'smaller answers are parsed in place', size=11)
+    d.arrow('M450,137 L450,233'); d.text(462, 190, 'requests', anchor='start', size=11)
+    d.arrow('M345,265 L287,265'); d.text(316, 252, 'send', size=11)
+    d.arrow('M555,265 L613,265'); d.text(584, 252, '50 KB+', size=11)
+    d.arrow('M730,233 L730,139', kind='sec'); d.text(742, 190, 'models', anchor='start', size=11)
+    d.text(450, 322, 'smaller answers are parsed in place', size=11)
     d.node(170, 400, 230, 56, 'Jellyfin server', '12.2', role='neutral', mono=False)
     d.arrow('M170,297 L170,370', kind='sec')
     return d
@@ -119,17 +119,16 @@ def client_lifecycle(t):
     return d
 
 def sign_in_flow(t):
-    d = D('sign_in_flow', 900, 310, t, 'Sign-in by name, or with Quick Connect')
+    d = D('sign_in_flow', 900, 290, t, 'Sign-in by name, or with Quick Connect')
     d.node(170, 70, 250, 60, 'authenticateByName()', 'user name and password', role='lib', size=14)
     d.node(780, 70, 170, 60, 'setSession()', 'token and user id', role='app')
     d.arrow('M295,70 L693,70')
-    d.band(20, 130, 860, 165, 'Quick Connect')
+    d.band(20, 130, 860, 140, 'Quick Connect')
     d.node(105, 215, 150, 60, 'initiate()', 'code and secret', role='lib')
     d.node(280, 215, 170, 60, 'the code', 'approved by the user', role='neutral', mono=False, size=14)
-    d.node(455, 215, 150, 60, 'state(secret:)', 'until authenticated', role='lib', size=14)
+    d.node(455, 215, 150, 60, 'state(secret:)', 'polled until done', role='lib', size=14)
     d.node(705, 215, 270, 60, 'authenticateWithQuickConnect()', 'the secret', role='lib', size=12)
     d.arrow('M180,215 L193,215'); d.arrow('M365,215 L378,215'); d.arrow('M530,215 L568,215')
-    d.arrow('M485,245 L485,268 L425,268 L425,247', kind='sec'); d.text(455, 286, 'every few seconds', size=11)
     d.arrow('M780,183 L780,102')
     return d
 
@@ -138,14 +137,14 @@ def play_reporting(t):
     d = D('play_reporting', 900, 300, t, 'Playback reports over one track')
     x0, x1 = 120, 860
     d.add(f'<line x1="{x0}" y1="150" x2="{x1}" y2="150" stroke="{d.c["line"]}" stroke-width="2"/>')
-    d.text(x0, 175, '0', size=11); d.text(x1, 175, 'end', size=11)
+    d.text(x0, 182, '0', size=11); d.text(x1, 182, 'end', size=11)
     reports = [(120, 'start'), (230, 'progress'), (340, 'progress'), (440, 'isPaused'), (560, 'progress'), (700, 'progress'), (820, 'stopped')]
     for x, s in reports:
         col = d.c['line'] if s == 'isPaused' else d.c['main']
         d.add(f'<circle cx="{x}" cy="150" r="6" fill="{col}"/>')
         d.text(x, 128, s, mono=True, size=11, color='label')
     d.add(f'<path d="M440,95 L440,105 L560,105 L560,95" fill="none" stroke="{d.c["line"]}" stroke-width="1.5"/>')
-    d.text(500, 88, 'ping() keeps an HLS job alive', size=11)
+    d.text(500, 82, 'ping() keeps an HLS job alive', size=11)
     d.band(120, 205, 740, 70, '')
     d.text(490, 235, 'playback.start(), progress(position:, isPaused:), stopped()', mono=True, size=12, color='label')
     d.text(490, 258, 'one play session id from start to stop', size=12)
@@ -169,14 +168,14 @@ def events(t):
     d = D('events', 900, 320, t, 'Socket frames decoded into typed events')
     d.node(180, 60, 280, 60, 'notifications.connect()', 'the /socket WebSocket', role='lib', size=14)
     d.node(560, 60, 260, 60, 'JellyfinNotification', 'one frame, raw', role='lib', size=14)
-    d.arrow('M320,60 L428,60'); d.text(374, 50, 'frames', size=11)
+    d.arrow('M320,60 L428,60'); d.text(374, 47, 'frames', size=11)
     items = [(100, 'UserDataChanged', 'favourite, played', 'lib'), (280, 'LibraryChanged', 'added, updated, removed', 'lib'),
              (460, 'Sessions', 'now playing', 'lib'), (640, 'Play, Playstate', 'remote control', 'lib'),
              (815, 'Unknown', 'anything else', 'ghost')]
     for x, a, b, role in items:
         d.node(x, 215, 168, 64, a, b, role=role, size=13)
         d.arrow(f'M560,92 L560,140 L{x},140 L{x},181', kind='main' if role == 'lib' else 'sec')
-    d.text(568, 125, 'events()', anchor='start', mono=True, size=12, color='label')
+    d.text(572, 125, 'events()', anchor='start', mono=True, size=12, color='label')
     d.text(450, 290, 'switch over the sealed JellyfinEvent: Jellyfin...Event subtypes', size=12)
     return d
 
