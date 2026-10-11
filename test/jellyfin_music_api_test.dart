@@ -170,7 +170,7 @@ void main() {
       );
       await client.playlists.moveItem(
         playlistId: 'q',
-        playlistItemId: 'a',
+        playlistItemId: const JellyfinPlaylistEntryId('a'),
         newIndex: 0,
       );
       expect(
@@ -205,7 +205,10 @@ void main() {
 
     test('a second rename does not wait again', () async {
       adapter.respond = (_) => CannedResponse(204, const []);
-      await client.playlists.removeItems(playlistId: 'p', entryIds: ['a']);
+      await client.playlists.removeItems(
+        playlistId: 'p',
+        entryIds: const [JellyfinPlaylistEntryId('a')],
+      );
       await client.playlists.rename(playlistId: 'p', name: 'n');
       expect(
         await timed(() => client.playlists.rename(playlistId: 'p', name: 'm')),

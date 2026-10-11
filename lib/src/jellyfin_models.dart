@@ -349,6 +349,16 @@ final class JellyfinView {
 // Items (BaseItemDto subset)
 // ---------------------------------------------------------------------------
 
+/// A playlist entry's id ([JellyfinItem.playlistItemId]): what
+/// `playlists.removeItems` and `playlists.moveItem` take.
+///
+/// A type of its own so that an item id cannot be passed where an entry
+/// id is meant. On Jellyfin 12.2 the two have the same value, but the API
+/// keeps them apart and older servers did not. It is the wire string, so
+/// it reads and compares as one; build one from a stored string with
+/// `JellyfinPlaylistEntryId(id)`.
+extension type const JellyfinPlaylistEntryId(String value) implements String {}
+
 /// Subset of `BaseItemDto`. Hand-rolled — the full DTO has 153 fields,
 /// here we lift only what music apps use today. Anything else lives in
 /// [JellyfinItem.raw].
@@ -427,7 +437,7 @@ final class JellyfinItem {
   /// track share it, removing it removes every copy, and moving it moves
   /// the first. The server offers no way to address one copy of a
   /// duplicate.
-  final String? playlistItemId;
+  final JellyfinPlaylistEntryId? playlistItemId;
 
   /// Track number / episode number / generic index within the parent.
   final int? indexNumber;
@@ -644,7 +654,10 @@ final class JellyfinItem {
       albumArtistItems:
           _objList(json['AlbumArtists'], JellyfinArtistRef.fromJson),
       genreItems: _objList(json['GenreItems'], JellyfinNameGuidPair.fromJson),
-      playlistItemId: _str(json['PlaylistItemId']),
+      playlistItemId: switch (_str(json['PlaylistItemId'])) {
+        final String id => JellyfinPlaylistEntryId(id),
+        null => null,
+      },
       indexNumber: _int(json['IndexNumber']),
       parentIndexNumber: _int(json['ParentIndexNumber']),
       productionYear: _int(json['ProductionYear']),

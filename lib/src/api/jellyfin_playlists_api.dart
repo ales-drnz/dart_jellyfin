@@ -156,7 +156,7 @@ class JellyfinPlaylistsApi {
   /// remove a single copy.
   Future<void> removeItems({
     required String playlistId,
-    required List<String> entryIds,
+    required List<JellyfinPlaylistEntryId> entryIds,
   }) async {
     if (entryIds.isEmpty) return;
     await _http.request<void>(
@@ -266,7 +266,7 @@ class JellyfinPlaylistsApi {
   /// [renameSettle]).
   Future<void> moveItem({
     required String playlistId,
-    required String playlistItemId,
+    required JellyfinPlaylistEntryId playlistItemId,
     required int newIndex,
   }) async {
     await _http.request<void>(
