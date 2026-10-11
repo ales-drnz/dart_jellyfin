@@ -15,12 +15,23 @@ class JellyfinItemsApi {
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   JellyfinItemsApi(this._http);
 
-  /// A ready-made `fields` set for music browsing — overview, genres,
-  /// mediastreams, mediasources, …
+  /// The `fields` set for playing and inspecting tracks: media sources and
+  /// streams (codec, bitrate, the stream to pick), overview, provider ids,
+  /// path and the rest of [browseFields].
+  ///
+  /// It is the expensive one. Measured on Jellyfin 12.0, a track costs
+  /// ~3.2 KB with it against ~1.2 KB with [browseFields], and a 500-track
+  /// album page was 1.5 MB of JSON that took the server ~230 ms to build —
+  /// `MediaSources` and `MediaStreams` are most of both. Use it where those
+  /// fields are read (a queue, the track info sheet), not for grids.
   ///
   /// Opt in explicitly: `list(fields: JellyfinItemsApi.musicFields)`.
   /// It is not a default, because `/Items` also serves video and photo
   /// libraries, where these fields are cost without benefit.
+  ///
+  /// `AlbumPrimaryImageTag` is not here because it is not a field: the
+  /// server sends it on every track whose album has a cover, whatever
+  /// `fields` says (verified on 12.0). 0.2 listed it; the server ignored it.
   static const List<String> musicFields = [
     'Overview',
     'Genres',
@@ -34,7 +45,21 @@ class JellyfinItemsApi {
     'ParentId',
     'Path',
     'OriginalTitle',
-    'AlbumPrimaryImageTag',
+  ];
+
+  /// The light `fields` set for grids and lists of albums, artists,
+  /// playlists and genres: genres, date added, child count (an album's
+  /// tracks, an artist's albums), sort name and the cover's aspect ratio.
+  /// No media sources, streams, path or overview.
+  ///
+  /// Image tags (`ImageTags`, `AlbumPrimaryImageTag`) need no field — they
+  /// always come — so covers and their versions work with this set too.
+  static const List<String> browseFields = [
+    'Genres',
+    'DateCreated',
+    'ChildCount',
+    'SortName',
+    'PrimaryImageAspectRatio',
   ];
 
   /// Page through items.
@@ -60,7 +85,22 @@ class JellyfinItemsApi {
   /// pre-join them.
   ///
   /// [fields] defaults to the empty list, which gives the server's own
-  /// default projection. Pass [musicFields] for the music-browsing set.
+  /// default projection. Pass [browseFields] for grids and lists, and
+  /// [musicFields] where media sources are read (see their costs).
+  ///
+  /// [parentId] with [recursive] (the default) scopes albums and tracks to
+  /// one library — but **not artists**: verified on Jellyfin 12.0 with two
+  /// music libraries, `includeItemTypes: ['MusicArtist']` ignores
+  /// `parentId` and answers the artists of every library, a silent
+  /// widening. List one library's artists with
+  /// [JellyfinArtistsApi.albumArtists] or [JellyfinArtistsApi.list], which
+  /// do honour `parentId`.
+  ///
+  /// [enableTotalRecordCount] (default `true`) makes the server count the
+  /// whole result set for [JellyfinQueryResult.totalRecordCount] — a second
+  /// query on its side. Pass `false` when you page by "a short page is the
+  /// last" and never show a total; `totalRecordCount` then reports only
+  /// the items in the page.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     List<String> includeItemTypes = const [],

@@ -33,6 +33,10 @@ class JellyfinArtistsApi {
   ///
   /// [sortBy] takes one or more `ItemSortBy` values (e.g. `SortName`,
   /// `DateCreated`); [descending] flips the sort order to `Descending`.
+  ///
+  /// [parentId] scopes to one library (verified on Jellyfin 12.0 with two
+  /// music libraries) — unlike `items.list(includeItemTypes:
+  /// ['MusicArtist'])`, which ignores it.
   Future<JellyfinQueryResult<JellyfinItem>> list({
     String? parentId,
     String? searchTerm,
@@ -87,6 +91,10 @@ class JellyfinArtistsApi {
   ///
   /// [sortBy] takes one or more `ItemSortBy` values (e.g. `SortName`,
   /// `DateCreated`); [descending] flips the sort order to `Descending`.
+  ///
+  /// [parentId] scopes to one library (verified on Jellyfin 12.0 with two
+  /// music libraries) — unlike `items.list(includeItemTypes:
+  /// ['MusicArtist'])`, which ignores it.
   Future<JellyfinQueryResult<JellyfinItem>> albumArtists({
     String? parentId,
     String? searchTerm,
