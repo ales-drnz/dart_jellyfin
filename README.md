@@ -190,6 +190,7 @@ with what to write instead.
     * [15.4 Playstate commands](#154-playstate-commands)
     * [15.5 General and system commands](#155-general-and-system-commands)
     * [15.6 Messages and DisplayContent](#156-messages-and-displaycontent)
+    * [15.7 Notifications and typed events](#157-notifications-and-typed-events)
 
     </details>
 
@@ -1874,6 +1875,53 @@ await jellyfin.sessions.displayContent(
   itemName: album.name,
 );
 ```
+
+#### 15.7 Notifications and typed events
+
+```dart
+final socket = await jellyfin.notifications.connect();
+jellyfin.notifications.startSessions(); // opt in to `Sessions` frames
+
+final subscription = socket.events().listen((event) {
+  switch (event) {
+    case JellyfinUserDataChangedEvent(:final changes):
+      for (final c in changes) {
+        print('${c.itemId} favorite=${c.isFavorite} played=${c.played}');
+      }
+    case JellyfinLibraryChangedEvent(:final itemsUpdated, :final itemsRemoved):
+      print('re-read $itemsUpdated, drop $itemsRemoved');
+    case JellyfinSessionsEvent(:final sessions):
+      print('${sessions.where((s) => s.isPlaying).length} playing');
+    case JellyfinPlaystateEvent(:final command, :final seekPosition):
+      print('remote asks: $command $seekPosition');
+    case _:
+  }
+});
+
+// Later:
+await subscription.cancel();
+await jellyfin.notifications.close();
+```
+
+`connect()` emits untyped `JellyfinNotification` frames (`messageType`,
+`data`, `raw`); `events()` on the stream (or `notification.event` on one
+frame) decodes them into the sealed `JellyfinEvent` hierarchy:
+
+| Event | `MessageType` | |
+| :--- | :--- | :--- |
+| `JellyfinUserDataChangedEvent` | `UserDataChanged` | user id and one `JellyfinUserDataChange` per item (favorite, played, play count, position, last played); a track's change also carries its album |
+| `JellyfinLibraryChangedEvent` | `LibraryChanged` | items added, updated, removed; folders added to and removed from (batched, about 30 s after the change) |
+| `JellyfinSessionsEvent` | `Sessions` | `JellyfinSession` list, after `startSessions()` |
+| `JellyfinPlayEvent`, `JellyfinPlaystateEvent`, `JellyfinGeneralCommandEvent` | `Play`, `Playstate`, `GeneralCommand` | remote-control commands sent to this session |
+| `JellyfinRefreshProgressEvent` | `RefreshProgress` | a library refresh's item id and progress |
+| `JellyfinScheduledTasksInfoEvent`, `JellyfinScheduledTaskEndedEvent` | `ScheduledTasksInfo`, `ScheduledTaskEnded` | `JellyfinScheduledTask` list after `startScheduledTasks()` (admin); a finished run |
+| `JellyfinKeepAliveEvent` | `KeepAlive`, `ForceKeepAlive` | keep-alive; `ForceKeepAlive` carries the server's timeout |
+| `JellyfinUnknownEvent` | anything else | `messageType` and the whole frame in `raw` |
+
+Decoding never throws: a frame whose `Data` has an unexpected shape
+becomes a `JellyfinUnknownEvent` too. Remote-control commands reach the
+socket of the session that owns the access token (the device that signed
+in).
 
 ---
 
