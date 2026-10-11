@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
+import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 import '../transport/jellyfin_cancel_token.dart';
 
 /// Image URL builders + bytes fetch.
@@ -405,14 +407,11 @@ class JellyfinImagesApi {
   /// `GET /Items/{itemId}/Images` — list every image the item has,
   /// each entry returned as a raw map (ImageType, ImageTag, Path,
   /// Width, Height, …).
-  Future<List<Map<String, dynamic>>> listItemImages(String itemId) async {
-    final res = await _http.request<List<dynamic>>('/Items/$itemId/Images');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) e,
-    ];
-  }
+  Future<List<JellyfinImageInfo>> listItemImages(String itemId) =>
+      _http.requestJson(
+        '/Items/$itemId/Images',
+        listOf(JellyfinImageInfo.fromJson),
+      );
 
   /// `POST /Items/{itemId}/Images/{imageType}[/{imageIndex}]` —
   /// upload a new image for the item. [body] is the raw image bytes,

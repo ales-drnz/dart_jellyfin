@@ -67,7 +67,7 @@ void main() {
 
           // Reorder: move the last entry to position 0.
           final lastEntry = entries.items.last;
-          final lastEntryId = lastEntry.raw['PlaylistItemId'] as String?;
+          final lastEntryId = lastEntry.playlistItemId;
           expect(
             lastEntryId,
             isNotNull,
@@ -78,8 +78,16 @@ void main() {
             playlistItemId: lastEntryId!,
             newIndex: 0,
           );
-          entries = await jf.playlists.items(playlistId: created.id);
-          final newFirstEntryId = entries.items.first.raw['PlaylistItemId'];
+          // 12.2 writes the playlist file after answering the move: poll
+          // briefly instead of reading the old order back.
+          Object? newFirstEntryId;
+          for (var i = 0; i < 20 && newFirstEntryId != lastEntryId; i++) {
+            if (i > 0) {
+              await Future<void>.delayed(const Duration(milliseconds: 250));
+            }
+            entries = await jf.playlists.items(playlistId: created.id);
+            newFirstEntryId = entries.items.first.playlistItemId;
+          }
           expect(newFirstEntryId, lastEntryId);
 
           // Remove the (now-first) entry.

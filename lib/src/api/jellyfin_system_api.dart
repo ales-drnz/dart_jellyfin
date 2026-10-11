@@ -4,6 +4,7 @@
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_server_models.dart';
 
 /// `/System/*` endpoints — server info, public info, ping.
 class JellyfinSystemApi {
@@ -39,10 +40,10 @@ class JellyfinSystemApi {
 
   /// `GET /System/Endpoint` — info about the request endpoint
   /// (whether the request looks local or remote to the server).
-  Future<Map<String, dynamic>> endpointInfo() async {
-    final res = await _http.request<Map<String, dynamic>>('/System/Endpoint');
-    return res.data ?? const {};
-  }
+  Future<JellyfinEndpointInfo> endpointInfo() => _http.requestJson(
+        '/System/Endpoint',
+        (json) => JellyfinEndpointInfo.fromJson(_object(json)),
+      );
 
   /// `GET /System/Info/Storage` — storage usage on every drive
   /// the server is configured to use.
@@ -100,8 +101,11 @@ class JellyfinSystemApi {
   /// `GET /GetUtcTime` — the server's current UTC clock, returned
   /// as `{ RequestReceptionTime, ResponseTransmissionTime }`. Used
   /// for time-sync between clients and server.
-  Future<Map<String, dynamic>> utcTime() async {
-    final res = await _http.request<Map<String, dynamic>>('/GetUtcTime');
-    return res.data ?? const {};
-  }
+  Future<JellyfinUtcTime> utcTime() => _http.requestJson(
+        '/GetUtcTime',
+        (json) => JellyfinUtcTime.fromJson(_object(json)),
+      );
 }
+
+Map<String, dynamic> _object(Object? json) =>
+    json is Map<String, dynamic> ? json : const <String, dynamic>{};

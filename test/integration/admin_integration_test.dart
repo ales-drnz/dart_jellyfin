@@ -42,10 +42,9 @@ void main() {
         expect(await jf.system.ping(), isTrue);
       });
 
-      test('system.endpointInfo + system.storage return populated maps',
-          () async {
+      test('system.endpointInfo + system.storage answer', () async {
         final ep = await jf.system.endpointInfo();
-        expect(ep, isNotEmpty);
+        expect(ep.raw, isNotEmpty);
         final st = await jf.system.storage();
         expect(st, isA<Map<String, dynamic>>());
       });
@@ -79,7 +78,7 @@ void main() {
       test('activityLog.entries returns a paginated log (possibly empty)',
           () async {
         final entries = await jf.activityLog.entries(limit: 10);
-        expect(entries, isA<List<Map<String, dynamic>>>());
+        expect(entries.items.length, lessThanOrEqualTo(10));
       });
 
       test('devices.list includes the current test client', () async {

@@ -5,6 +5,7 @@
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 
 /// `/UserViews` and library-level helpers.
 class JellyfinLibraryApi {
@@ -169,19 +170,21 @@ class JellyfinLibraryApi {
   // ---------------------------------------------------------------------------
 
   /// `GET /Items/Counts` — quick tally of items across all libraries.
-  Future<Map<String, dynamic>> counts({
+  Future<JellyfinItemCounts> counts({
     String? userId,
     bool? isFavorite,
-  }) async {
+  }) {
     final qp = <String, dynamic>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    final res = await _http.request<Map<String, dynamic>>(
+    return _http.requestJson(
       '/Items/Counts',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) => JellyfinItemCounts.fromJson(
+        json is Map<String, dynamic> ? json : const <String, dynamic>{},
+      ),
     );
-    return res.data ?? const {};
   }
 
   /// `GET /Library/MediaFolders` — every media folder configured on

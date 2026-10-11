@@ -97,5 +97,6 @@ export 'src/jellyfin_credentials.dart';
 export 'src/jellyfin_error_type.dart';
 export 'src/jellyfin_exception.dart';
 export 'src/jellyfin_models.dart';
+export 'src/jellyfin_server_models.dart';
 export 'src/transport/jellyfin_cancel_token.dart';
 export 'src/transport/jellyfin_response.dart';

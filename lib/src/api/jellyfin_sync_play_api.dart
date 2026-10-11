@@ -3,6 +3,8 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 
 /// `/SyncPlay/*` — synchronised playback across multiple clients.
 ///
@@ -24,14 +26,10 @@ class JellyfinSyncPlayApi {
   // ─── Discovery ─────────────────────────────────────────────────────
 
   /// `GET /SyncPlay/List` — list groups the current user can join.
-  Future<List<Map<String, dynamic>>> list() async {
-    final res = await _http.request<List<dynamic>>('/SyncPlay/List');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) e,
-    ];
-  }
+  Future<List<JellyfinSyncPlayGroup>> list() => _http.requestJson(
+        '/SyncPlay/List',
+        listOf(JellyfinSyncPlayGroup.fromJson),
+      );
 
   // ─── Group lifecycle ───────────────────────────────────────────────
 
@@ -241,10 +239,10 @@ class JellyfinSyncPlayApi {
   }
 
   /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id.
-  Future<Map<String, dynamic>> group(String id) async {
-    final res = await _http.request<Map<String, dynamic>>('/SyncPlay/$id');
-    return res.data ?? const {};
-  }
+  Future<JellyfinSyncPlayGroup?> group(String id) => _http.requestJson(
+        '/SyncPlay/$id',
+        objectOf(JellyfinSyncPlayGroup.fromJson),
+      );
 
   /// `POST /SyncPlay/SetNewQueue` — replace the group's playback
   /// queue with a new set of items.

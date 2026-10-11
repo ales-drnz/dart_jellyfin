@@ -41,25 +41,20 @@ void main() {
         expect(await jf.system.ping(), isTrue);
       });
 
-      test('utcTime returns RequestReceptionTime / ResponseTransmissionTime',
-          () async {
+      test('utcTime is the server clock', () async {
         final t = await jf.system.utcTime();
-        expect(t, isNotEmpty);
-        expect(
-          t.keys.toSet().intersection(
-            {'RequestReceptionTime', 'ResponseTransmissionTime'},
-          ),
-          isNotEmpty,
-        );
+        expect(t.requestReceptionTime, isNotNull);
+        expect(t.responseTransmissionTime, isNotNull);
+        final skew = t.requestReceptionTime!.difference(DateTime.now().toUtc());
+        expect(skew.inMinutes.abs(), lessThan(5));
       });
 
-      test('endpointInfo returns a parseable map', () async {
-        // Inside Docker, the server sees the connection coming from
-        // the bridge network, so IsLocal is not reliable in this
-        // fixture. We just verify the endpoint is callable.
+      test('endpointInfo answers for this connection', () async {
+        // Inside Docker the server sees the bridge network: the request is
+        // in-network but not local.
         final ep = await jf.system.endpointInfo();
-        expect(ep, isNotEmpty);
-        expect(ep.containsKey('IsLocal') || ep.containsKey('isLocal'), isTrue);
+        expect(ep.raw, contains('IsInNetwork'));
+        expect(ep.isInNetwork, isTrue);
       });
     },
     skip: bootstrapSkipReason,

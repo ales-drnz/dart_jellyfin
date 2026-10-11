@@ -7,6 +7,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Playlists/*`.
@@ -204,16 +205,11 @@ class JellyfinPlaylistsApi {
   /// `GET /Playlists/{playlistId}/Users` — list users with access to
   /// a shared playlist. Returned as raw maps (`UserId`, `CanEdit`); resolve
   /// display names separately via the users API if needed.
-  Future<List<Map<String, dynamic>>> users(String playlistId) async {
-    final res = await _http.request<List<dynamic>>(
-      '/Playlists/$playlistId/Users',
-    );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) e,
-    ];
-  }
+  Future<List<JellyfinPlaylistUserPermission>> users(String playlistId) =>
+      _http.requestJson(
+        '/Playlists/$playlistId/Users',
+        listOf(JellyfinPlaylistUserPermission.fromJson),
+      );
 
   /// `GET /Playlists/{playlistId}/Users/{userId}` — one user's
   /// access record for a playlist.

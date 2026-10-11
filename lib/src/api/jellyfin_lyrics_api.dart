@@ -8,6 +8,8 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 
 /// `/Audio/.../Lyrics` and `/Providers/Lyrics/{id}` — lyric upload,
 /// removal, and remote (provider) search/download.
@@ -83,16 +85,11 @@ class JellyfinLyricsApi {
   /// configured lyric provider plugins for matches against this
   /// track. Each result map carries an `Id` to feed into
   /// [downloadRemote].
-  Future<List<Map<String, dynamic>>> searchRemote(String itemId) async {
-    final res = await _http.request<List<dynamic>>(
-      '/Audio/$itemId/RemoteSearch/Lyrics',
-    );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, dynamic>) e,
-    ];
-  }
+  Future<List<JellyfinRemoteLyric>> searchRemote(String itemId) =>
+      _http.requestJson(
+        '/Audio/$itemId/RemoteSearch/Lyrics',
+        listOf(JellyfinRemoteLyric.fromJson),
+      );
 
   /// `POST /Audio/{itemId}/RemoteSearch/Lyrics/{lyricId}` — download
   /// a remote lyric result (id from [searchRemote]) and attach it to

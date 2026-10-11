@@ -3,6 +3,8 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
+import '../jellyfin_server_models.dart';
 
 /// `/ScheduledTasks` — server background tasks (library scan,
 /// thumbnail generation, cleanup, …).
@@ -16,31 +18,25 @@ class JellyfinScheduledTasksApi {
 
   /// `GET /ScheduledTasks` — list every task, with current state
   /// (last run, current progress, triggers).
-  Future<List<Map<String, dynamic>>> list({
+  Future<List<JellyfinScheduledTask>> list({
     bool? isHidden,
     bool? isEnabled,
-  }) async {
+  }) {
     final qp = <String, dynamic>{};
     if (isHidden != null) qp['isHidden'] = isHidden;
     if (isEnabled != null) qp['isEnabled'] = isEnabled;
-    final res = await _http.request<List<dynamic>>(
+    return _http.requestJson(
       '/ScheduledTasks',
       queryParameters: qp.isEmpty ? null : qp,
+      listOf(JellyfinScheduledTask.fromJson),
     );
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, dynamic>) e,
-    ];
   }
 
   /// `GET /ScheduledTasks/{taskId}` — one task's full status.
-  Future<Map<String, dynamic>> byId(String taskId) async {
-    final res = await _http.request<Map<String, dynamic>>(
-      '/ScheduledTasks/$taskId',
-    );
-    return res.data ?? const {};
-  }
+  Future<JellyfinScheduledTask?> byId(String taskId) => _http.requestJson(
+        '/ScheduledTasks/$taskId',
+        objectOf(JellyfinScheduledTask.fromJson),
+      );
 
   /// `POST /ScheduledTasks/{taskId}/Triggers` — replace the task's
   /// triggers (cron-like schedule definitions).

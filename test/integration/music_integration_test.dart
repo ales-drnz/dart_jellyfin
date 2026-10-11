@@ -45,6 +45,39 @@ void main() {
             .items;
       });
 
+      test('server and housekeeping answers are typed', () async {
+        final counts = await jf.library.counts();
+        expect(counts.songCount, tracks.length);
+        expect(counts.albumCount, greaterThanOrEqualTo(1));
+
+        final tasks = await jf.scheduledTasks.list();
+        final norm = tasks.firstWhere((t) => t.key == 'AudioNormalization');
+        expect(norm.id, isNotEmpty);
+        expect((await jf.scheduledTasks.byId(norm.id))!.key, norm.key);
+
+        // Devices are the ones that hold access tokens: the cached token was
+        // issued to the bootstrap's device, not to this client's.
+        final devices = await jf.devices.list();
+        expect(devices, isNotEmpty);
+        expect(devices.every((d) => d.id.isNotEmpty), isTrue);
+
+        final log = await jf.activityLog.entries(limit: 5);
+        expect(log.totalRecordCount, greaterThan(0));
+        expect(log.items.first.type, isNotEmpty);
+
+        final images = await jf.images.listItemImages(album.id);
+        if (album.primaryImageTag != null) {
+          final primary = images.firstWhere((i) => i.type == 'Primary');
+          expect(primary.tag, album.primaryImageTag);
+          expect(primary.width, greaterThan(0));
+        }
+        expect(
+          await jf.lyrics.searchRemote(tracks.first.id),
+          isA<List<JellyfinRemoteLyric>>(),
+        );
+        expect(await jf.syncPlay.list(), isA<List<JellyfinSyncPlayGroup>>());
+      });
+
       test('/Genres ids are the /MusicGenres ids and filter music', () async {
         final genres = await jf.genres.list(
           parentId: musicId,
