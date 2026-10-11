@@ -21,7 +21,7 @@ class JellyfinHlsApi {
 
   /// `GET /Audio/{itemId}/master.m3u8` — adaptive HLS master playlist
   /// for audio. The server can list multiple variants if bandwidth
-  /// adaptation is enabled.
+  /// adaptation is enabled. Parameters as for [audioVariantUrl].
   String audioMasterUrl({
     required String itemId,
     String? mediaSourceId,
@@ -30,10 +30,18 @@ class JellyfinHlsApi {
     String? audioCodec,
     int? audioChannels,
     int? maxAudioChannels,
+    int? audioSampleRate,
+    int? maxAudioBitDepth,
     int? startTimeTicks,
     String? playSessionId,
     String? tag,
+    String? segmentContainer,
+    int? segmentLength,
+    int? minSegments,
+    bool? enableAutoStreamCopy,
+    bool? allowAudioStreamCopy,
     bool breakOnNonKeyFrames = false,
+    String? context,
     Map<String, String> params = const {},
   }) {
     final qp = _audioParams(
@@ -43,16 +51,42 @@ class JellyfinHlsApi {
       audioCodec: audioCodec,
       audioChannels: audioChannels,
       maxAudioChannels: maxAudioChannels,
+      audioSampleRate: audioSampleRate,
+      maxAudioBitDepth: maxAudioBitDepth,
       startTimeTicks: startTimeTicks,
       playSessionId: playSessionId,
       tag: tag,
+      segmentContainer: segmentContainer,
+      segmentLength: segmentLength,
+      minSegments: minSegments,
+      enableAutoStreamCopy: enableAutoStreamCopy,
+      allowAudioStreamCopy: allowAudioStreamCopy,
       breakOnNonKeyFrames: breakOnNonKeyFrames,
+      context: context,
     )..addAll(params);
     return '${_requireBaseUrl()}/Audio/$itemId/master.m3u8?${_encode(qp)}';
   }
 
   /// `GET /Audio/{itemId}/main.m3u8` — a single-variant playlist (when
   /// you don't need adaptation; lighter and easier for some clients).
+  ///
+  /// The URL carries the token as `ApiKey` and, as `DeviceId`, the very
+  /// id the auth header sends ([JellyfinCredentials.deviceId]) — never a
+  /// constant: Jellyfin files the transcoding job under that device, and
+  /// the session reports ([JellyfinPlaybackApi.progress], `stopped`,
+  /// `ping`) find the job through it and [playSessionId].
+  ///
+  /// Pass a [playSessionId] (from [JellyfinMediaInfoApi] or one you mint)
+  /// so the same id can keep the job alive and stop it; see
+  /// [JellyfinPlaybackApi.ping].
+  ///
+  /// [segmentContainer] is the segment format (`ts`, `mp4`); a parameter
+  /// named `container` is not read by this route. [segmentLength] is in
+  /// seconds; [minSegments] is how many segments the server makes before
+  /// answering. [enableAutoStreamCopy] / [allowAudioStreamCopy] `false`
+  /// force a real transcode to [audioCodec] at [audioBitRate]. [context]
+  /// is the `EncodingContext` (`Streaming` or `Static`). [params] adds any
+  /// other query parameter verbatim.
   String audioVariantUrl({
     required String itemId,
     String? mediaSourceId,
@@ -61,9 +95,18 @@ class JellyfinHlsApi {
     String? audioCodec,
     int? audioChannels,
     int? maxAudioChannels,
+    int? audioSampleRate,
+    int? maxAudioBitDepth,
     int? startTimeTicks,
     String? playSessionId,
     String? tag,
+    String? segmentContainer,
+    int? segmentLength,
+    int? minSegments,
+    bool? enableAutoStreamCopy,
+    bool? allowAudioStreamCopy,
+    bool breakOnNonKeyFrames = false,
+    String? context,
     Map<String, String> params = const {},
   }) {
     final qp = _audioParams(
@@ -73,9 +116,18 @@ class JellyfinHlsApi {
       audioCodec: audioCodec,
       audioChannels: audioChannels,
       maxAudioChannels: maxAudioChannels,
+      audioSampleRate: audioSampleRate,
+      maxAudioBitDepth: maxAudioBitDepth,
       startTimeTicks: startTimeTicks,
       playSessionId: playSessionId,
       tag: tag,
+      segmentContainer: segmentContainer,
+      segmentLength: segmentLength,
+      minSegments: minSegments,
+      enableAutoStreamCopy: enableAutoStreamCopy,
+      allowAudioStreamCopy: allowAudioStreamCopy,
+      breakOnNonKeyFrames: breakOnNonKeyFrames,
+      context: context,
     )..addAll(params);
     return '${_requireBaseUrl()}/Audio/$itemId/main.m3u8?${_encode(qp)}';
   }
@@ -333,10 +385,18 @@ class JellyfinHlsApi {
     String? audioCodec,
     int? audioChannels,
     int? maxAudioChannels,
+    int? audioSampleRate,
+    int? maxAudioBitDepth,
     int? startTimeTicks,
     String? playSessionId,
     String? tag,
+    String? segmentContainer,
+    int? segmentLength,
+    int? minSegments,
+    bool? enableAutoStreamCopy,
+    bool? allowAudioStreamCopy,
     bool breakOnNonKeyFrames = false,
+    String? context,
   }) {
     return <String, String>{
       'ApiKey': _requireToken(),
@@ -348,10 +408,20 @@ class JellyfinHlsApi {
       if (audioCodec != null) 'AudioCodec': audioCodec,
       if (audioChannels != null) 'AudioChannels': '$audioChannels',
       if (maxAudioChannels != null) 'MaxAudioChannels': '$maxAudioChannels',
+      if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
+      if (maxAudioBitDepth != null) 'MaxAudioBitDepth': '$maxAudioBitDepth',
       if (startTimeTicks != null) 'StartTimeTicks': '$startTimeTicks',
       if (playSessionId != null) 'PlaySessionId': playSessionId,
       if (tag != null) 'Tag': tag,
+      if (segmentContainer != null) 'SegmentContainer': segmentContainer,
+      if (segmentLength != null) 'SegmentLength': '$segmentLength',
+      if (minSegments != null) 'MinSegments': '$minSegments',
+      if (enableAutoStreamCopy != null)
+        'EnableAutoStreamCopy': '$enableAutoStreamCopy',
+      if (allowAudioStreamCopy != null)
+        'AllowAudioStreamCopy': '$allowAudioStreamCopy',
       if (breakOnNonKeyFrames) 'BreakOnNonKeyFrames': 'true',
+      if (context != null) 'Context': context,
     };
   }
 

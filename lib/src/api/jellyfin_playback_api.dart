@@ -85,7 +85,27 @@ class JellyfinPlaybackApi {
     );
   }
 
-  /// Keep an active transcode session alive while the player buffers.
+  /// `POST /Sessions/Playing/Ping` — tell the server the transcode of
+  /// [playSessionId] is still wanted.
+  ///
+  /// When it matters, measured on Jellyfin 12.0 with an HLS audio
+  /// transcode (`hls.audioVariantUrl`):
+  ///
+  /// * The job is filed under the `DeviceId` of the stream URL. The
+  ///   library's URL builders use the auth header's device id, so the job
+  ///   shows on this client's session (`/Sessions` → `TranscodingInfo`)
+  ///   and ping, [progress] and [stopped] reach it. A URL carrying another
+  ///   device id (a constant) leaves the job attached to no session.
+  /// * A paused session that sent one [progress] with `isPaused: true` and
+  ///   then nothing kept its job for the 130 s observed, without ping, and
+  ///   resumed at once.
+  /// * With a ping every 10 s the job also stayed up (100 s observed);
+  ///   [stopped] ends it.
+  ///
+  /// So a player that keeps sending [progress] every ~10 s, as
+  /// recommended, needs no ping. Ping covers the stretches with nothing to
+  /// report — a long pause longer than you want to trust, buffering before
+  /// the first `start` — at the cost of one tiny request.
   Future<void> ping({required String playSessionId}) async {
     await _http.request<void>(
       '/Sessions/Playing/Ping',
