@@ -15,6 +15,7 @@ import 'jellyfin_error_type.dart';
 import 'jellyfin_exception.dart';
 import 'transport/jellyfin_cancel_token.dart';
 import 'transport/jellyfin_response.dart';
+import 'transport/jellyfin_retry_policy.dart';
 import 'transport/platform_io.dart'
     if (dart.library.js_interop) 'transport/platform_web.dart' as platform;
 
@@ -27,6 +28,7 @@ class _Shared {
   final Duration connectTimeout;
   final Duration receiveTimeout;
   final int jsonIsolateThreshold;
+  final JellyfinRetryPolicy retryPolicy;
 
   /// Whether bodies arrive still gzipped, for the connection to inflate
   /// (true only for the default `dart:io` client, see
@@ -44,6 +46,7 @@ class _Shared {
     required this.receiveTimeout,
     required this.jsonIsolateThreshold,
     required this.inflates,
+    required this.retryPolicy,
   });
 }
 
@@ -90,6 +93,7 @@ class JellyfinConnection {
     Duration connectTimeout = const Duration(seconds: 15),
     Duration receiveTimeout = const Duration(seconds: 30),
     int jsonIsolateThreshold = defaultJsonIsolateThreshold,
+    JellyfinRetryPolicy retryPolicy = JellyfinRetryPolicy.none,
   })  : _shared = _Shared(
           client: httpClient ?? platform.createDefaultClient(connectTimeout),
           ownsClient: httpClient == null,
@@ -97,6 +101,7 @@ class JellyfinConnection {
           receiveTimeout: receiveTimeout,
           jsonIsolateThreshold: jsonIsolateThreshold,
           inflates: httpClient == null && platform.defaultClientLeavesGzip,
+          retryPolicy: retryPolicy,
         ),
         scopeToken = null {
     if (baseUrl != null) this.baseUrl = baseUrl;
@@ -315,27 +320,34 @@ class JellyfinConnection {
     bool stallTimeout = true,
     JellyfinCancelToken? cancelToken,
   }) async {
-    final opened = await _open(
-      url,
-      method: 'GET',
-      queryParameters: queryParameters,
-      data: null,
-      extraHeaders: extraHeaders,
-      absoluteUrl: absoluteUrl,
-      cancelToken: cancelToken,
-    );
-    if (!stallTimeout) opened.receiveTimeout = null;
+    const method = 'GET';
+    final opened = await _retrying(method, cancelToken, () async {
+      final opened = await _open(
+        url,
+        method: 'GET',
+        queryParameters: queryParameters,
+        data: null,
+        extraHeaders: extraHeaders,
+        absoluteUrl: absoluteUrl,
+        cancelToken: cancelToken,
+      );
+      if (!stallTimeout) opened.receiveTimeout = null;
+      final res = opened.response;
+      final gzipped = _isGzipped(res.headers);
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        final body = await _readAll(opened);
+        throw _statusError(
+          res.statusCode,
+          res.reasonPhrase,
+          opened.uri,
+          gzipped ? platform.gunzip(body) : body,
+          res.headers,
+        );
+      }
+      return opened;
+    });
     final res = opened.response;
     final gzipped = _isGzipped(res.headers);
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      final body = await _readAll(opened);
-      throw _statusError(
-        res.statusCode,
-        res.reasonPhrase,
-        opened.uri,
-        gzipped ? platform.gunzip(body) : body,
-      );
-    }
     final body = _guard(opened);
     return JellyfinStreamedResponse(
       stream: gzipped ? platform.gunzipStream(body) : body,
@@ -349,6 +361,60 @@ class JellyfinConnection {
   // ─── Internals ─────────────────────────────────────────────────────
 
   Future<_Exchange> _exchange(
+    String path, {
+    required String method,
+    required Map<String, dynamic>? queryParameters,
+    required Object? data,
+    required Map<String, String>? extraHeaders,
+    required bool absoluteUrl,
+    required JellyfinCancelToken? cancelToken,
+  }) =>
+      _retrying(
+        method,
+        cancelToken,
+        () => _exchangeOnce(
+          path,
+          method: method,
+          queryParameters: queryParameters,
+          data: data,
+          extraHeaders: extraHeaders,
+          absoluteUrl: absoluteUrl,
+          cancelToken: cancelToken,
+        ),
+      );
+
+  /// Runs [attempt] under the client's [JellyfinRetryPolicy].
+  Future<T> _retrying<T>(
+    String method,
+    JellyfinCancelToken? cancelToken,
+    Future<T> Function() attempt,
+  ) async {
+    final token = cancelToken ?? scopeToken;
+    for (var n = 1;; n++) {
+      try {
+        return await attempt();
+      } on JellyfinException catch (e) {
+        final wait = _shared.retryPolicy.delayAfter(
+          e,
+          attempt: n,
+          method: method,
+        );
+        if (wait == null) rethrow;
+        final timer = Completer<void>();
+        final t = Timer(wait, timer.complete);
+        await Future.any([
+          timer.future,
+          if (token != null) token.whenCancelled,
+        ]);
+        t.cancel();
+        if (token != null && token.isCancelled) {
+          throw _cancelled(Uri.parse(e.path ?? ''));
+        }
+      }
+    }
+  }
+
+  Future<_Exchange> _exchangeOnce(
     String path, {
     required String method,
     required Map<String, dynamic>? queryParameters,
@@ -375,6 +441,7 @@ class JellyfinConnection {
         res.reasonPhrase,
         opened.uri,
         gzipped ? platform.gunzip(bytes) : bytes,
+        res.headers,
       );
     }
     return _Exchange(opened.uri, res.statusCode, res.headers, bytes, gzipped);
@@ -651,6 +718,7 @@ class JellyfinConnection {
     String? reason,
     Uri uri,
     Uint8List body,
+    Map<String, String> headers,
   ) {
     final text = body.isEmpty
         ? ''
@@ -660,7 +728,16 @@ class JellyfinConnection {
       type: JellyfinErrorType.fromHttpStatus(status),
       statusCode: status,
       path: uri.toString(),
+      retryAfter: _retryAfter(headers['retry-after']),
     );
+  }
+
+  /// `Retry-After` in seconds; `null` when absent or not a number (the
+  /// HTTP-date form is not read — neither server sends it).
+  static Duration? _retryAfter(String? value) {
+    final seconds = value == null ? null : int.tryParse(value.trim());
+    if (seconds == null) return null;
+    return Duration(seconds: seconds < 0 ? 0 : seconds);
   }
 
   JellyfinException _transportError(

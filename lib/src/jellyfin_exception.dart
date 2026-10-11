@@ -21,6 +21,10 @@ class JellyfinException implements Exception {
   /// Underlying error (for example the transport's `ClientException`).
   final Object? cause;
 
+  /// How long the server asked the client to wait (`Retry-After`, on a
+  /// `429` or `503`), when it said.
+  final Duration? retryAfter;
+
   /// The originating stack trace, when captured. Preserves the async stack
   /// across catch-and-rethrow so crash reporters can pinpoint the failure.
   final StackTrace? stackTrace;
@@ -33,6 +37,7 @@ class JellyfinException implements Exception {
     this.path,
     this.cause,
     this.stackTrace,
+    this.retryAfter,
   });
 
   /// No answer from the server at all: the connection failed or timed out.

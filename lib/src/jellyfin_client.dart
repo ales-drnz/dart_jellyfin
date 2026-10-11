@@ -66,6 +66,7 @@ import 'jellyfin_connection.dart';
 import 'jellyfin_credentials.dart';
 import 'transport/jellyfin_cancel_token.dart';
 import 'transport/jellyfin_response.dart';
+import 'transport/jellyfin_retry_policy.dart';
 
 /// Stateful façade over the Jellyfin API.
 ///
@@ -259,6 +260,9 @@ class JellyfinClient {
   ///
   /// Responses of [jsonIsolateThreshold] bytes or more are decoded, and
   /// for the typed calls parsed into models, on a background isolate.
+  ///
+  /// [retryPolicy] resends idempotent requests after transient failures;
+  /// it is off ([JellyfinRetryPolicy.none]) unless you pass one.
   JellyfinClient({
     required JellyfinCredentials credentials,
     String? baseUrl,
@@ -266,6 +270,7 @@ class JellyfinClient {
     Duration connectTimeout = const Duration(seconds: 15),
     Duration receiveTimeout = const Duration(seconds: 30),
     int jsonIsolateThreshold = JellyfinConnection.defaultJsonIsolateThreshold,
+    JellyfinRetryPolicy retryPolicy = JellyfinRetryPolicy.none,
   }) : _http = JellyfinConnection(
           credentials: credentials,
           baseUrl: baseUrl,
@@ -273,6 +278,7 @@ class JellyfinClient {
           connectTimeout: connectTimeout,
           receiveTimeout: receiveTimeout,
           jsonIsolateThreshold: jsonIsolateThreshold,
+          retryPolicy: retryPolicy,
         ) {
     _wire(JellyfinNotificationsApi(_http));
   }
