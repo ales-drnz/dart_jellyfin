@@ -1,6 +1,6 @@
 name: dart_jellyfin
 description: Dart client for Jellyfin. Supports authentication, library browsing, playlists, streaming, search and more. Targets macOS, Windows, Linux, iOS and Android.
-version: 0.3.0
+version: 0.3.1
 homepage: https://github.com/ales-drnz/dart_jellyfin
 repository: https://github.com/ales-drnz/dart_jellyfin
 issue_tracker: https://github.com/ales-drnz/dart_jellyfin/issues

@@ -1,3 +1,8 @@
+## [0.3.1] - 11-10-2026
+
+### Changed
+- The package icon is a white mark on the navy disc.
+
 ## [0.3.0] - 11-10-2026
 
 A revision of the whole package, for Jellyfin `12.2`. See [MIGRATION.md](MIGRATION.md) for the changes to make in an app.
