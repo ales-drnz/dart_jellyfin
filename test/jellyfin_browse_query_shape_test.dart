@@ -149,7 +149,7 @@ void main() {
       await client.items.list(
         sortBy: const [
           JellyfinSortField.albumArtist,
-          JellyfinSortField.sortName
+          JellyfinSortField.sortName,
         ],
         descending: true,
       );
@@ -313,7 +313,7 @@ void main() {
         years: const [1977, 1980],
         sortBy: const [
           JellyfinSortField.sortName,
-          JellyfinSortField.dateCreated
+          JellyfinSortField.dateCreated,
         ],
       );
 
@@ -371,7 +371,7 @@ void main() {
         limit: 5,
         fields: const [
           JellyfinItemField.overview,
-          JellyfinItemField.childCount
+          JellyfinItemField.childCount,
         ],
       );
 
@@ -395,7 +395,7 @@ void main() {
       await client.genres.list(
         includeItemTypes: const [
           JellyfinItemKind.musicAlbum,
-          JellyfinItemKind.audio
+          JellyfinItemKind.audio,
         ],
         fields: const [JellyfinItemField.overview, JellyfinItemField.genres],
         sortBy: const [JellyfinSortField.sortName],
@@ -409,7 +409,7 @@ void main() {
       await client.musicGenres.list(
         includeItemTypes: const [
           JellyfinItemKind.musicAlbum,
-          JellyfinItemKind.audio
+          JellyfinItemKind.audio,
         ],
       );
       expect(adapter.query['includeItemTypes'], ['MusicAlbum', 'Audio']);
@@ -419,7 +419,7 @@ void main() {
       await client.studios.list(
         includeItemTypes: const [
           JellyfinItemKind.movie,
-          JellyfinItemKind.series
+          JellyfinItemKind.series,
         ],
         enableImageTypes: const ['Primary', 'Thumb'],
       );
@@ -486,7 +486,7 @@ void main() {
         query: 'bowie',
         includeItemTypes: const [
           JellyfinItemKind.audio,
-          JellyfinItemKind.musicAlbum
+          JellyfinItemKind.musicAlbum,
         ],
         mediaTypes: const [JellyfinMediaType.audio],
       );
@@ -499,7 +499,7 @@ void main() {
       await client.filter.facets(
         includeItemTypes: const [
           JellyfinItemKind.audio,
-          JellyfinItemKind.musicAlbum
+          JellyfinItemKind.musicAlbum,
         ],
       );
       expect(adapter.path, '/Items/Filters2');
@@ -508,8 +508,8 @@ void main() {
 
     test('suggestions.list', () async {
       await client.suggestions.list(
-        mediaType: const ['Audio', 'Video'],
-        type: const ['MusicAlbum', 'Movie'],
+        mediaType: const [JellyfinMediaType.audio, JellyfinMediaType.video],
+        type: const [JellyfinItemKind.musicAlbum, JellyfinItemKind.movie],
       );
       expect(adapter.path, '/Items/Suggestions');
       expect(adapter.query['mediaType'], ['Audio', 'Video']);

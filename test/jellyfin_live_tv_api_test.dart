@@ -81,7 +81,9 @@ void main() {
 
     test('serialized sortBy is a valid ItemSortBy enum member', () async {
       await client.liveTv.channels(
-          sortBy: const [JellyfinSortField.sortName], descending: true);
+        sortBy: const [JellyfinSortField.sortName],
+        descending: true,
+      );
       final query = adapter.last!.uri.queryParametersAll;
       expect(query.containsKey('sortBy'), isTrue);
       for (final s in query['sortBy']!) {
@@ -95,10 +97,12 @@ void main() {
     });
 
     test('multi-column sortBy is repeated, never delimiter-joined', () async {
-      await client.liveTv.channels(sortBy: const [
-        JellyfinSortField.sortName,
-        JellyfinSortField.playCount
-      ]);
+      await client.liveTv.channels(
+        sortBy: const [
+          JellyfinSortField.sortName,
+          JellyfinSortField.playCount,
+        ],
+      );
       final query = adapter.last!.uri.queryParametersAll;
       expect(query['sortBy'], ['SortName', 'PlayCount']);
     });

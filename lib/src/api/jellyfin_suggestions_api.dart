@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
 
 /// `/Items/Suggestions` — server-curated picks for the current user.
@@ -21,12 +22,12 @@ class JellyfinSuggestionsApi {
 
   /// `/Items/Suggestions` — homepage-style picks.
   ///
-  /// [mediaType] filters to media kinds (e.g. `['Audio']`, `['Video']`).
-  /// [type] filters to BaseItemKind values (e.g. `['MusicAlbum']`,
-  /// `['Movie']`, see [JellyfinItemKind]).
+  /// [mediaType] filters to media kinds ([JellyfinMediaType.audio],
+  /// [JellyfinMediaType.video]); [type] to item kinds
+  /// ([JellyfinItemKind.musicAlbum], [JellyfinItemKind.movie]).
   Future<JellyfinQueryResult<JellyfinItem>> list({
-    List<String> mediaType = const [],
-    List<String> type = const [],
+    List<JellyfinMediaType> mediaType = const [],
+    List<JellyfinItemKind> type = const [],
     int? startIndex,
     int? limit,
     bool enableTotalRecordCount = true,
