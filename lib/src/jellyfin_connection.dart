@@ -22,7 +22,7 @@ import 'transport/platform_io.dart'
 /// What a connection and every scoped view of it share (see
 /// [JellyfinConnection.scoped]): the HTTP client, the server URL and the
 /// session.
-class _Shared {
+final class _Shared {
   final http.Client client;
   final bool ownsClient;
   final Duration connectTimeout;
@@ -55,7 +55,7 @@ class _Shared {
 /// Built on `package:http`, so the app can hand in any [http.Client] — a
 /// native one (`cupertino_http`, `cronet_http`) for HTTP/2 and the system
 /// proxy, or a `MockClient` in tests.
-class JellyfinConnection {
+final class JellyfinConnection {
   final _Shared _shared;
 
   /// Client identity sent on every request via the auth header.

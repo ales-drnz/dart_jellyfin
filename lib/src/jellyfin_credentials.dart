@@ -7,7 +7,7 @@
 /// Sent on every request as the four fields of the `Authorization:
 /// MediaBrowser` header. `deviceId` MUST be a stable per-installation
 /// UUID — Jellyfin tracks sessions by it.
-class JellyfinCredentials {
+final class JellyfinCredentials {
   /// Application name (e.g. `'Finova'`). Goes into `Client="…"`.
   final String client;
 

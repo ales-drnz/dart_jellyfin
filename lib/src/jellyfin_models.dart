@@ -17,7 +17,7 @@ library;
 
 /// Paged `{Items, TotalRecordCount, StartIndex}` envelope returned by most
 /// Jellyfin list endpoints.
-class JellyfinQueryResult<T> {
+final class JellyfinQueryResult<T> {
   /// Parsed page of items.
   final List<T> items;
 
@@ -62,7 +62,7 @@ class JellyfinQueryResult<T> {
 // ---------------------------------------------------------------------------
 
 /// Subset of `/System/Info` describing the remote server build.
-class JellyfinSystemInfo {
+final class JellyfinSystemInfo {
   /// Stable server-side id.
   final String? id;
 
@@ -108,7 +108,7 @@ class JellyfinSystemInfo {
 // ---------------------------------------------------------------------------
 
 /// One Jellyfin user account.
-class JellyfinUser {
+final class JellyfinUser {
   /// Stable server-side user id (GUID).
   final String id;
 
@@ -184,7 +184,7 @@ class JellyfinUser {
 }
 
 /// Result of `POST /Users/AuthenticateByName` (and Quick Connect).
-class JellyfinAuthResult {
+final class JellyfinAuthResult {
   /// Authenticated user record.
   final JellyfinUser user;
 
@@ -226,7 +226,7 @@ class JellyfinAuthResult {
 }
 
 /// Result of `POST /QuickConnect/Initiate` and `GET /QuickConnect/Connect`.
-class JellyfinQuickConnectState {
+final class JellyfinQuickConnectState {
   /// `true` once the user has approved the pairing on another device.
   final bool authenticated;
 
@@ -286,7 +286,7 @@ class JellyfinQuickConnectState {
 /// `collectionType` is what tells you the library kind:
 /// `'movies' | 'tvshows' | 'music' | 'musicvideos' | 'photos' | 'books' |
 ///  'livetv' | 'homevideos' | 'boxsets' | 'playlists' | 'folders' | null`.
-class JellyfinView {
+final class JellyfinView {
   /// Stable server-side library id.
   final String id;
 
@@ -412,7 +412,7 @@ abstract final class JellyfinItemKind {
 /// Subset of `BaseItemDto`. Hand-rolled — the full DTO has 153 fields,
 /// here we lift only what music apps use today. Anything else lives in
 /// [JellyfinItem.raw].
-class JellyfinItem {
+final class JellyfinItem {
   /// Stable server-side item id.
   final String id;
 
@@ -477,7 +477,7 @@ class JellyfinItem {
   /// Genres with their ids (`GenreItems`, sent with the `Genres` field):
   /// the ids `items.list(genreIds:)` and `instantMix.fromItem` take, so a
   /// genre chip needs no lookup by name.
-  final List<JellyfinGenreRef> genreItems;
+  final List<JellyfinNameGuidPair> genreItems;
 
   /// The entry id inside a playlist (`PlaylistItemId`), present only on
   /// items read from `playlists.items`; pass it to
@@ -648,7 +648,7 @@ class JellyfinItem {
       artistItems: _objList(json['ArtistItems'], JellyfinArtistRef.fromJson),
       albumArtistItems:
           _objList(json['AlbumArtists'], JellyfinArtistRef.fromJson),
-      genreItems: _objList(json['GenreItems'], JellyfinGenreRef.fromJson),
+      genreItems: _objList(json['GenreItems'], JellyfinNameGuidPair.fromJson),
       playlistItemId: _str(json['PlaylistItemId']),
       indexNumber: _int(json['IndexNumber']),
       parentIndexNumber: _int(json['ParentIndexNumber']),
@@ -714,7 +714,7 @@ class JellyfinItem {
 }
 
 /// Lightweight artist reference (`{Id, Name}`) used inside [JellyfinItem.artistItems].
-class JellyfinArtistRef {
+final class JellyfinArtistRef {
   /// Artist id.
   final String id;
 
@@ -732,27 +732,8 @@ class JellyfinArtistRef {
       );
 }
 
-/// A genre as items name it (`GenreItems` entry, a `NameGuidPair`).
-class JellyfinGenreRef {
-  /// Genre id — the value `genreIds` filters take.
-  final String id;
-
-  /// Genre display name.
-  final String name;
-
-  /// Builds a genre reference from already-parsed components.
-  const JellyfinGenreRef({required this.id, required this.name});
-
-  /// Decodes a `{Id, Name}` genre reference.
-  factory JellyfinGenreRef.fromJson(Map<String, dynamic> json) =>
-      JellyfinGenreRef(
-        id: _str(json['Id']) ?? '',
-        name: _str(json['Name']) ?? '',
-      );
-}
-
 /// One playable variant of a [JellyfinItem] (`MediaSourceInfo`).
-class JellyfinMediaSource {
+final class JellyfinMediaSource {
   /// Media source id; pass back to `/PlaybackInfo` and reporting endpoints.
   final String id;
 
@@ -835,7 +816,7 @@ class JellyfinMediaSource {
 }
 
 /// One audio/video/subtitle/lyrics stream inside a [JellyfinMediaSource].
-class JellyfinMediaStream {
+final class JellyfinMediaStream {
   /// Zero-based stream index within the source.
   final int? index;
 
@@ -920,7 +901,7 @@ class JellyfinMediaStream {
 }
 
 /// Per-user state attached to a [JellyfinItem] (`UserItemDataDto`).
-class JellyfinUserData {
+final class JellyfinUserData {
   /// Resume position in ticks (10_000 per millisecond).
   final int? playbackPositionTicks;
 
@@ -972,7 +953,7 @@ class JellyfinUserData {
 
 /// One time-aligned piece of a [JellyfinLyricLine] — usually a word of an
 /// enhanced (word-by-word, "ELRC") lyric.
-class JellyfinLyricCue {
+final class JellyfinLyricCue {
   /// Index in [JellyfinLyricLine.text] where the piece starts.
   final int position;
 
@@ -1014,7 +995,7 @@ class JellyfinLyricCue {
 }
 
 /// One line of a lyric (`LyricLine`).
-class JellyfinLyricLine {
+final class JellyfinLyricLine {
   /// Start time in 100-ns ticks; `null` for unsynced lines.
   final int? startTicks;
 
@@ -1089,7 +1070,7 @@ class JellyfinLyricLine {
 }
 
 /// Tags of a lyric file (`LyricMetadata`).
-class JellyfinLyricMetadata {
+final class JellyfinLyricMetadata {
   /// Song artist.
   final String? artist;
 
@@ -1151,7 +1132,7 @@ class JellyfinLyricMetadata {
 }
 
 /// Payload of `GET /Audio/{id}/Lyrics` (`LyricDto`).
-class JellyfinLyrics {
+final class JellyfinLyrics {
   /// Parsed lyric lines, in display order.
   final List<JellyfinLyricLine> lines;
 
@@ -1199,7 +1180,7 @@ class JellyfinLyrics {
 // ---------------------------------------------------------------------------
 
 /// One match from `/Search/Hints` — a lightweight pointer into the library.
-class JellyfinSearchHint {
+final class JellyfinSearchHint {
   /// Id of the matched item.
   final String itemId;
 
@@ -1361,7 +1342,7 @@ Map<String, String> _stringMap(Object? v) {
 ///
 /// Use [JellyfinSessionsApi.play] etc. with [JellyfinSession.id] to
 /// cast or remote-control a target.
-class JellyfinSession {
+final class JellyfinSession {
   /// Stable session id; pass to `/Sessions/{id}/...` endpoints.
   final String id;
 
@@ -1484,7 +1465,7 @@ class JellyfinSession {
 /// [JellyfinMediaSource.supportsDirectStream], or
 /// [JellyfinMediaSource.supportsTranscoding] is `true`, plus a
 /// [JellyfinMediaSource.transcodingUrl] when transcoding is required.
-class JellyfinPlaybackInfo {
+final class JellyfinPlaybackInfo {
   /// Media sources annotated with the server's per-source playback decision.
   final List<JellyfinMediaSource> mediaSources;
 
@@ -1526,7 +1507,7 @@ class JellyfinPlaybackInfo {
 /// [container], [audioCodec], and [videoCodec] are optional, comma-
 /// separated constraint lists (mirroring the spec); null entries are
 /// omitted from the wire body.
-class JellyfinDirectPlayProfile {
+final class JellyfinDirectPlayProfile {
   /// Media kind this profile applies to: `'Audio' | 'Video' | 'Photo' |
   /// 'Subtitle' | 'Lyric'`.
   final String type;
@@ -1583,7 +1564,7 @@ class JellyfinDirectPlayProfile {
 /// hand-rolled use we expose the high-level knobs plus an `extra`
 /// escape hatch — fields you set there are merged into the JSON body
 /// verbatim.
-class JellyfinDeviceProfile {
+final class JellyfinDeviceProfile {
   /// Human-readable name (`'Finova'`, etc).
   final String? name;
 
@@ -1667,7 +1648,7 @@ class JellyfinDeviceProfile {
 
 /// Per-client UI state stored on the server: view type, sort, scroll
 /// direction, sidebar visibility, plus a free-form `customPrefs` map.
-class JellyfinDisplayPreferences {
+final class JellyfinDisplayPreferences {
   /// Display-preferences id; usually the view/library id.
   final String? id;
 
@@ -1785,7 +1766,7 @@ class JellyfinDisplayPreferences {
 // ---------------------------------------------------------------------------
 
 /// `{Name, Id}` pair used in faceted filter responses.
-class JellyfinNameGuidPair {
+final class JellyfinNameGuidPair {
   /// Display name.
   final String? name;
 
@@ -1805,7 +1786,7 @@ class JellyfinNameGuidPair {
 
 /// Modern facet response from `/Items/Filters2` — genres carry ids so
 /// the client can filter back through `items.list(genreIds: …)`.
-class JellyfinQueryFilters {
+final class JellyfinQueryFilters {
   /// Genres available in the queried scope, each with a filterable id.
   final List<JellyfinNameGuidPair> genres;
 
@@ -1832,7 +1813,7 @@ class JellyfinQueryFilters {
 }
 
 /// Legacy facet response from `/Items/Filters` — flat string arrays.
-class JellyfinQueryFiltersLegacy {
+final class JellyfinQueryFiltersLegacy {
   /// Genre names available in the queried scope.
   final List<String> genres;
 
@@ -1881,7 +1862,7 @@ class JellyfinQueryFiltersLegacy {
 /// One annotated time range on a media item: an intro, a recap, an
 /// outro, a commercial, a preview, or an unknown segment. Times are
 /// expressed in Jellyfin ticks (10,000 per millisecond).
-class JellyfinMediaSegment {
+final class JellyfinMediaSegment {
   /// Stable server-side segment id.
   final String? id;
 
@@ -1956,7 +1937,7 @@ abstract final class JellyfinMediaSegmentType {
 // ---------------------------------------------------------------------------
 
 /// One recommendation bucket from `/Movies/Recommendations`.
-class JellyfinMovieRecommendation {
+final class JellyfinMovieRecommendation {
   /// Bucket id (e.g. the seed item or person id).
   final String? categoryId;
 

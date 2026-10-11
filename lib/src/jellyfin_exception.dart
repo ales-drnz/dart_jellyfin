@@ -5,7 +5,7 @@
 import 'jellyfin_error_type.dart';
 
 /// Exception thrown by [JellyfinClient] for any failed operation.
-class JellyfinException implements Exception {
+final class JellyfinException implements Exception {
   /// Human-readable description of the failure.
   final String message;
 

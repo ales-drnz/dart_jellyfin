@@ -217,7 +217,7 @@ class JellyfinNotificationsApi {
 }
 
 /// One frame received from the Jellyfin `/socket` WebSocket.
-class JellyfinNotification {
+final class JellyfinNotification {
   /// Upstream `MessageType` (e.g. `'Sessions'`, `'LibraryChanged'`,
   /// `'UserDataChanged'`, `'ScheduledTasksInfo'`, `'KeepAlive'`).
   final String messageType;

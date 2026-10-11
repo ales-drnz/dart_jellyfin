@@ -73,6 +73,11 @@ import 'transport/jellyfin_retry_policy.dart';
 /// One [JellyfinClient] = one identity (Authorization header) + one
 /// active server. After authenticating, the same client serves every
 /// endpoint through topic-named sub-APIs.
+///
+/// The client and its sub-API classes are deliberately not `final`, so an
+/// app's tests can stand in for them (`class FakeClient implements
+/// JellyfinClient`, or a mocking library). The models are `final`: they are
+/// data, built by the library.
 class JellyfinClient {
   final JellyfinConnection _http;
 
