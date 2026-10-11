@@ -86,10 +86,13 @@ class JellyfinAudioApi {
   ///
   /// Returns `(url, ext)` where `ext` mirrors [container] for downstream
   /// filename generation.
+  ///
+  /// [playSessionId] names the play session, as in the other builders.
   (String url, String extension) directStreamUrl({
     required String itemId,
     String? container,
     bool isStatic = true,
+    String? playSessionId,
   }) {
     final base = _requireBaseUrl();
     final ext = container ?? '';
@@ -99,8 +102,53 @@ class JellyfinAudioApi {
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
+      if (playSessionId != null) 'PlaySessionId': playSessionId,
     };
     return ('$base$path?${_encode(qp)}', ext);
+  }
+
+  /// A progressive transcode — one file, not HLS segments — at
+  /// `/Audio/{id}/stream.{container}`: what a download of a smaller copy
+  /// wants (a seekable file with a known extension).
+  ///
+  /// Measured on Jellyfin 12.2:
+  ///
+  /// * [audioBitRate] (bits per second) sets the bitrate: 32000 gave a
+  ///   32 kbps AAC, 256000 a 256 kbps one. `maxStreamingBitrate` is not
+  ///   read by this route (it is the HLS routes' cap), so there is no such
+  ///   parameter here.
+  /// * [container] must hold [audioCodec]: `mp3` in `m4a` answers 500.
+  /// * The server reuses a running transcode of the same item for the
+  ///   same device and play session, whatever the other parameters say:
+  ///   give each download its own [playSessionId].
+  ///
+  /// Returns `(url, container)`.
+  (String url, String extension) transcodedStreamUrl({
+    required String itemId,
+    required String audioCodec,
+    required String container,
+    required String playSessionId,
+    int? audioBitRate,
+    int? audioChannels,
+    int? audioSampleRate,
+    String? mediaSourceId,
+  }) {
+    final base = _requireBaseUrl();
+    final qp = <String, String>{
+      'ApiKey': _requireToken(),
+      'DeviceId': _http.credentials.deviceId,
+      'Static': 'false',
+      'PlaySessionId': playSessionId,
+      'AudioCodec': audioCodec,
+      if (audioBitRate != null) 'AudioBitRate': '$audioBitRate',
+      if (audioChannels != null) 'AudioChannels': '$audioChannels',
+      if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
+      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
+    };
+    return (
+      '$base/Audio/$itemId/stream.$container?${_encode(qp)}',
+      container,
+    );
   }
 
   /// Lyrics for a track, parsed into [JellyfinLyrics].

@@ -282,6 +282,32 @@ void main() {
         }
       });
 
+      test('transcodedStreamUrl honours audioBitRate', () async {
+        final t = tracks.first;
+        final dir = await Directory.systemTemp.createTemp('jf_tc');
+        try {
+          Future<int> size(int bitRate) async {
+            final (url, ext) = jf.audio.transcodedStreamUrl(
+              itemId: t.id,
+              audioCodec: 'aac',
+              container: 'm4a',
+              // Its own session: the server reuses a running transcode of
+              // the same item, device and session.
+              playSessionId: 'it-tc-$bitRate-${DateTime.now().microsecond}',
+              audioBitRate: bitRate,
+            );
+            return jf.downloadToFile(url, '${dir.path}/$bitRate.$ext');
+          }
+
+          final low = await size(32000);
+          final high = await size(256000);
+          expect(low, greaterThan(0));
+          expect(high, greaterThan(low * 3));
+        } finally {
+          await dir.delete(recursive: true);
+        }
+      });
+
       test('enhanced lyrics keep their word cues', () async {
         final track = tracks.first;
         final lrc = utf8.encode(

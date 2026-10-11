@@ -476,9 +476,35 @@ void main() {
         client.hls.audioVariantUrl(itemId: 't1'),
         client.audio.universalStreamUrl(itemId: 't1'),
         client.audio.directStreamUrl(itemId: 't1').$1,
+        client.audio
+            .transcodedStreamUrl(
+              itemId: 't1',
+              audioCodec: 'aac',
+              container: 'm4a',
+              playSessionId: 'p',
+            )
+            .$1,
       ]) {
         expect(Uri.parse(url).queryParameters['DeviceId'], dev, reason: url);
       }
+    });
+
+    test('transcodedStreamUrl: a progressive transcode at audioBitRate', () {
+      final (url, ext) = client.audio.transcodedStreamUrl(
+        itemId: 't1',
+        audioCodec: 'aac',
+        container: 'm4a',
+        playSessionId: 'dl-1',
+        audioBitRate: 128000,
+      );
+      final uri = Uri.parse(url);
+      expect(uri.path, '/Audio/t1/stream.m4a');
+      expect(ext, 'm4a');
+      expect(uri.queryParameters, containsPair('Static', 'false'));
+      expect(uri.queryParameters, containsPair('AudioCodec', 'aac'));
+      expect(uri.queryParameters, containsPair('AudioBitRate', '128000'));
+      expect(uri.queryParameters, containsPair('PlaySessionId', 'dl-1'));
+      expect(uri.queryParameters.containsKey('MaxStreamingBitrate'), isFalse);
     });
 
     test('playback reports send the enum wire values', () async {
