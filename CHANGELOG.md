@@ -1,3 +1,8 @@
+## [0.3.2] - 2-11-2026
+
+### Docs
+- A shorter README, with the guide moved to topics of the API reference.
+
 ## [0.3.1] - 11-10-2026
 
 ### Changed
