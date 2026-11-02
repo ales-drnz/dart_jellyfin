@@ -50,7 +50,7 @@ import '../jellyfin_exception.dart';
 ///
 /// Cancel the [Stream] subscription or call [close] to disconnect.
 ///
-/// {@category Events, downloads and raw requests}
+/// {@category Events and downloads}
 class JellyfinNotificationsApi {
   final JellyfinConnection _http;
 
@@ -281,7 +281,7 @@ final class JellyfinNotification {
 
 /// Typed decoding of a [JellyfinNotificationsApi.connect] stream.
 ///
-/// {@category Events, downloads and raw requests}
+/// {@category Events and downloads}
 extension JellyfinNotificationEvents on Stream<JellyfinNotification> {
   /// Every frame as a [JellyfinEvent]: user-data and library changes,
   /// sessions, remote-control commands, refresh and task progress,

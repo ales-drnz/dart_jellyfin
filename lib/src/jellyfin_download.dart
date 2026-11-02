@@ -12,7 +12,7 @@ import 'transport/jellyfin_cancel_token.dart';
 
 /// Downloads straight to disk.
 ///
-/// {@category Events, downloads and raw requests}
+/// {@category Events and downloads}
 extension JellyfinDownload on JellyfinClient {
   /// Streams [url] into the file at [path] and returns the bytes written.
   ///

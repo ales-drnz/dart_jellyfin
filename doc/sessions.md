@@ -4,7 +4,7 @@ List the sessions, make this client a cast target, control other sessions, and p
 
 `sessions` lists the clients connected to the server, registers this
 client as a cast target and sends commands to other sessions. Commands
-sent to this client arrive as notifications. See the [Events, downloads and raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events,%20downloads%20and%20raw%20requests-topic.html) topic.
+sent to this client arrive as notifications. See the [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html) topic.
 
 ### Listing sessions
 

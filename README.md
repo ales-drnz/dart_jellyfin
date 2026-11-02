@@ -61,7 +61,7 @@ dependencies:
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/triangle-alert.png" width="32"></td>
 <td valign="middle"><b>Typed errors</b><br>every failure is a <a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html"><code>JellyfinException</code></a> with a type to branch on: auth, not found, timeout, connection, cancelled.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/terminal.png" width="32"></td>
-<td valign="middle"><b>Escape hatch</b><br><a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Events,%20downloads%20and%20raw%20requests-topic.html"><code>request()</code>, <code>requestBytes()</code> and <code>requestStream()</code></a> for routes the sub-APIs do not cover.</td>
+<td valign="middle"><b>Escape hatch</b><br><a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Raw%20requests-topic.html"><code>request()</code>, <code>requestBytes()</code> and <code>requestStream()</code></a> for routes the sub-APIs do not cover.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/globe.png" width="32"></td>
@@ -73,7 +73,7 @@ dependencies:
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/zap.png" width="32"></td>
 <td valign="middle"><b>Cancellation and retries</b><br><a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html"><code>withCancelToken()</code></a> makes every call of a view cancellable, and a <a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html"><code>JellyfinRetryPolicy</code></a> resends idempotent requests after transient failures.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/download.png" width="32"></td>
-<td valign="middle"><b>Streaming downloads</b><br><a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Events,%20downloads%20and%20raw%20requests-topic.html"><code>downloadToFile()</code></a> writes a body to disk as it arrives, with progress, and never leaves a partial file.</td>
+<td valign="middle"><b>Streaming downloads</b><br><a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html"><code>downloadToFile()</code></a> writes a body to disk as it arrives, with progress, and never leaves a partial file.</td>
 </tr>
 </table>
 
@@ -247,7 +247,7 @@ socket.events().listen((event) {
 });
 ```
 
-See [Events, downloads and raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events,%20downloads%20and%20raw%20requests-topic.html) for every event, downloads to disk and the raw request calls.
+See [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html) for every event and downloads to disk. [Raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Raw%20requests-topic.html) reach the routes the sub-APIs do not cover.
 
 ---
 
@@ -266,7 +266,8 @@ See [Events, downloads and raw requests](https://pub.dev/documentation/dart_jell
   - [Video and subtitles](https://pub.dev/documentation/dart_jellyfin/latest/topics/Video%20and%20subtitles-topic.html): video URLs, direct play or transcoding, subtitles, trickplay and media segments
   - [TV, movies and live TV](https://pub.dev/documentation/dart_jellyfin/latest/topics/TV,%20movies%20and%20live%20TV-topic.html): seasons, episodes, next up, recommendations, trailers, channels, recordings and timers
   - [Errors and paging](https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html): exceptions, classifying a failure, cancellation, retries and paging
-  - [Events, downloads and raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events,%20downloads%20and%20raw%20requests-topic.html): notifications, typed events, downloads to a file and the escape hatch
+  - [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html): notifications, typed events and downloads to a file
+  - [Raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Raw%20requests-topic.html): `request()`, `requestBytes()` and `requestStream()`
 - [Example](example/)
 - [CHANGELOG](CHANGELOG.md) and [MIGRATION](MIGRATION.md)
 

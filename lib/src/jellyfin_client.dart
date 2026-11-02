@@ -82,7 +82,7 @@ import 'transport/jellyfin_retry_policy.dart';
 /// data, built by the library.
 ///
 /// {@category Client and sign-in}
-/// {@category Events, downloads and raw requests}
+/// {@category Raw requests}
 class JellyfinClient {
   final JellyfinConnection _http;
 

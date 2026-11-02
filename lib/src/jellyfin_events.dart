@@ -44,7 +44,7 @@ import 'jellyfin_server_models.dart';
 /// shape becomes a [JellyfinUnknownEvent] too, so one malformed frame
 /// cannot end a listener.
 ///
-/// {@category Events, downloads and raw requests}
+/// {@category Events and downloads}
 sealed class JellyfinEvent {
   /// The whole frame as the server sent it (`MessageType`, `MessageId`,
   /// `Data`).
