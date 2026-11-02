@@ -20,6 +20,8 @@ import 'jellyfin_media_info_api.dart';
 /// decisions, exact container/codec the server will produce) call
 /// [JellyfinMediaInfoApi.postedInfo] first; the response carries a
 /// `transcodingUrl` you can use verbatim instead of building one here.
+///
+/// {@category Video and subtitles}
 class JellyfinVideosApi {
   final JellyfinConnection _http;
 

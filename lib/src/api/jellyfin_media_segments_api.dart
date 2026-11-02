@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `MediaSegments` OpenAPI tag (1 operation). Segments are
 /// produced by Jellyfin plugins (e.g. Intro Skipper) and consumed by
 /// players to expose a "skip" button at the right moment.
+///
+/// {@category Video and subtitles}
 class JellyfinMediaSegmentsApi {
   final JellyfinConnection _http;
 

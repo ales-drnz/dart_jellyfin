@@ -21,6 +21,8 @@ import 'jellyfin_audio_api.dart';
 /// [JellyfinAudioApi.lyrics] for callers that already work in the
 /// audio sub-API; this sub-API focuses on the write and remote
 /// operations.
+///
+/// {@category Search and lyrics}
 class JellyfinLyricsApi {
   final JellyfinConnection _http;
 

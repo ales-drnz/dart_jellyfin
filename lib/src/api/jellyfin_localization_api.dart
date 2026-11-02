@@ -11,6 +11,8 @@ import '../jellyfin_connection.dart';
 /// Wraps the `Localization` OpenAPI tag (4 operations). Used by
 /// picker UIs ("set parental rating", "choose preferred audio
 /// language") so the values match what the server actually accepts.
+///
+/// {@category System}
 class JellyfinLocalizationApi {
   final JellyfinConnection _http;
 

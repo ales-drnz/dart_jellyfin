@@ -8,6 +8,8 @@ import '../jellyfin_models.dart';
 import '../jellyfin_server_models.dart';
 
 /// `/System/*` endpoints — server info, public info, ping.
+///
+/// {@category System}
 class JellyfinSystemApi {
   final JellyfinConnection _http;
 

@@ -22,6 +22,8 @@ import 'jellyfin_videos_api.dart';
 /// universal endpoints work for audio because the server's defaults are
 /// good enough for music, but video transcoding decisions depend on
 /// codec compatibility that only the device profile knows.
+///
+/// {@category Playback negotiation and reporting}
 class JellyfinMediaInfoApi {
   final JellyfinConnection _http;
 

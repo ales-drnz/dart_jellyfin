@@ -12,6 +12,8 @@ import '../jellyfin_exception.dart';
 /// resolutions (e.g. 320×, 160×) discoverable on
 /// `JellyfinItem.raw['Trickplay']` (the typed `Trickplay` field is not
 /// yet promoted onto `JellyfinItem`; read it from `.raw`).
+///
+/// {@category Video and subtitles}
 class JellyfinTrickplayApi {
   final JellyfinConnection _http;
 

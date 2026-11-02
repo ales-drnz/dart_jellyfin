@@ -20,6 +20,8 @@ import '../transport/jellyfin_cancel_token.dart';
 /// busting. Width/height are server-side resize hints, so the response is
 /// already sized and needs no client-side scaling; see [url] for the
 /// format it comes back in.
+///
+/// {@category User data and images}
 class JellyfinImagesApi {
   /// Front cover / poster — the most common image type.
   static const String typePrimary = 'Primary';

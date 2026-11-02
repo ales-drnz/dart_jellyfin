@@ -11,6 +11,8 @@ import '../jellyfin_server_models.dart';
 /// thumbnail generation, cleanup, …).
 ///
 /// Wraps the `ScheduledTasks` OpenAPI tag (5 operations). Admin only.
+///
+/// {@category System}
 class JellyfinScheduledTasksApi {
   final JellyfinConnection _http;
 

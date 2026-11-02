@@ -26,6 +26,8 @@ import 'jellyfin_persons_api.dart';
 /// cycle, and `/Persons` has no sort or genre filters yet, so this
 /// package keeps them undeprecated until the replacement is
 /// equivalent. Expect them to go in 13.0.
+///
+/// {@category Library}
 class JellyfinArtistsApi {
   final JellyfinConnection _http;
 

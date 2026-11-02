@@ -7,6 +7,8 @@ import 'jellyfin_exception.dart';
 import 'transport/jellyfin_cancel_token.dart';
 
 /// Semantic categories for failures coming out of [JellyfinClient].
+///
+/// {@category Errors and paging}
 enum JellyfinErrorType {
   /// Transport-level failure — DNS, TCP, TLS, socket reset.
   connection,

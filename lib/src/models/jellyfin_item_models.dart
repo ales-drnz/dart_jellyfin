@@ -16,11 +16,15 @@ part of '../jellyfin_models.dart';
 /// keeps them apart and older servers did not. It is the wire string, so
 /// it reads and compares as one; build one from a stored string with
 /// `JellyfinPlaylistEntryId(id)`.
+///
+/// {@category Playlists}
 extension type const JellyfinPlaylistEntryId(String value) implements String {}
 
 /// Subset of `BaseItemDto`. Hand-rolled — the full DTO has 153 fields,
 /// here we lift only what music apps use today. Anything else lives in
 /// [JellyfinItem.raw].
+///
+/// {@category Library}
 final class JellyfinItem {
   /// Stable server-side item id.
   final String id;

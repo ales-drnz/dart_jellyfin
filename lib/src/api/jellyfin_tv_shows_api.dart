@@ -15,6 +15,8 @@ import 'jellyfin_items_api.dart';
 /// queries live on [JellyfinItemsApi]; this sub-API only handles the
 /// four shapes that need a series-aware backend (episode list per
 /// season, season list per series, "Next Up", "Upcoming").
+///
+/// {@category TV, movies and live TV}
 class JellyfinTvShowsApi {
   final JellyfinConnection _http;
 

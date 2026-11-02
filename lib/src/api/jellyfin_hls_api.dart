@@ -17,6 +17,8 @@ import 'jellyfin_videos_api.dart';
 /// Wraps the `DynamicHls` and `HlsSegment` OpenAPI tags. As with
 /// [JellyfinAudioApi] and [JellyfinVideosApi], these methods build
 /// signed URLs — they don't fetch segments themselves.
+///
+/// {@category Audio streaming and HLS}
 class JellyfinHlsApi {
   final JellyfinConnection _http;
 

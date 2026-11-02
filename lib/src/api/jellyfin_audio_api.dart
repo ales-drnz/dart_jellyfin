@@ -14,6 +14,8 @@ import 'jellyfin_text_body.dart';
 ///
 /// These methods primarily BUILD URLs — they don't fetch the audio
 /// stream itself. Hand the URL to your audio engine (mpv, AVPlayer, …).
+///
+/// {@category Audio streaming and HLS}
 class JellyfinAudioApi {
   final JellyfinConnection _http;
 

@@ -13,6 +13,8 @@ import 'jellyfin_artists_api.dart';
 import 'jellyfin_filter_api.dart';
 
 /// `/Items` — the backbone of Jellyfin browsing.
+///
+/// {@category Library}
 class JellyfinItemsApi {
   final JellyfinConnection _http;
 

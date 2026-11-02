@@ -6,6 +6,8 @@ import 'jellyfin_client.dart';
 import 'jellyfin_error_type.dart';
 
 /// Exception thrown by [JellyfinClient] for any failed operation.
+///
+/// {@category Errors and paging}
 final class JellyfinException implements Exception {
   /// Human-readable description of the failure.
   final String message;

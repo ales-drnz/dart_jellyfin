@@ -18,6 +18,8 @@ import '../jellyfin_server_models.dart';
 /// (22 operations upstream; this wrapper covers the ~16 a typical
 /// client needs). Admin-only knobs (access policies, IgnoreWait)
 /// stay behind the escape hatch.
+///
+/// {@category Sessions and SyncPlay}
 class JellyfinSyncPlayApi {
   final JellyfinConnection _http;
 

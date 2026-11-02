@@ -9,6 +9,8 @@ import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 
 /// `/Search/Hints` — fast, type-as-you-go search.
+///
+/// {@category Search and lyrics}
 class JellyfinSearchApi {
   final JellyfinConnection _http;
 

@@ -21,6 +21,8 @@ import 'jellyfin_items_api.dart';
 /// passed since; [delete] waits too. Only writes made through this
 /// instance are known: a change from another client, or another
 /// [JellyfinClient], is not.
+///
+/// {@category Playlists}
 class JellyfinPlaylistsApi {
   /// How long after an entry write [rename], [update] and [delete] wait
   /// before they are sent. Jellyfin 12.2 lost every rename sent at once

@@ -1,0 +1,42 @@
+dartdoc:
+  categories:
+    "Client and sign-in":
+      markdown: doc/client.md
+    "System":
+      markdown: doc/system.md
+    "Library":
+      markdown: doc/library.md
+    "Playlists":
+      markdown: doc/playlists.md
+    "Search and lyrics":
+      markdown: doc/search.md
+    "Audio streaming and HLS":
+      markdown: doc/streaming.md
+    "Playback negotiation and reporting":
+      markdown: doc/playback.md
+    "Sessions and SyncPlay":
+      markdown: doc/sessions.md
+    "User data and images":
+      markdown: doc/user_data.md
+    "Video and subtitles":
+      markdown: doc/video.md
+    "TV, movies and live TV":
+      markdown: doc/tv.md
+    "Errors and paging":
+      markdown: doc/errors.md
+    "Events, downloads and raw requests":
+      markdown: doc/events.md
+  categoryOrder:
+    - "Client and sign-in"
+    - "System"
+    - "Library"
+    - "Playlists"
+    - "Search and lyrics"
+    - "Audio streaming and HLS"
+    - "Playback negotiation and reporting"
+    - "Sessions and SyncPlay"
+    - "User data and images"
+    - "Video and subtitles"
+    - "TV, movies and live TV"
+    - "Errors and paging"
+    - "Events, downloads and raw requests"

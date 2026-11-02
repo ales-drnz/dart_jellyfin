@@ -114,6 +114,8 @@ final class JellyfinDirectPlayProfile {
 /// hand-rolled use we expose the high-level knobs plus an `extra`
 /// escape hatch — fields you set there are merged into the JSON body
 /// verbatim.
+///
+/// {@category Playback negotiation and reporting}
 final class JellyfinDeviceProfile {
   /// Human-readable name (`'Finova'`, etc).
   final String? name;

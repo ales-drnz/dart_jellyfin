@@ -22,6 +22,8 @@ import '../jellyfin_vocabulary.dart';
 /// Jellyfin 12 marks the music-genre and artist-by-name variants
 /// obsolete: [fromItem] accepts any seed id (song, album, artist,
 /// music genre, playlist) and is the one to reach for.
+///
+/// {@category Search and lyrics}
 class JellyfinInstantMixApi {
   final JellyfinConnection _http;
 

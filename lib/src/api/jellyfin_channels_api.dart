@@ -15,6 +15,8 @@ import '../jellyfin_vocabulary.dart';
 /// by server plugins (YouTube, podcast feeds, etc.). Each channel
 /// surfaces a tree of items the user can browse like a regular
 /// library.
+///
+/// {@category Library}
 class JellyfinChannelsApi {
   final JellyfinConnection _http;
 

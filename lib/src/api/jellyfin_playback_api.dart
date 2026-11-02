@@ -9,6 +9,8 @@ import '../jellyfin_connection.dart';
 ///
 /// Jellyfin uses 100-nanosecond "ticks" everywhere. 1 ms = 10_000 ticks,
 /// 1 s = 10_000_000 ticks. Helpers below convert from [Duration].
+///
+/// {@category Playback negotiation and reporting}
 class JellyfinPlaybackApi {
   final JellyfinConnection _http;
 

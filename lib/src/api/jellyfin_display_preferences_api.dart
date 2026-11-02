@@ -14,6 +14,8 @@ import '../jellyfin_models.dart';
 /// preferences live (e.g. `usersettings`, or a library id for
 /// library-scoped layout state). The `client` query parameter
 /// disambiguates between different clients writing into the same id.
+///
+/// {@category User data and images}
 class JellyfinDisplayPreferencesApi {
   final JellyfinConnection _http;
 

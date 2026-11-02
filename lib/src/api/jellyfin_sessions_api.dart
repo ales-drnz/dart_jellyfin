@@ -15,6 +15,8 @@ import 'jellyfin_playback_api.dart';
 /// Maps the `Session` OpenAPI tag (~16 operations). Together with the
 /// per-session playstate ([JellyfinPlaybackApi]) this is the full
 /// "cast / remote control" surface.
+///
+/// {@category Sessions and SyncPlay}
 class JellyfinSessionsApi {
   final JellyfinConnection _http;
 

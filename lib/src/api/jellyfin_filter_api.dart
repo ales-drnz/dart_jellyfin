@@ -14,6 +14,8 @@ import 'jellyfin_items_api.dart';
 /// dynamic filter chips: pick a library, ask the server which genres,
 /// tags, ratings, years are present, then feed the user's choice back
 /// into [JellyfinItemsApi.list] via `genreIds`, `tags`, `years`.
+///
+/// {@category Library}
 class JellyfinFilterApi {
   final JellyfinConnection _http;
 

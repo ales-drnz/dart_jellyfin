@@ -16,6 +16,8 @@ import '../jellyfin_vocabulary.dart';
 /// (41 operations upstream; this wrapper covers the ones a typical
 /// client app needs). Listings provider configuration and DVR backend
 /// admin live behind the escape hatch.
+///
+/// {@category TV, movies and live TV}
 class JellyfinLiveTvApi {
   final JellyfinConnection _http;
 

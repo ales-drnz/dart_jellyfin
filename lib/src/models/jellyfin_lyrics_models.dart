@@ -192,6 +192,8 @@ final class JellyfinLyricMetadata {
 }
 
 /// Payload of `GET /Audio/{id}/Lyrics` (`LyricDto`).
+///
+/// {@category Search and lyrics}
 final class JellyfinLyrics {
   /// Parsed lyric lines, in display order.
   final List<JellyfinLyricLine> lines;

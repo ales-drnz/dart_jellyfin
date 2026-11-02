@@ -10,6 +10,8 @@ import '../jellyfin_server_models.dart';
 import '../jellyfin_vocabulary.dart';
 
 /// `/UserViews` and library-level helpers.
+///
+/// {@category Library}
 class JellyfinLibraryApi {
   final JellyfinConnection _http;
 

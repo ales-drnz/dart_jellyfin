@@ -18,6 +18,8 @@ import '../jellyfin_models.dart';
 /// The wrappers below speak the new shape. Older servers (≤10.9) used
 /// the user-scoped form; if you need that compatibility, drop down to
 /// the escape hatch.
+///
+/// {@category User data and images}
 class JellyfinUserDataApi {
   final JellyfinConnection _http;
 

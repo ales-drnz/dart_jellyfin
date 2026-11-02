@@ -20,6 +20,8 @@ import 'jellyfin_music_genres_api.dart';
 /// `items.list(genreIds:)`, but only the `MusicGenre` id seeds an instant
 /// mix — `/Items/{GenreId}/InstantMix` answers 200 with an empty mix. See
 /// [list] for which one each call returns.
+///
+/// {@category Library}
 class JellyfinGenresApi {
   final JellyfinConnection _http;
 

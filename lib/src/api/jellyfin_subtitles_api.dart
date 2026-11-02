@@ -19,6 +19,8 @@ import 'jellyfin_videos_api.dart';
 ///
 /// The library currently exposes only the read paths. Upload / delete /
 /// remote search live behind the escape hatch.
+///
+/// {@category Video and subtitles}
 class JellyfinSubtitlesApi {
   /// SubRip — the universal sidecar format.
   static const String formatSrt = 'srt';

@@ -16,6 +16,8 @@
 library;
 
 /// An item kind (`BaseItemKind`), as sent in `includeItemTypes` and `excludeItemTypes`.
+///
+/// {@category Library}
 extension type const JellyfinItemKind(String wire) implements String {
   /// `AggregateFolder`.
   static const aggregateFolder = JellyfinItemKind('AggregateFolder');
@@ -131,6 +133,8 @@ extension type const JellyfinItemKind(String wire) implements String {
 }
 
 /// A field to include in the answer (`ItemFields`), as sent in `fields`.
+///
+/// {@category Library}
 extension type const JellyfinItemField(String wire) implements String {
   /// `AirTime`.
   static const airTime = JellyfinItemField('AirTime');
@@ -285,6 +289,8 @@ extension type const JellyfinItemField(String wire) implements String {
 }
 
 /// A sort key (`ItemSortBy`), as sent in `sortBy`.
+///
+/// {@category Library}
 extension type const JellyfinSortField(String wire) implements String {
   /// `Default`.
   static const defaultOrder = JellyfinSortField('Default');
@@ -378,6 +384,8 @@ extension type const JellyfinSortField(String wire) implements String {
 }
 
 /// A media type (`MediaType`), as sent in `mediaTypes`.
+///
+/// {@category Library}
 extension type const JellyfinMediaType(String wire) implements String {
   /// `Unknown`.
   static const unknown = JellyfinMediaType('Unknown');
@@ -396,6 +404,8 @@ extension type const JellyfinMediaType(String wire) implements String {
 }
 
 /// A filter (`ItemFilter`), as sent in `filters`.
+///
+/// {@category Library}
 extension type const JellyfinItemFilter(String wire) implements String {
   /// `IsFolder`.
   static const isFolder = JellyfinItemFilter('IsFolder');

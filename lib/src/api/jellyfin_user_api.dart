@@ -11,6 +11,8 @@ import '../jellyfin_parsing.dart';
 import 'jellyfin_quick_connect_api.dart';
 
 /// `/Users/*` endpoints — authentication + profile.
+///
+/// {@category Client and sign-in}
 class JellyfinUserApi {
   final JellyfinConnection _http;
 

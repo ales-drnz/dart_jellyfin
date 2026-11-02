@@ -18,6 +18,8 @@ enum JellyfinResponseType {
 }
 
 /// A completed response with a decoded body.
+///
+/// {@category Events, downloads and raw requests}
 final class JellyfinResponse<T> {
   /// The decoded body, or `null` when the server sent none.
   final T? data;
@@ -48,6 +50,8 @@ final class JellyfinResponse<T> {
 ///
 /// Listen to [stream] once. Cancelling the subscription closes the
 /// connection.
+///
+/// {@category Events, downloads and raw requests}
 final class JellyfinStreamedResponse {
   /// The body, chunk by chunk.
   final Stream<List<int>> stream;

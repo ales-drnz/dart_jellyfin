@@ -25,6 +25,8 @@ import 'jellyfin_credentials.dart';
 /// `1.0.0+42`) decodes to a space, and an embedded `"` desyncs the tokenizer
 /// and merges fields. Encoding round-trips cleanly through `UrlDecode` while
 /// leaving unreserved characters (letters, digits, `.`, `-`, `_`) untouched.
+///
+/// {@category Client and sign-in}
 abstract final class JellyfinAuthHeader {
   /// Modern `Authorization: MediaBrowser …` payload, with optional `Token`.
   static String build(JellyfinCredentials c, {String? token}) {

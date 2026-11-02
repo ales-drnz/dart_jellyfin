@@ -17,6 +17,8 @@ import 'jellyfin_user_api.dart';
 /// 4. Caller calls
 ///    [JellyfinUserApi.authenticateWithQuickConnect] with the now-final
 ///    secret to get the real access token.
+///
+/// {@category Client and sign-in}
 class JellyfinQuickConnectApi {
   final JellyfinConnection _http;
 

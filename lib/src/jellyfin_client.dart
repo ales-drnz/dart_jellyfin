@@ -80,6 +80,9 @@ import 'transport/jellyfin_retry_policy.dart';
 /// app's tests can stand in for them (`class FakeClient implements
 /// JellyfinClient`, or a mocking library). The models are `final`: they are
 /// data, built by the library.
+///
+/// {@category Client and sign-in}
+/// {@category Events, downloads and raw requests}
 class JellyfinClient {
   final JellyfinConnection _http;
 

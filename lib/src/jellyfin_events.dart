@@ -43,6 +43,8 @@ import 'jellyfin_server_models.dart';
 /// Decoding never throws: a known `MessageType` whose `Data` has the wrong
 /// shape becomes a [JellyfinUnknownEvent] too, so one malformed frame
 /// cannot end a listener.
+///
+/// {@category Events, downloads and raw requests}
 sealed class JellyfinEvent {
   /// The whole frame as the server sent it (`MessageType`, `MessageId`,
   /// `Data`).

@@ -14,6 +14,8 @@ import '../jellyfin_vocabulary.dart';
 /// a list of recommendation "rows", each with a category label and
 /// the [JellyfinItem]s belonging to it (e.g. "Because you watched X",
 /// "Top picks", "Directed by Y").
+///
+/// {@category TV, movies and live TV}
 class JellyfinMoviesApi {
   final JellyfinConnection _http;
 
