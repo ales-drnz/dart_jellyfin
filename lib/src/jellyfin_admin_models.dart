@@ -13,9 +13,6 @@ library;
 import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 
-Map<String, Object?> _object(Object? v) =>
-    v is Map<String, Object?> ? v : const <String, Object?>{};
-
 // ---------------------------------------------------------------------------
 // Shared small shapes
 // ---------------------------------------------------------------------------
@@ -800,7 +797,7 @@ final class JellyfinParentalRating {
 
   /// Decodes a `ParentalRating`.
   factory JellyfinParentalRating.fromJson(Map<String, Object?> json) {
-    final score = _object(json['RatingScore']);
+    final score = asObject(json['RatingScore']);
     return JellyfinParentalRating(
       name: asString(json['Name']) ?? '',
       value: asInt(json['Value']),
@@ -1142,7 +1139,10 @@ final class JellyfinThemeMedia {
   /// Decodes an `AllThemeMediaResult`; a missing result is empty.
   factory JellyfinThemeMedia.fromJson(Map<String, Object?> json) {
     JellyfinQueryResult<JellyfinItem> page(String key) =>
-        JellyfinQueryResult.fromJson(_object(json[key]), JellyfinItem.fromJson);
+        JellyfinQueryResult.fromJson(
+          asObject(json[key]),
+          JellyfinItem.fromJson,
+        );
     return JellyfinThemeMedia(
       themeVideos: page('ThemeVideosResult'),
       themeSongs: page('ThemeSongsResult'),
@@ -1337,7 +1337,7 @@ final class JellyfinVirtualFolder {
         primaryImageItemId: asString(json['PrimaryImageItemId']),
         refreshProgress: asDouble(json['RefreshProgress']),
         refreshStatus: asString(json['RefreshStatus']),
-        libraryOptions: _object(json['LibraryOptions']),
+        libraryOptions: asObject(json['LibraryOptions']),
         raw: json,
       );
 }

@@ -48,14 +48,14 @@ class JellyfinSystemApi {
   /// (whether the request looks local or remote to the server).
   Future<JellyfinEndpointInfo> endpointInfo() => _http.requestJson(
     '/System/Endpoint',
-    (json) => JellyfinEndpointInfo.fromJson(_object(json)),
+    objectOrEmptyOf(JellyfinEndpointInfo.fromJson),
   );
 
   /// `GET /System/Info/Storage` — storage usage on every drive
   /// the server is configured to use.
   Future<JellyfinSystemStorage> storage() => _http.requestJson(
     '/System/Info/Storage',
-    (json) => JellyfinSystemStorage.fromJson(_object(json)),
+    objectOrEmptyOf(JellyfinSystemStorage.fromJson),
   );
 
   /// `GET /System/Logs` — list available log files, for [logFile].
@@ -102,9 +102,6 @@ class JellyfinSystemApi {
   /// for time-sync between clients and server.
   Future<JellyfinUtcTime> utcTime() => _http.requestJson(
     '/GetUtcTime',
-    (json) => JellyfinUtcTime.fromJson(_object(json)),
+    objectOrEmptyOf(JellyfinUtcTime.fromJson),
   );
 }
-
-Map<String, Object?> _object(Object? json) =>
-    json is Map<String, Object?> ? json : const <String, Object?>{};

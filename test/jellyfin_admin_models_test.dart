@@ -795,6 +795,26 @@ void main() {
       );
     });
 
+    test('an object answer of the wrong shape is a parse error', () async {
+      adapter.respond = (_) => CannedResponse.json(['not', 'an object']);
+      for (final call in [
+        client.system.storage,
+        client.system.utcTime,
+        client.library.counts,
+      ]) {
+        await expectLater(
+          call(),
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.parse,
+            ),
+          ),
+        );
+      }
+    });
+
     test('a list answer of the wrong shape is a parse error', () async {
       adapter.respond = (_) => CannedResponse.json({'not': 'a list'});
       await expectLater(

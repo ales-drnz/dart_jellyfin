@@ -175,9 +175,7 @@ class JellyfinLibraryApi {
     return _http.requestJson(
       '/Items/Counts',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) => JellyfinItemCounts.fromJson(
-        json is Map<String, Object?> ? json : const <String, Object?>{},
-      ),
+      objectOrEmptyOf(JellyfinItemCounts.fromJson),
     );
   }
 

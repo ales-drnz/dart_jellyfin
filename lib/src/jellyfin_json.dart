@@ -33,6 +33,10 @@ double? asDouble(Object? v) => switch (v) {
 DateTime? asUtcDateTime(Object? v) =>
     v is String ? DateTime.tryParse(v)?.toUtc() : null;
 
+/// A JSON object, or an empty map for anything else.
+Map<String, Object?> asObject(Object? v) =>
+    v is Map<String, Object?> ? v : const <String, Object?>{};
+
 /// The strings of a JSON array; anything else in it is skipped.
 List<String> asStringList(Object? v) => [
   if (v is List)
