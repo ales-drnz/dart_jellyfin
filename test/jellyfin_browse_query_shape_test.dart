@@ -307,9 +307,31 @@ void main() {
       expect(adapter.query['filters'], ['IsFavorite']);
     });
 
-    test('byName asks /Persons/{name}', () async {
-      await client.artists.byName(name: 'AC/DC');
-      expect(adapter.last!.uri.path, '/Persons/AC%2FDC');
+    test('byName finds an artist, then asks /Persons/{name}', () async {
+      adapter.respond = (r) => r.uri.path == '/Persons'
+          ? CannedResponse.json({
+              'Items': [
+                {'Id': 'p1', 'Name': 'AC/DC Tribute', 'Type': 'Person'},
+                {'Id': 'p2', 'Name': 'ac/dc', 'Type': 'Person'},
+              ],
+              'TotalRecordCount': 2,
+            })
+          : CannedResponse.json({'Id': 'p2', 'Name': 'ac/dc'});
+      final artist = await client.artists.byName(name: 'AC/DC');
+
+      expect(artist!.id, 'p2');
+      final search = adapter.requests.first.uri.queryParametersAll;
+      expect(adapter.requests.first.uri.path, '/Persons');
+      expect(search['personTypes'], ['Artist', 'AlbumArtist']);
+      expect(search['searchTerm'], ['AC/DC']);
+      expect(adapter.last!.uri.path, '/Persons/ac%2Fdc');
+    });
+
+    test('byName is null for a person who is no artist', () async {
+      adapter.respond = (_) =>
+          CannedResponse.json({'Items': <Object?>[], 'TotalRecordCount': 0});
+      expect(await client.artists.byName(name: 'Tom Hanks'), isNull);
+      expect(adapter.requests, hasLength(1));
     });
   });
 

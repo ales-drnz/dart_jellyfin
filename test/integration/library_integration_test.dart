@@ -86,6 +86,90 @@ void main() {
       );
       expect(tracks.items, isNotEmpty);
       expect(await jf.artists.byName(name: 'No Such Artist'), isNull);
+      expect((await jf.artists.byName(name: 'test artist'))!.id, artist.id);
+    });
+
+    test('artists.byName ignores a person who is no artist', () async {
+      const actor = 'dart_jellyfin Test Actor';
+      // Credit the actor on a throwaway collection.
+      final box = await jf.collection.create(name: 'dart_jellyfin actor probe');
+      try {
+        final dto = (await jf.request<Map<String, Object?>>(
+          '/Items/${box.id}',
+          queryParameters: {'userId': jf.userId},
+        )).data!;
+        await jf.request<void>(
+          '/Items/${box.id}',
+          method: 'POST',
+          data: {
+            ...dto,
+            'People': [
+              {'Name': actor, 'Type': 'Actor'},
+            ],
+          },
+        );
+        // /Persons/{name} answers the actor, artists.byName does not.
+        expect((await jf.persons.byName(name: actor))!.type, 'Person');
+        expect(await jf.artists.byName(name: actor), isNull);
+      } finally {
+        await jf.library.deleteItem(itemId: box.id);
+      }
+    });
+
+    group('artists in the music library', () {
+      late String musicId;
+
+      setUpAll(() async {
+        final views = await jf.library.userViews();
+        musicId = views.firstWhere((v) => v.isMusic).id;
+      });
+
+      test('the total counts every artist, not the page', () async {
+        final all = await jf.artists.list(parentId: musicId);
+        expect(all.items, isNotEmpty);
+        expect(all.totalRecordCount, all.items.length);
+
+        // A page past the last artist is empty, yet keeps the total.
+        final past = await jf.artists.list(
+          parentId: musicId,
+          startIndex: all.items.length,
+        );
+        expect(past.items, isEmpty);
+        expect(past.totalRecordCount, all.items.length);
+
+        final first = await jf.artists.albumArtists(
+          parentId: musicId,
+          limit: 1,
+        );
+        final albumArtists = await jf.artists.albumArtists(parentId: musicId);
+        expect(first.items, hasLength(1));
+        expect(first.totalRecordCount, albumArtists.items.length);
+      });
+
+      test('the names match the obsolete /Artists routes', () async {
+        Future<List<String>> obsolete(String path) async {
+          final r = await jf.request<Map<String, Object?>>(
+            path,
+            queryParameters: {'userId': jf.userId, 'parentId': musicId},
+          );
+          return [
+            for (final i in r.data!['Items']! as List)
+              (i as Map<String, Object?>)['Name']! as String,
+          ]..sort();
+        }
+
+        List<String> names(JellyfinQueryResult<JellyfinItem> r) =>
+            [for (final i in r.items) i.name]..sort();
+
+        expect(
+          names(await jf.artists.list(parentId: musicId)),
+          await obsolete('/Artists'),
+        );
+        expect(
+          names(await jf.artists.albumArtists(parentId: musicId)),
+          await obsolete('/Artists/AlbumArtists'),
+        );
+      });
     });
   }, skip: bootstrapSkipReason);
 }

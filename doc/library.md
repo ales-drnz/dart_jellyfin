@@ -212,7 +212,8 @@ final trackArtists = await jellyfin.artists.list(
   limit: 50,
 );
 
-final aphex = await jellyfin.artists.byName(name: 'Aphex Twin'); // null on 404
+// Null when no artist or album artist has that name.
+final aphex = await jellyfin.artists.byName(name: 'Aphex Twin');
 
 // The artist's albums: a person id filters like an artist id.
 final albums = await jellyfin.items.list(
@@ -220,6 +221,15 @@ final albums = await jellyfin.items.list(
   albumArtistIds: [aphex!.id],
 );
 ```
+
+`artists.byName()` answers only artists and album artists, matching the
+name whatever its case. `persons.byName()` answers any person, an actor
+too.
+
+`totalRecordCount` counts every match, not the page. User data belongs to
+the `Person` item: `isFavorite:` and `filters:` read the person's
+favourite and played state, and an artist marked favourite through its
+`MusicArtist` id does not show up.
 
 The answers are `Person` items. Their ids filter `items.list()`, but seed
 an empty instant mix, and carry no MusicBrainz id. For those, use the

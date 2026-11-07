@@ -17,15 +17,19 @@ import 'jellyfin_persons_api.dart';
 /// `GET /Persons` and `/Persons/{name}`. This sub-API asks those routes,
 /// as Jellyfin Web 12 does for its Artists and Album Artists tabs:
 /// [list] filters people by the `Artist` kind, [albumArtists] by
-/// `AlbumArtist`, and [byName] looks one up.
+/// `AlbumArtist`, and [byName] looks up an artist.
 ///
 /// The answers are `Person` items. Measured on 12.4:
 ///
 /// * a person id filters tracks and albums like an artist id:
 ///   `items.list(artistIds: [person.id])` and `albumArtistIds:` answer
 ///   the artist's music;
-/// * scoped by `parentId`, the lists match what `/Artists` and
-///   `/Artists/AlbumArtists` answered;
+/// * scoped by `parentId`, the lists name the same artists as
+///   `/Artists` and `/Artists/AlbumArtists`, and `totalRecordCount`
+///   counts every match, not the page;
+/// * `isFavorite` and `filters` read the person's own user data: an
+///   artist marked favourite through its `MusicArtist` id is not a
+///   favourite person;
 /// * a person id seeds an empty instant mix, and the person carries no
 ///   MusicBrainz id. For those, use the `MusicArtist` item: a track's
 ///   `artistItems` and `albumArtistItems`, or
@@ -121,8 +125,28 @@ class JellyfinArtistsApi {
     enableImages: enableImages,
   );
 
-  /// `GET /Persons/{name}` — the person named [name], or `null` when
-  /// there is none.
-  Future<JellyfinItem?> byName({required String name}) =>
-      _persons.byName(name: name);
+  /// The artist or album artist named [name], or `null` when there is
+  /// none.
+  ///
+  /// `GET /Persons/{name}` answers any person, an actor too, and the
+  /// person it answers carries no credit kind (12.4). So this first asks
+  /// `GET /Persons` for artists and album artists with [name] as the
+  /// search term and keeps the entry whose name equals [name], ignoring
+  /// case: the search also matches parts of names. Then it reads that
+  /// person through `GET /Persons/{name}`.
+  Future<JellyfinItem?> byName({required String name}) async {
+    final page = await _persons.list(
+      personTypes: const ['Artist', 'AlbumArtist'],
+      searchTerm: name,
+      enableUserData: false,
+      enableImages: false,
+    );
+    final wanted = name.toLowerCase();
+    for (final person in page.items) {
+      if (person.name.toLowerCase() == wanted) {
+        return _persons.byName(name: person.name);
+      }
+    }
+    return null;
+  }
 }

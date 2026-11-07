@@ -59,7 +59,7 @@ Web 12 does.
 | --- | --- |
 | `artists.list()` → `/Artists` | `/Persons?personTypes=Artist` |
 | `artists.albumArtists()` → `/Artists/AlbumArtists` | `/Persons?personTypes=AlbumArtist` |
-| `artists.byName(name: n)` → `/Artists/{name}` | `/Persons/{name}` |
+| `artists.byName(name: n)` → `/Artists/{name}` | `/Persons?personTypes=Artist,AlbumArtist&searchTerm=n`, then `/Persons/{name}`: `null` unless an artist has that name, ignoring case |
 | `sortBy:`, `descending:`, `genres:`, `genreIds:`, `tags:`, `officialRatings:`, `years:`, `mediaTypes:`, `minCommunityRating:`, `includeItemTypes:`, `excludeItemTypes:` | gone: `/Persons` has none of them |
 | | `nameStartsWith:`, `nameStartsWithOrGreater:`, `nameLessThan:`, `enableImages:` |
 
@@ -84,6 +84,37 @@ final mix = await jf.instantMix.fromArtist(artistId: musicArtists.items.first.id
 
 An artist id stored by 0.3 is a `MusicArtist` id and keeps working with
 `items.list()` and `instantMix`.
+
+### Favourites and user data
+
+Favourites, play counts and images belong to an item id, and a person's
+id is not its `MusicArtist` id. So:
+
+* `artists.list(isFavorite: true)` and `filters:` read the person's user
+  data. An artist marked favourite in 0.3 was marked on its `MusicArtist`
+  id, and drops out of these lists.
+* `userData.setFavorite()` and `images.url()` with a person id act on the
+  person, not on the `MusicArtist`.
+* `item.type` is `'Person'`, not `'MusicArtist'`.
+
+To keep 0.3 favourites, either list them from the `MusicArtist` items:
+
+```dart
+final favourites = await jf.items.list(
+  includeItemTypes: const [JellyfinItemKind.musicArtist],
+  isFavorite: true,
+);
+```
+
+or move each one to its person, matched by name:
+
+```dart
+for (final old in favourites.items) {
+  final person = await jf.artists.byName(name: old.name);
+  if (person == null) continue;
+  await jf.userData.setFavorite(itemId: person.id, isFavorite: true);
+}
+```
 
 ## Typed answers
 
