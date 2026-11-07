@@ -22,7 +22,7 @@ For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md
 - `JellyfinException.body`: the whole body of an error answer, where `message` holds at most its first 512 bytes.
 - An empty value in `extraHeaders` removes that header from the request.
 - `images.pathUrl()`: the item image route with its size, format and version in the path.
-- `JellyfinSession.nowPlayingQueue` and `playlistItemId`.
+- `JellyfinSession.nowPlayingQueue`, as `JellyfinQueueItem`s with `raw`, and `playlistItemId`, the queue entry playing now.
 - `JellyfinItemCounts.trailerCount` and `programCount`.
 - For Jellyfin 13.0, ignored by 12.x: `JellyfinItemCounts.audioBookCount`, and `vttTimestampMapMpegts` on `subtitles.streamUrl()`, `streamWithTicksUrl()` and `playlistUrl()`.
 - A CI workflow: analysis at the SDK floor and on stable, formatting, tests, a publish dry run, the transport drift check and, on demand, the integration suite.

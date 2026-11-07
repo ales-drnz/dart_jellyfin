@@ -307,6 +307,7 @@ void main() {
       });
       expect(s.nowPlayingQueue.map((q) => q.playlistItemId), ['p1', 'p2']);
       expect(s.nowPlayingQueue.first.itemId, 'i1');
+      expect(s.nowPlayingQueue.last.raw['PlaylistItemId'], 'p2');
       expect(s.playlistItemId, 'p2');
       expect(
         JellyfinSession.fromJson(const {'Id': 's'}).nowPlayingQueue,

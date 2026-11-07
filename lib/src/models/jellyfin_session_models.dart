@@ -165,8 +165,12 @@ final class JellyfinSession {
   /// the items themselves: fetch them with `items.list(ids:)`.
   final List<JellyfinQueueItem> nowPlayingQueue;
 
-  /// The playlist entry playing now (`PlaylistItemId`), matching one of
-  /// [nowPlayingQueue].
+  /// The queue entry playing now (`PlaylistItemId`), matching the
+  /// [JellyfinQueueItem.playlistItemId] of one of [nowPlayingQueue].
+  ///
+  /// A queue entry id, a plain `String`: not the
+  /// [JellyfinPlaylistEntryId] of [JellyfinItem.playlistItemId], which
+  /// names an entry of a playlist item.
   final String? playlistItemId;
 
   /// Untouched response body for fields not lifted above.
@@ -240,16 +244,25 @@ final class JellyfinQueueItem {
   final String itemId;
 
   /// The entry's id in the queue (`PlaylistItemId`), which tells apart two
-  /// entries of the same item.
+  /// entries of the same item. A queue entry id, not a
+  /// [JellyfinPlaylistEntryId].
   final String? playlistItemId;
 
+  /// The entry as the server sent it.
+  final Map<String, Object?> raw;
+
   /// Builds a queue entry from already-parsed components.
-  const JellyfinQueueItem({required this.itemId, this.playlistItemId});
+  const JellyfinQueueItem({
+    required this.itemId,
+    required this.raw,
+    this.playlistItemId,
+  });
 
   /// Decodes a `{Id, PlaylistItemId}` entry.
   factory JellyfinQueueItem.fromJson(Map<String, Object?> json) =>
       JellyfinQueueItem(
         itemId: asString(json['Id']) ?? '',
         playlistItemId: asString(json['PlaylistItemId']),
+        raw: json,
       );
 }

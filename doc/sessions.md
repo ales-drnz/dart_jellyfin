@@ -23,7 +23,9 @@ final controllable = await jellyfin.sessions.list(
 
 A session's `nowPlayingQueue` lists its queue as `JellyfinQueueItem`s:
 item ids and entry ids. Jellyfin 12 removed the queue's full items, so
-fetch them with `items.list(ids:)`.
+fetch them with `items.list(ids:)`. The session's `playlistItemId` names
+the entry playing now. It is a queue entry id, a plain `String`, not the
+`JellyfinPlaylistEntryId` of a playlist's entries.
 
 ### Registering this client as a cast target
 
