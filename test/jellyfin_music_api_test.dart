@@ -435,6 +435,27 @@ void main() {
       );
     });
 
+    test('a percentPlayed that is not finite throws', () {
+      for (final p in [double.nan, double.infinity, double.negativeInfinity]) {
+        expect(
+          () => client.images.url(itemId: 'a1', percentPlayed: p),
+          throwsArgumentError,
+          reason: '$p',
+        );
+        expect(
+          () => client.images.pathUrl(
+            itemId: 'a1',
+            tag: 't',
+            maxWidth: 1,
+            maxHeight: 1,
+            percentPlayed: p,
+          ),
+          throwsArgumentError,
+          reason: '$p',
+        );
+      }
+    });
+
     test('entity images take maxWidth too', () {
       final url = Uri.parse(
         client.images.artistImageUrl(artistName: 'AC/DC', maxWidth: 300),

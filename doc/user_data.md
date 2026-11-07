@@ -85,7 +85,8 @@ parameters:
 `format` picks the encoding (`formatJpg`, `formatPng`, `formatWebp`,
 `formatGif`, `formatBmp`, `formatSvg`) and `quality` (0 to 100) applies
 to the lossy ones. `percentPlayed` and `unplayedCount` draw a progress
-bar and a badge into the image, and `blur` takes a radius.
+bar and a badge into the image, and `blur` takes a radius. A
+`percentPlayed` that is not finite throws an `ArgumentError`.
 `backgroundColor` fills transparency and must be a hex `RGB`, `ARGB`,
 `RRGGBB` or `AARRGGBB`, with an optional `#`. Any other value throws an
 `ArgumentError`, because the server would drop the sizing too and send
@@ -103,6 +104,10 @@ final Uint8List? bytes = await jellyfin.images.fetch(
   cancelToken: token, // drop it when the cell scrolls away
 );
 ```
+
+`pathUrl()` builds the same image with its size, format and version in
+the path. Pair the version with its own id: `artworkVersion` with
+`artworkItemId`, since a track's version may be its album's.
 
 `fetch()` takes the sizing and encoding parameters of `url()` and a
 `cancelToken`. It returns `null` on a 404 and throws a

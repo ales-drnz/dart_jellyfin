@@ -178,6 +178,8 @@ the lists already did.
   `JellyfinUserUpdatedEvent()` instead.
 - `item.raw['Trickplay']` is `item.trickplay`, typed by media source id
   and width.
+- `images.url()` and `pathUrl()` throw `ArgumentError` for a
+  `percentPlayed` that is NaN or infinite.
 
 # Migrating to 0.3.0
 

@@ -104,7 +104,8 @@ class JellyfinImagesApi {
   /// `percentPlayed` (0–100, fractional allowed) and `unplayedCount` ask
   /// the server to bake a watched-progress bar or an unplayed-count badge
   /// into the image; [blur] blurs it by that radius and [backgroundColor]
-  /// fills transparency.
+  /// fills transparency. A `percentPlayed` that is not finite throws
+  /// [ArgumentError].
   ///
   /// [backgroundColor] is a hex colour — `RGB`, `ARGB`, `RRGGBB` or
   /// `AARRGGBB`, with or without a leading `#` (e.g. `'000000'`). Anything
@@ -140,18 +141,13 @@ class JellyfinImagesApi {
       quality: quality,
       format: format,
     );
-    if (percentPlayed != null) qp['percentPlayed'] = '$percentPlayed';
+    if (percentPlayed != null) {
+      qp['percentPlayed'] = '${_checkPercent(percentPlayed)}';
+    }
     if (unplayedCount != null) qp['unplayedCount'] = '$unplayedCount';
     if (blur != null) qp['blur'] = '$blur';
     if (backgroundColor != null) {
-      if (!_hexColor.hasMatch(backgroundColor)) {
-        throw ArgumentError.value(
-          backgroundColor,
-          'backgroundColor',
-          'not a hex colour (RGB, ARGB, RRGGBB or AARRGGBB, optional #)',
-        );
-      }
-      qp['backgroundColor'] = backgroundColor;
+      qp['backgroundColor'] = _checkColour(backgroundColor);
     }
     final indexPart = imageIndex == null ? '' : '/$imageIndex';
     return '$base/Items/$itemId/Images/$type$indexPart${_query(qp)}';
@@ -163,11 +159,14 @@ class JellyfinImagesApi {
   ///
   /// A cache or CDN that keys on the path alone, or drops query strings,
   /// keeps one entry per size and version this way. Every segment is
-  /// required by the route: [tag] is the image tag (see
-  /// `JellyfinItem.artworkVersion`), [format] one of the `format…`
-  /// constants, and a [percentPlayed] or [unplayedCount] of 0 draws no
-  /// progress bar or badge. [quality], [blur] and [backgroundColor] stay
-  /// in the query, as in [url].
+  /// required by the route: [tag] is the tag of [itemId]'s image, [format]
+  /// one of the `format…` constants, and a [percentPlayed] or
+  /// [unplayedCount] of 0 draws no progress bar or badge. With
+  /// `JellyfinItem.artworkVersion` as [tag], pass
+  /// `JellyfinItem.artworkItemId` as [itemId]: the version may be the
+  /// album's. [quality], [blur] and [backgroundColor] stay in the query,
+  /// as in [url]. A [percentPlayed] that is not finite throws
+  /// [ArgumentError].
   String pathUrl({
     required String itemId,
     required String tag,
@@ -188,15 +187,9 @@ class JellyfinImagesApi {
       if (blur != null) 'blur': '$blur',
     };
     if (backgroundColor != null) {
-      if (!_hexColor.hasMatch(backgroundColor)) {
-        throw ArgumentError.value(
-          backgroundColor,
-          'backgroundColor',
-          'not a hex colour (RGB, ARGB, RRGGBB or AARRGGBB, optional #)',
-        );
-      }
-      qp['backgroundColor'] = backgroundColor;
+      qp['backgroundColor'] = _checkColour(backgroundColor);
     }
+    _checkPercent(percentPlayed);
     final played = percentPlayed == percentPlayed.truncateToDouble()
         ? '${percentPlayed.toInt()}'
         : '$percentPlayed';
@@ -248,6 +241,20 @@ class JellyfinImagesApi {
       if (e.type == JellyfinErrorType.notFound) return null;
       rethrow;
     }
+  }
+
+  static String _checkColour(String colour) {
+    if (_hexColor.hasMatch(colour)) return colour;
+    throw ArgumentError.value(
+      colour,
+      'backgroundColor',
+      'not a hex colour (RGB, ARGB, RRGGBB or AARRGGBB, optional #)',
+    );
+  }
+
+  static double _checkPercent(double percent) {
+    if (percent.isFinite) return percent;
+    throw ArgumentError.value(percent, 'percentPlayed', 'not finite');
   }
 
   Map<String, String> _sizing({

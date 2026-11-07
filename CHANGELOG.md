@@ -11,6 +11,7 @@ For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md
 - `artists` asks `GET /Persons`, which Jellyfin 12 names as the successor of the obsolete `/Artists` routes. `list()` answers the people credited as `Artist`, `albumArtists()` those credited as `AlbumArtist`, and `byName()` the artist or album artist of that name, or `null`. They answer `Person` items, with ids of their own, and lose the sort, genre, tag, rating, year and media type filters, which `/Persons` does not have. `isFavorite:` and `filters:` read the person's user data, so artists marked favourite through their `MusicArtist` id drop out.
 - 67 methods that returned maps return typed models with `raw`: the admin, live TV, metadata lookup, localization, plugin, package, backup, storage, log and account endpoints. `videos.additionalParts()` returns a `JellyfinQueryResult<JellyfinItem>`, and `subtitles.getRemote()` the subtitle text.
 - A typed single-object answer of the wrong shape throws a `parse` error.
+- `images.url()` and `pathUrl()` throw `ArgumentError` for a `percentPlayed` that is not finite.
 - `JellyfinUnknownEvent` no longer stands for the frames that now have a typed event.
 
 ### Added
