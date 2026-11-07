@@ -2,37 +2,49 @@
 
 For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md) for the changes to make in an app.
 
-### Breaking
+### All platforms
+**Breaking**
 - The package needs Dart `3.10` or later.
-- Every member deprecated in 0.3 is gone. `musicGenres`, `trailers` and `tmdb` are gone from `JellyfinClient`, with `JellyfinMusicGenresApi`, `JellyfinTrailersApi` and `JellyfinTmdbApi`. `startup.configuration()`, `updateInitialConfiguration()`, `setRemoteAccess()` and `firstUserAlt()`, `instantMix.fromMusicGenre()`, `fromMusicGenreById()` and `fromArtistByName()`, `liveTv.recordingGroups()` and `recordingsSeries()`, `hls.stopEncoding()` and `audio.lyricsRaw()` are gone.
+- Every member deprecated in 0.3 is gone.
+- `musicGenres`, `trailers` and `tmdb` are gone from `JellyfinClient`, with `JellyfinMusicGenresApi`, `JellyfinTrailersApi` and `JellyfinTmdbApi`.
+- `startup.configuration()`, `updateInitialConfiguration()`, `setRemoteAccess()` and `firstUserAlt()`, `instantMix.fromMusicGenre()`, `fromMusicGenreById()` and `fromArtistByName()`, `liveTv.recordingGroups()` and `recordingsSeries()`, `hls.stopEncoding()` and `audio.lyricsRaw()` are gone.
 - The parameters the server ignores are gone: `liveTv.channels(searchTerm:)`, `tvShows.nextUp(disableFirstEpisode:)`, `maxStreamingBitrate` on `videos.streamUrl()` and the video HLS builders, `subtitles.streamWithTicksUrl(segmentLength:)`, and the `playMethod`, `playbackOrder` and `repeatMode` strings of `playback.start()` and `progress()`.
 - `JellyfinException.isRetriable` and `JellyfinErrorType.isRetriable` are gone: use `isNetworkFailure`, or `isTransient`.
-- `JellyfinUser.hasPassword`, `hasConfiguredPassword` and `hasConfiguredEasyPassword` are gone. Jellyfin 12 made them obsolete; `raw` still has them.
-- `artists` asks `GET /Persons`, which Jellyfin 12 names as the successor of the obsolete `/Artists` routes. `list()` answers the people credited as `Artist`, `albumArtists()` those credited as `AlbumArtist`, and `byName()` the artist or album artist of that name, or `null`. They answer `Person` items, with ids of their own. `list()` and `albumArtists()` lose `sortBy`, `descending`, `genres`, `genreIds`, `tags`, `officialRatings`, `years`, `mediaTypes`, `minCommunityRating`, `includeItemTypes` and `excludeItemTypes`, which `/Persons` does not have, and take `nameStartsWith`, `nameStartsWithOrGreater`, `nameLessThan` and `enableImages`. `isFavorite:` and `filters:` read the person's user data, so artists marked favourite through their `MusicArtist` id drop out.
-- 67 methods that returned maps return typed answers. 66 return models with `raw`: the admin, live TV, metadata lookup, localization, plugin, package, backup, storage, log and account endpoints, and `videos.additionalParts()`, a `JellyfinQueryResult<JellyfinItem>`. `subtitles.getRemote()` returns the subtitle text, a `String?`: the route answers a file, not JSON.
-- A typed single-object answer of the wrong shape throws a `parse` error. An empty one is the model's defaults, except for `collection.create()`, which throws a `parse` error for an answer without an id.
+- `JellyfinUser.hasPassword`, `hasConfiguredPassword` and `hasConfiguredEasyPassword` are gone, as Jellyfin 12 made them obsolete. `raw` still has them.
+- `artists` asks `GET /Persons`, which Jellyfin 12 names as the successor of the obsolete `/Artists` routes.
+- `artists.list()` answers the people credited as `Artist`, `albumArtists()` those credited as `AlbumArtist`, and `byName()` the artist or album artist of that name, or `null`.
+- The artists are `Person` items, with ids of their own.
+- `artists.list()` and `albumArtists()` lose `sortBy`, `descending`, `genres`, `genreIds`, `tags`, `officialRatings`, `years`, `mediaTypes`, `minCommunityRating`, `includeItemTypes` and `excludeItemTypes`, which `/Persons` does not have.
+- `artists.list()` and `albumArtists()` take `nameStartsWith`, `nameStartsWithOrGreater`, `nameLessThan` and `enableImages`.
+- `isFavorite:` and `filters:` of `artists` read the person's user data, so artists marked favourite through their `MusicArtist` id drop out.
+- 67 methods that returned maps return typed answers. 66 return models with `raw`: the admin, live TV, metadata lookup, localization, plugin, package, backup, storage, log and account endpoints, and `videos.additionalParts()`, a `JellyfinQueryResult<JellyfinItem>`.
+- `subtitles.getRemote()`, the 67th, returns the subtitle text, a `String?`, as the route answers a file, not JSON.
+- A typed single-object answer of the wrong shape throws a `parse` error.
+- An empty single-object answer gives the model's defaults, except for `collection.create()`, which throws a `parse` error for an answer without an id.
 - `images.url()` and `pathUrl()` throw `ArgumentError` for a `percentPlayed` that is not finite.
-- `JellyfinUnknownEvent` no longer stands for the frames that now have a typed event.
 - `JellyfinEvent` is sealed and has 11 new subclasses, so a `switch` on it without a `default` or `_` case no longer compiles until it handles them.
-- `genres`, `images` and `notifications` gained members (`musicGenre()`, `pathUrl()`, `startActivityLog()` and `stopActivityLog()`), so a fake that implements one must add them.
+- `JellyfinUnknownEvent` no longer stands for the frames that have a typed event.
+- `genres`, `images` and `notifications` have new members (`musicGenre()`, `pathUrl()`, `startActivityLog()` and `stopActivityLog()`), so a fake that implements one must add them.
 
-### Added
+**Added**
 - `genres.musicGenre(name:, parentId:)`: the `MusicGenre` item of a music library, by name, ignoring case.
 - `JellyfinItem.trickplay`, typed as `JellyfinTrickplayInfo` by media source and width, with `thumbnailAt()`, `tileIndexAt()` and `tileOffsetAt()`.
+- `images.pathUrl()`: the item image route, with its size, format and version in the path.
 - Typed events: `JellyfinSyncPlayCommandEvent`, `JellyfinSyncPlayGroupUpdateEvent`, `JellyfinUserUpdatedEvent`, `JellyfinUserDeletedEvent`, `JellyfinRestartRequiredEvent`, `JellyfinServerRestartingEvent`, `JellyfinServerShuttingDownEvent`, `JellyfinTimerEvent`, `JellyfinPluginInstallationEvent`, `JellyfinPluginUninstalledEvent` and `JellyfinActivityLogEvent`.
 - `notifications.startActivityLog()` and `stopActivityLog()`.
-- `JellyfinException.body`: the whole body of an error answer, where `message` holds at most its first 512 bytes.
-- An empty value in `extraHeaders` removes that header from the request.
-- `images.pathUrl()`: the item image route with its size, format and version in the path.
-- `JellyfinSession.nowPlayingQueue`, as `JellyfinQueueItem`s with `raw`, and `playlistItemId`, the queue entry playing now.
+- `JellyfinSession.nowPlayingQueue`, as `JellyfinQueueItem`s with `raw`.
+- `JellyfinSession.playlistItemId`, the queue entry playing now.
 - `JellyfinItemCounts.trailerCount` and `programCount`.
 - For Jellyfin 13.0, ignored by 12.x: `JellyfinItemCounts.audioBookCount`, and `vttTimestampMapMpegts` on `subtitles.streamUrl()`, `streamWithTicksUrl()` and `playlistUrl()`.
+- `JellyfinException.body`, the whole body of an error answer, where `message` holds at most its first 512 bytes.
+- An empty value in `extraHeaders` removes that header from the request.
 - A CI workflow: analysis at the SDK floor and on stable, formatting, tests, a publish dry run, the transport drift check and, on demand, the integration suite.
 
-### Changed
+**Changed**
 - The pinned API document is Jellyfin `12.4`, and the integration stack runs `12.4`.
 - The package description lists every platform, the web included.
-- The coverage check counts operations, a method and a path, skips comments, and counts the routes whose URL is built from parts. Its floor is the measured value, 329 of 346 operations.
+- The coverage check counts operations, each a method and a path. It skips comments, and counts the routes whose URL is built from parts.
+- The floor of the coverage check is the measured value, 329 of 346 operations.
 
 ## [0.3.2] - 2-11-2026
 
