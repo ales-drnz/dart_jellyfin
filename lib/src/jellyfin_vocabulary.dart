@@ -12,7 +12,7 @@
 /// wire string, so a value this package does not list yet (a newer
 /// server's) is still one constructor away: `JellyfinItemKind('NewKind')`.
 ///
-/// The constants are the enums of the Jellyfin 12.2 API document.
+/// The constants are the enums of the Jellyfin 12.4 API document.
 library;
 
 /// An item kind (`BaseItemKind`), as sent in `includeItemTypes` and `excludeItemTypes`.
