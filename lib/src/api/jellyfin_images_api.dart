@@ -484,9 +484,8 @@ class JellyfinImagesApi {
   // Item image management (upload / delete / reorder / list)
   // ---------------------------------------------------------------------------
 
-  /// `GET /Items/{itemId}/Images` — list every image the item has,
-  /// each entry returned as a raw map (ImageType, ImageTag, Path,
-  /// Width, Height, …).
+  /// `GET /Items/{itemId}/Images` — list every image the item has, each
+  /// a [JellyfinImageInfo] (type, index, tag, path, width, height).
   Future<List<JellyfinImageInfo>> listItemImages({required String itemId}) =>
       _http.requestJson(
         '/Items/$itemId/Images',
