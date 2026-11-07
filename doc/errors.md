@@ -15,8 +15,16 @@ try {
 `JellyfinErrorType` is one of `connection`, `timeout`, `auth`,
 `notFound`, `badRequest`, `serverError`, `parse`, `state`, `cancelled`
 and `unknown`. The exception also carries `statusCode`, `path`, `cause`,
-`stackTrace` and `retryAfter`, the server's `Retry-After` on a `429` or
-`503`.
+`stackTrace`, the whole error `body` the server sent (`message` holds at
+most its first 512 bytes) and `retryAfter`, the server's `Retry-After`
+on a `429` or `503`.
+
+A typed answer of the wrong shape throws a `parse` error. A lookup
+(`items.byId()`, `devices.info()`, `scheduledTasks.byId()`,
+`syncPlay.group()`, `playlists.userAccess()`) returns `null` when there
+is no such item. Another empty single-object answer is the model's
+defaults, except for `collection.create()`, which throws a `parse` error
+when the answer holds no id.
 
 Invalid arguments are programming errors and throw `ArgumentError`
 instead, such as a malformed `backgroundColor` in `images.url()`.
