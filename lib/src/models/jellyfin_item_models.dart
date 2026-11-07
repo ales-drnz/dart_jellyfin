@@ -434,8 +434,9 @@ final class JellyfinItem {
 /// [JellyfinItem.trickplay].
 ///
 /// The server packs [tileWidth] × [tileHeight] thumbnails into each tile
-/// image, one every [interval]. [tileIndexAt] and [thumbnailAt] find the
-/// tile and the thumbnail within it for a playback position.
+/// image, one every [interval], row by row. For a playback position,
+/// [thumbnailAt] finds the thumbnail, [tileIndexAt] the tile image that
+/// holds it and [tileOffsetAt] its column and row in that tile.
 final class JellyfinTrickplayInfo {
   /// Width of one thumbnail in pixels (`Width`); the `width` of the tile
   /// URL.
@@ -490,8 +491,9 @@ final class JellyfinTrickplayInfo {
   /// Thumbnails in one tile image.
   int get thumbnailsPerTile => tileWidth * tileHeight;
 
-  /// The thumbnail shown at [position], counted from 0 and clamped to the
-  /// last one; 0 when the info is incomplete.
+  /// The thumbnail shown at [position], counted from 0 across all tiles
+  /// and clamped to the first and last one; 0 when the info is
+  /// incomplete.
   int thumbnailAt(Duration position) {
     if (interval <= Duration.zero || thumbnailCount <= 0) return 0;
     final i = position.inMilliseconds ~/ interval.inMilliseconds;
@@ -502,6 +504,15 @@ final class JellyfinTrickplayInfo {
   /// the tile URL.
   int tileIndexAt(Duration position) =>
       thumbnailsPerTile <= 0 ? 0 : thumbnailAt(position) ~/ thumbnailsPerTile;
+
+  /// The column and row, from 0, of the thumbnail at [position] in the
+  /// tile image [tileIndexAt] names. Multiply by [width] and [height] for
+  /// its pixel offset. `(column: 0, row: 0)` when the info is incomplete.
+  ({int column, int row}) tileOffsetAt(Duration position) {
+    if (thumbnailsPerTile <= 0) return (column: 0, row: 0);
+    final inTile = thumbnailAt(position) % thumbnailsPerTile;
+    return (column: inTile % tileWidth, row: inTile ~/ tileWidth);
+  }
 }
 
 /// Lightweight artist reference (`{Id, Name}`) used inside [JellyfinItem.artistItems].

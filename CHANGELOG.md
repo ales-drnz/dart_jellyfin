@@ -15,7 +15,7 @@ For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md
 
 ### Added
 - `genres.musicGenre(name:, parentId:)`: the `MusicGenre` item of a music library, by exact name.
-- `JellyfinItem.trickplay`, typed as `JellyfinTrickplayInfo` by media source and width, with `tileIndexAt()` and `thumbnailAt()`.
+- `JellyfinItem.trickplay`, typed as `JellyfinTrickplayInfo` by media source and width, with `thumbnailAt()`, `tileIndexAt()` and `tileOffsetAt()`.
 - Typed events: `JellyfinSyncPlayCommandEvent`, `JellyfinSyncPlayGroupUpdateEvent`, `JellyfinUserUpdatedEvent`, `JellyfinUserDeletedEvent`, `JellyfinRestartRequiredEvent`, `JellyfinServerRestartingEvent`, `JellyfinServerShuttingDownEvent`, `JellyfinTimerEvent`, `JellyfinPluginInstallationEvent`, `JellyfinPluginUninstalledEvent` and `JellyfinActivityLogEvent`.
 - `notifications.startActivityLog()` and `stopActivityLog()`.
 - `JellyfinException.body`: the whole body of an error answer, where `message` holds at most its first 512 bytes.

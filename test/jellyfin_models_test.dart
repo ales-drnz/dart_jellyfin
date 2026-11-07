@@ -251,13 +251,48 @@ void main() {
       expect(info.tileIndexAt(const Duration(minutes: 20)), 1);
       expect(info.thumbnailAt(const Duration(hours: 9)), 249);
       expect(info.tileIndexAt(const Duration(hours: 9)), 2);
+      expect(info.tileOffsetAt(const Duration(hours: 9)), (column: 9, row: 4));
       expect(JellyfinItem.fromJson(const {'Id': 'a'}).trickplay, isEmpty);
+    });
+
+    test('trickplay offsets wrap at the tile boundary', () {
+      final info = JellyfinTrickplayInfo.fromJson(const {
+        'Width': 320,
+        'Height': 180,
+        'TileWidth': 10,
+        'TileHeight': 10,
+        'ThumbnailCount': 250,
+        'Interval': 1000,
+      });
+      // Thumbnail 99 is the last of tile 0, 100 the first of tile 1.
+      const last = Duration(seconds: 99);
+      const next = Duration(seconds: 100);
+      expect(info.thumbnailAt(last), 99);
+      expect(info.tileIndexAt(last), 0);
+      expect(info.tileOffsetAt(last), (column: 9, row: 9));
+      expect(info.thumbnailAt(next), 100);
+      expect(info.tileIndexAt(next), 1);
+      expect(info.tileOffsetAt(next), (column: 0, row: 0));
+      expect(info.tileOffsetAt(const Duration(seconds: 123)), (
+        column: 3,
+        row: 2,
+      ));
+      // A negative position is the first thumbnail.
+      for (final p in const [Duration(milliseconds: -1), Duration(hours: -1)]) {
+        expect(info.thumbnailAt(p), 0);
+        expect(info.tileIndexAt(p), 0);
+        expect(info.tileOffsetAt(p), (column: 0, row: 0));
+      }
     });
 
     test('trickplay info with no interval points at the first tile', () {
       final info = JellyfinTrickplayInfo.fromJson(const {'Width': 320});
       expect(info.thumbnailAt(const Duration(minutes: 5)), 0);
       expect(info.tileIndexAt(const Duration(minutes: 5)), 0);
+      expect(info.tileOffsetAt(const Duration(minutes: 5)), (
+        column: 0,
+        row: 0,
+      ));
     });
 
     test('a session lists its queue by id', () {

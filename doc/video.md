@@ -192,8 +192,10 @@ if (info != null) {
     width: info.width,
     index: info.tileIndexAt(position),
   );
-  // The thumbnail within the tile: info.thumbnailAt(position) modulo
-  // info.thumbnailsPerTile, laid out tileWidth by tileHeight.
+  // Where the thumbnail sits in that tile, in pixels.
+  final (:column, :row) = info.tileOffsetAt(position);
+  final left = column * info.width;
+  final top = row * info.height;
 }
 ```
 
