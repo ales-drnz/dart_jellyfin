@@ -30,7 +30,7 @@ For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md
 ### Changed
 - The pinned API document is Jellyfin `12.4`, and the integration stack runs `12.4`.
 - The package description lists every platform, the web included.
-- The coverage check counts the routes whose URL is built from parts, and its floor is the measured value.
+- The coverage check counts operations, a method and a path, skips comments, and counts the routes whose URL is built from parts. Its floor is the measured value, 329 of 346 operations.
 
 ## [0.3.2] - 2-11-2026
 

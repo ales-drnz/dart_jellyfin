@@ -12,7 +12,8 @@ import '_helpers/spec_watchdog.dart';
 /// 1. **Upstream drift**: compare the pinned Jellyfin OpenAPI spec
 ///    against `api.jellyfin.org`. Reports added/removed endpoints.
 /// 2. **Local coverage**: approximate static count of how many spec
-///    paths the library references in `lib/src/api/`. Lossy by
+///    operations (method and path) the library references in
+///    `lib/src/api/`. Lossy by
 ///    design — a sudden drop is the signal worth investigating.
 ///
 /// Upstream drift stays informational. Two floors are enforced: a
@@ -49,8 +50,10 @@ void main() {
       final pct = ratio * 100;
       // ignore: avoid_print
       print(
-        'ℹ Local static coverage: ${cov.matched}/${cov.total} spec paths '
-        'referenced in lib/src/api/ (~${pct.toStringAsFixed(0)}%, approximate)',
+        'ℹ Local static coverage: ${cov.matched}/${cov.total} spec '
+        'operations referenced in lib/src/api/ '
+        '(~${pct.toStringAsFixed(0)}%, approximate). Not referenced: '
+        '${jellyfinUncoveredOperations().join(', ')}',
       );
 
       // Local coverage is a real regression tripwire (not just printed):

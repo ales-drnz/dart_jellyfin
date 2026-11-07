@@ -5,90 +5,108 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Compute approximate static coverage of the pinned Jellyfin spec
-/// by the library's typed wrappers. Returns `(matched, total)` where
-/// `matched` is the count of spec paths whose canonical form appears
-/// in a `lib/src/api/*.dart` string literal or opens a doc comment.
+/// Minimum share of the pinned spec's operations the typed wrappers
+/// reference. Enforced by `spec_drift_watchdog_test.dart`: a drop below
+/// it fails the suite, flagging that typed wrappers may have been removed.
 ///
-/// This is INFORMATIONAL, not a strict conformance check; the contract
-/// test (`spec_contract_test.dart`) checks every request a wrapper sends,
-/// and the integration tests in `test/integration/` exercise the library
-/// against a real Jellyfin running in Docker. Two sources count:
+/// Measured on 12.4 with 0.4.0: 329 of 346 operations (0.951). The 17
+/// left, as [jellyfinUncoveredOperations] lists them:
 ///
-/// * a string literal holding a path, also after an interpolated base
-///   (`'${_requireBaseUrl()}/Videos/$itemId/Trickplay/…'`, `'$base/…'`);
-/// * a doc comment whose first word is the route in backticks
-///   (`` /// `GET /Genres/{name}/Images/{imageType}[/{imageIndex}]` — … ``),
-///   for builders whose path is assembled from parts. Every backticked
-///   route on that line counts, and a `[…]` part stands for the route
-///   with and without it. A route merely named in prose does not count.
+/// * the obsolete routes the package dropped: `GET /Artists`,
+///   `/Artists/{name}`, `/Artists/AlbumArtists`,
+///   `/MusicGenres/{genreName}`, the two `/MusicGenres` instant mixes,
+///   `/Trailers`, `GET` and `POST /Startup/Configuration`,
+///   `POST /Startup/RemoteAccess`, and `GET /Startup/FirstUser`, the
+///   wizard's first-user read;
+/// * routes never wrapped: `GET` and `POST /LiveTv/Timers/{timerId}` and
+///   `/LiveTv/SeriesTimers/{timerId}`, `POST /LiveTv/Programs` and
+///   `GET /Playlists/{playlistId}`.
 ///
-/// Minimum acceptable ratio of pinned-spec paths referenced by the typed
-/// wrappers. Enforced by `spec_drift_watchdog_test.dart`: a drop below this
-/// fails the suite, flagging that typed API wrappers may have been removed.
-/// Measured on 12.4 with 0.4.0: 284 of 294 paths (0.966). The ten left
-/// are the obsolete routes the package dropped: `/Artists`,
-/// `/Artists/{name}`, `/Artists/AlbumArtists`, `/MusicGenres/{genreName}`,
-/// the two `/MusicGenres` instant mixes, the three `/Startup`
-/// configuration routes and `/Trailers`. Lower it only after confirming
-/// the wrappers were intentionally removed.
-const double jellyfinLocalCoverageFloor = 0.96;
+/// Lower it only after confirming the wrappers were removed on purpose.
+const double jellyfinLocalCoverageFloor = 0.95;
 
+/// Approximate static coverage of the pinned Jellyfin spec by the typed
+/// wrappers, as `(matched, total)` operations. An operation is a method
+/// and a path.
+///
+/// INFORMATIONAL, not a conformance check: the contract test
+/// (`spec_contract_test.dart`) checks every request a wrapper sends, and
+/// `test/integration/` runs the package against a real Jellyfin. An
+/// operation counts when `lib/src/api/*.dart` has:
+///
+/// * a path in a string literal, also after an interpolated base
+///   (`'$base/Videos/$itemId/Trickplay/…'`), outside comments. Its method
+///   is the `method:` argument of the same statement, else `GET`;
+/// * a doc comment whose first word is the route in backticks, for
+///   builders whose path is assembled from parts:
+///   `` /// `GET /Genres/{name}/Images/{type}[/{index}]` — … ``.
+///   Every backticked route on that line counts, and a `[…]` part stands
+///   for the route with and without it. A route named in prose does not.
 ({int matched, int total}) computeJellyfinLocalCoverage() {
-  final specRaw = File('docs/jellyfin-openapi-stable.json').readAsStringSync();
-  final spec = jsonDecode(specRaw);
-  if (spec is! Map) return (matched: 0, total: 0);
-  final paths = spec['paths'];
-  if (paths is! Map) return (matched: 0, total: 0);
-
-  final specPaths = <String>{};
-  paths.forEach((path, ops) {
-    if (path is! String || ops is! Map) return;
-    for (final method in ops.keys) {
-      if (method is String &&
-          {
-            'get',
-            'post',
-            'put',
-            'delete',
-            'patch',
-          }.contains(method.toLowerCase())) {
-        specPaths.add(path);
-      }
-    }
-  });
-
-  final libCanon = _scanLibraryPaths('lib/src/api');
-
-  var matched = 0;
-  for (final p in specPaths) {
-    if (libCanon.contains(_canonicalize(p))) matched++;
-  }
-  return (matched: matched, total: specPaths.length);
+  final spec = _specOperations();
+  final lib = _scanLibraryOperations('lib/src/api');
+  final matched = spec.where((op) => lib.contains(_canonical(op))).length;
+  return (matched: matched, total: spec.length);
 }
 
-Set<String> _scanLibraryPaths(String dir) {
+/// The spec operations no wrapper references, as `METHOD /path`.
+List<String> jellyfinUncoveredOperations() {
+  final lib = _scanLibraryOperations('lib/src/api');
+  return [
+    for (final op in _specOperations())
+      if (!lib.contains(_canonical(op))) op,
+  ]..sort();
+}
+
+const _methods = {'GET', 'POST', 'PUT', 'DELETE', 'PATCH'};
+
+Set<String> _specOperations() {
+  final spec = jsonDecode(
+    File('docs/jellyfin-openapi-stable.json').readAsStringSync(),
+  );
+  final out = <String>{};
+  if (spec is! Map || spec['paths'] is! Map) return out;
+  (spec['paths'] as Map).forEach((path, ops) {
+    if (path is! String || ops is! Map) return;
+    for (final method in ops.keys) {
+      if (method is! String) continue;
+      final m = method.toUpperCase();
+      if (_methods.contains(m)) out.add('$m $path');
+    }
+  });
+  return out;
+}
+
+Set<String> _scanLibraryOperations(String dir) {
   final out = <String>{};
   final root = Directory(dir);
   if (!root.existsSync()) return out;
   // A path literal, possibly after an interpolated base URL.
   final literal = RegExp(r'''['"](?:\$\{[^}]*\}|\$\w+)?(\/[^'"\n]*)['"]''');
+  final method = RegExp(r'''method:\s*['"](\w+)['"]''');
   // A doc line that opens with a route in backticks.
   final docLine = RegExp(r'^\s*///\s*`(?:GET|POST|PUT|DELETE|PATCH)\s+\/');
-  final docRoute = RegExp(r'`(?:GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s`]+)`');
+  final docRoute = RegExp(r'`(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s`]+)`');
   for (final entity in root.listSync(recursive: true)) {
     if (entity is! File || !entity.path.endsWith('.dart')) continue;
-    final content = entity.readAsStringSync();
-    for (final m in literal.allMatches(content)) {
-      final raw = m.group(1)!;
-      if (raw.isEmpty) continue;
-      out.add(_canonicalize(raw.split('?').first));
+    final lines = entity.readAsLinesSync();
+    // The code without its comment lines, which only the doc rule reads.
+    final code = [
+      for (final l in lines) l.trimLeft().startsWith('//') ? '' : l,
+    ].join('\n');
+    for (final m in literal.allMatches(code)) {
+      final path = m.group(1)!;
+      if (path.isEmpty) continue;
+      final end = code.indexOf(';', m.end);
+      final statement = code.substring(m.end, end < 0 ? code.length : end);
+      final verb = method.firstMatch(statement)?.group(1) ?? 'GET';
+      out.add(_canonical('$verb ${path.split('?').first}'));
     }
-    for (final line in content.split('\n')) {
+    for (final line in lines) {
       if (!docLine.hasMatch(line)) continue;
       for (final m in docRoute.allMatches(line)) {
-        for (final p in _expandOptional(m.group(1)!.split('?').first)) {
-          out.add(_canonicalize(p));
+        for (final p in _expandOptional(m.group(2)!.split('?').first)) {
+          out.add(_canonical('${m.group(1)} $p'));
         }
       }
     }
@@ -109,8 +127,8 @@ Iterable<String> _expandOptional(String path) sync* {
   yield* _expandOptional('$before${m.group(1)}$after');
 }
 
-String _canonicalize(String path) {
-  var r = path;
+String _canonical(String op) {
+  var r = op;
   r = r.replaceAll(RegExp(r'\$\{[^}]+\}'), '<P>');
   r = r.replaceAll(RegExp(r'\$[A-Za-z_][A-Za-z0-9_]*'), '<P>');
   r = r.replaceAll(RegExp(r'\{[^/}]+\}'), '<P>');
