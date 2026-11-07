@@ -37,7 +37,7 @@ dependencies:
 <table>
 <tr>
 <td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/package.png" width="32"></td>
-<td valign="middle" width="45%"><b>Pure Dart</b><br>no native plugin and no Flutter dependency, so it runs on every Dart platform, the web included.</td>
+<td valign="middle" width="45%"><b>Pure Dart</b><br>no native plugin and no Flutter dependency. The main library also runs on the web; only <code>downloadToFile()</code> in <code>io.dart</code> needs <code>dart:io</code>.</td>
 <td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/shield-check.png" width="32"></td>
 <td valign="middle" width="45%"><b>Typed models</b><br>every answer is a typed Dart object with a <code>raw</code> map, and item kinds, fields, sort keys and filters are <a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Library-topic.html">typed values</a>.</td>
 </tr>
@@ -67,7 +67,7 @@ dependencies:
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/globe.png" width="32"></td>
-<td valign="middle"><b>Any HTTP stack</b><br>built on <code>package:http</code>: pass a <code>CupertinoClient</code> or <code>CronetClient</code> for HTTP/2 and the system proxy, or a <code>MockClient</code> in tests.</td>
+<td valign="middle"><b>Any HTTP stack</b><br>built on <code>package:http</code>: <a href="https://pub.dev/documentation/dart_jellyfin/latest/topics/Client%20and%20sign-in-topic.html">any <code>http.Client</code></a>, such as a <code>CupertinoClient</code> or <code>CronetClient</code> for HTTP/2 and the system proxy, or a <code>MockClient</code> in tests.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/cpu.png" width="32"></td>
 <td valign="middle"><b>Off the caller's isolate</b><br>large answers are inflated, decoded and parsed on a background isolate, so the UI keeps its frames.</td>
 </tr>
@@ -132,9 +132,9 @@ Future<void> main() async {
 }
 ```
 
-## How it works
+### How it works
 
-`JellyfinClient` holds the identity of your app, the server, the token and the user. Each part of the Jellyfin API is a sub-API on it (`jellyfin.items`, `jellyfin.playlists`, `jellyfin.audio` and so on), and every call goes through the same connection. Ids, names and keys are always named parameters.
+`JellyfinClient` holds the identity of your app, the server, the token and the user. Each part of the Jellyfin API is a sub-API on it (`jellyfin.items`, `jellyfin.playlists`, `jellyfin.audio` and so on), and every call goes through one connection, the same transport `dart_plex` uses. Ids, names and keys are always named parameters.
 
 <img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/architecture.png" width="100%" alt="Architecture: your code calls JellyfinClient; JellyfinConnection sends through an http.Client and parses large answers on a background isolate into typed models">
 
@@ -270,7 +270,7 @@ See [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/to
   - [Errors and paging](https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html): exceptions, classifying a failure, cancellation, retries and paging
   - [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html): notifications, typed events and downloads to a file
   - [Raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Raw%20requests-topic.html): `request()`, `requestBytes()` and `requestStream()`
-- [Example](example/)
+- [Example](example/dart_jellyfin_example.dart)
 - [CHANGELOG](CHANGELOG.md) and [MIGRATION](MIGRATION.md)
 
 ---
