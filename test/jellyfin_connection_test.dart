@@ -177,10 +177,7 @@ void main() {
         extraHeaders: const {'Content-Type': 'application/octet-stream'},
       );
       expect(adapter.last!.body, [1, 2, 3]);
-      expect(
-        adapter.last!.headers['Content-Type'],
-        'application/octet-stream',
-      );
+      expect(adapter.last!.headers['Content-Type'], 'application/octet-stream');
     });
 
     test('decodes JSON, text and bytes', () async {
@@ -208,6 +205,34 @@ void main() {
       expect(res.data, isNull);
       expect(res.statusCode, 204);
     });
+
+    test(
+      'an empty extra header removes the header, whatever its case',
+      () async {
+        conn.token = 'tok';
+        await conn.request<void>(
+          '/x',
+          extraHeaders: const {'authorization': ''},
+        );
+        expect(
+          adapter.last!.headers.keys.map((k) => k.toLowerCase()),
+          isNot(contains('authorization')),
+        );
+      },
+    );
+
+    test('an extra header replaces the base one, whatever its case', () async {
+      conn.token = 'tok';
+      await conn.request<void>(
+        '/x',
+        extraHeaders: const {'authorization': 'other'},
+      );
+      final values = [
+        for (final MapEntry(:key, :value) in adapter.last!.headers.entries)
+          if (key.toLowerCase() == 'authorization') value,
+      ];
+      expect(values, ['other']);
+    });
   });
 
   group('errors', () {
@@ -227,6 +252,20 @@ void main() {
       }
       fail('expected a JellyfinException');
     }
+
+    test('keeps the whole error body; the message only its start', () async {
+      final text = 'x' * 600;
+      adapter.respond = (_) => CannedResponse(500, utf8.encode(text));
+      final e = await failure(conn.request<void>('/x'));
+      expect(e.body, text);
+      expect(e.message.length, lessThan(text.length));
+    });
+
+    test('an empty error body is null', () async {
+      adapter.respond = (_) => CannedResponse(500, const []);
+      final e = await failure(conn.request<void>('/x'));
+      expect(e.body, isNull);
+    });
 
     for (final (status, type) in [
       (400, JellyfinErrorType.badRequest),
@@ -798,11 +837,7 @@ void main() {
         await conn.request<void>('/x', cancelToken: token);
       }
       await conn
-          .requestStream(
-            '/x',
-            absoluteUrl: false,
-            cancelToken: token,
-          )
+          .requestStream('/x', absoluteUrl: false, cancelToken: token)
           .then((r) => r.stream.drain<void>());
       expect(token.listenerCount, 0);
     });
@@ -821,18 +856,12 @@ void main() {
 
     test('cancelling while the body is decoded still cancels', () async {
       final token = JellyfinCancelToken();
-      final conn = _connection(
-        CapturingAdapter()..body = '{"a":1}',
-      );
+      final conn = _connection(CapturingAdapter()..body = '{"a":1}');
       await expectLater(
-        conn.requestJson<int>(
-          '/x',
-          (json) {
-            token.cancel();
-            return 1;
-          },
-          cancelToken: token,
-        ),
+        conn.requestJson<int>('/x', (json) {
+          token.cancel();
+          return 1;
+        }, cancelToken: token),
         throwsA(
           isA<JellyfinException>().having(
             (e) => e.isCancelled,
@@ -956,10 +985,8 @@ void main() {
     test('a redirect loop is not a network failure', () async {
       final conn = _connection(
         _FnClient(
-          (r) async => throw http.ClientException(
-            'Redirect limit exceeded',
-            r.url,
-          ),
+          (r) async =>
+              throw http.ClientException('Redirect limit exceeded', r.url),
         ),
       );
       final e = await _caught(conn.request<void>('/x'));
