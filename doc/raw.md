@@ -20,10 +20,12 @@ final total = response.data?['TotalRecordCount'];
 `request()` returns a `JellyfinResponse<T>` with `data`, `statusCode`,
 `headers` and `uri`. It takes `method` (`'POST'`, `'DELETE'`),
 `extraHeaders`, `data`, `absoluteUrl` and `cancelToken`; a `List` in
-`queryParameters` repeats the key once for each value. `responseType`
-picks the decoding: `JellyfinResponseType.json` (the default: JSON when
-the server says so, text otherwise), `plain` (UTF-8 text) or `bytes` (a
-`Uint8List`). `get()`, `post()` and `delete()` are shorthands.
+`queryParameters` repeats the key once for each value. An `extraHeaders`
+entry replaces the header of the same name, whatever its case, and an
+empty value removes it: `{'Authorization': ''}` sends no `Authorization`
+header. `responseType` picks the decoding: `JellyfinResponseType.json`
+(the default: JSON when the server says so, text otherwise), `plain`
+(UTF-8 text) or `bytes` (a `Uint8List`). `get()`, `post()` and `delete()` are shorthands.
 
 ```dart
 final m3u8 = await jellyfin.request<String>(
