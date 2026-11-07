@@ -54,7 +54,7 @@ They return `JellyfinScheduledTask`, `JellyfinDevice` and a
 Normalization" task fills `JellyfinItem.normalizationGain` in the
 libraries that have `EnableLUFSScan` on.
 
-The rest of the administration API answers maps:
+The rest of the administration API:
 
 | Sub-API | Covers |
 | :--- | :--- |
@@ -71,6 +71,10 @@ The rest of the administration API answers maps:
 | `branding` | Login disclaimer and custom CSS |
 | `apiKey`, `backup`, `dashboard`, `clientLog` | API keys, backups, plugin configuration pages, client log upload |
 | `liveTv` | Tuners, listing providers and channel mappings |
+
+These answer typed models with `raw` too. `configuration.getNamed()`,
+`plugins.configuration()` and `liveTv.schedulesDirectCountries()` answer
+maps: their shape depends on the key, the plugin or the provider.
 
 ## Localization
 
