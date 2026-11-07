@@ -15,7 +15,6 @@
 library;
 
 import 'api/jellyfin_notifications_api.dart';
-import 'jellyfin_admin_models.dart';
 import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 import 'jellyfin_server_models.dart';

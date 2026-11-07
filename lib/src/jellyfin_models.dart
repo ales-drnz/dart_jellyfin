@@ -9,6 +9,10 @@
 /// hand-rolled so the package stays codegen-free. Fields are added on
 /// demand — [JellyfinItem.raw] keeps the full server payload around for
 /// anything not yet lifted onto a typed property.
+///
+/// The admin, metadata, live TV and account answers keep the decoded body
+/// in `raw` too. Their field names follow the Jellyfin 12.4 API document,
+/// and their shapes were checked against a 12.4 server.
 library;
 
 import 'api/jellyfin_images_api.dart';
@@ -16,11 +20,17 @@ import 'api/jellyfin_sessions_api.dart';
 import 'jellyfin_json.dart';
 import 'jellyfin_vocabulary.dart';
 
+part 'models/jellyfin_account_models.dart';
 part 'models/jellyfin_browse_models.dart';
+part 'models/jellyfin_config_models.dart';
 part 'models/jellyfin_item_models.dart';
+part 'models/jellyfin_live_tv_models.dart';
 part 'models/jellyfin_lyrics_models.dart';
+part 'models/jellyfin_metadata_models.dart';
 part 'models/jellyfin_playback_models.dart';
+part 'models/jellyfin_plugin_models.dart';
 part 'models/jellyfin_session_models.dart';
+part 'models/jellyfin_storage_models.dart';
 part 'models/jellyfin_user_models.dart';
 
 // ---------------------------------------------------------------------------

@@ -90,7 +90,6 @@ export 'src/api/jellyfin_user_data_api.dart';
 export 'src/api/jellyfin_user_views_api.dart';
 export 'src/api/jellyfin_videos_api.dart';
 export 'src/api/jellyfin_years_api.dart';
-export 'src/jellyfin_admin_models.dart';
 export 'src/jellyfin_auth_header.dart' show JellyfinAuthHeader;
 export 'src/jellyfin_client.dart';
 export 'src/jellyfin_credentials.dart';
