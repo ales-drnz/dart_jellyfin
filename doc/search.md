@@ -67,6 +67,8 @@ Each call returns a `JellyfinQueryResult<JellyfinItem>`. Take a genre's
 id from a track's `genreItems`, from `genres.list(parentId:
 musicLibraryId)` or from `genres.musicGenre()` (see
 the [Library](https://pub.dev/documentation/dart_jellyfin/latest/topics/Library-topic.html) topic): a generic genre id answers an empty mix.
+`fromArtist()` takes a `MusicArtist` id, from a track's `artistItems`:
+the `Person` ids that `artists` answers give an empty mix too.
 
 ## Lyrics
 

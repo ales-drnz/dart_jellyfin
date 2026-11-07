@@ -16,6 +16,10 @@ await jellyfin.userData.unmarkFavorite(itemId: track.id);
 await jellyfin.userData.setFavorite(itemId: track.id, isFavorite: true);
 ```
 
+User data belongs to an item id. An artist from `artists` is a `Person`
+item, so its favourite is the person's, not the `MusicArtist`'s. See the
+[Library](https://pub.dev/documentation/dart_jellyfin/latest/topics/Library-topic.html) topic.
+
 ### Played state and ratings
 
 ```dart
