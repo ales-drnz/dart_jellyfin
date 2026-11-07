@@ -1,7 +1,5 @@
 ## [0.4.0] - 7-11-2026
 
-For Jellyfin `12.4`, and servers from `12.0` on. See [MIGRATION.md](MIGRATION.md) for the changes to make in an app.
-
 ### All platforms
 **Breaking**
 - The package needs Dart `3.10` or later.
