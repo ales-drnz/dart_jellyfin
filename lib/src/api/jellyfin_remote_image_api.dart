@@ -38,9 +38,7 @@ class JellyfinRemoteImageApi {
     return _http.requestJson(
       '/Items/$itemId/RemoteImages',
       queryParameters: qp,
-      (json) =>
-          objectOf(JellyfinRemoteImageResult.fromJson)(json) ??
-          JellyfinRemoteImageResult.fromJson(const {}),
+      objectOrEmptyOf(JellyfinRemoteImageResult.fromJson),
     );
   }
 

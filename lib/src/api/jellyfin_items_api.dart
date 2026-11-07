@@ -480,9 +480,7 @@ class JellyfinItemsApi {
     required String itemId,
   }) => _http.requestJson(
     '/Items/$itemId/MetadataEditor',
-    (json) =>
-        objectOf(JellyfinMetadataEditorInfo.fromJson)(json) ??
-        JellyfinMetadataEditorInfo.fromJson(const {}),
+    objectOrEmptyOf(JellyfinMetadataEditorInfo.fromJson),
   );
 
   /// `GET /Items/{itemId}/Download` — direct download URL (signed

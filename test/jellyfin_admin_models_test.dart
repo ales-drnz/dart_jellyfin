@@ -843,5 +843,26 @@ void main() {
       expect(created.id, 'box1');
       expect(adapter.last!.method, 'POST');
     });
+
+    test('collection.create without an id is a parse error', () async {
+      for (final body in [
+        <int>[],
+        utf8.encode('{}'),
+        utf8.encode('{"Id":""}'),
+      ]) {
+        adapter.respond = (_) => CannedResponse(200, body);
+        await expectLater(
+          client.collection.create(name: 'Saga'),
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.parse,
+            ),
+          ),
+          reason: utf8.decode(body),
+        );
+      }
+    });
   });
 }

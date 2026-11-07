@@ -20,9 +20,7 @@ class JellyfinBrandingApi {
   /// configured (login wording, custom CSS body, splashscreen toggle).
   Future<JellyfinBrandingOptions> configuration() => _http.requestJson(
     '/Branding/Configuration',
-    (json) =>
-        objectOf(JellyfinBrandingOptions.fromJson)(json) ??
-        JellyfinBrandingOptions.fromJson(const {}),
+    objectOrEmptyOf(JellyfinBrandingOptions.fromJson),
   );
 
   /// `GET /Branding/Css` — server's custom CSS as plain text, `''` when

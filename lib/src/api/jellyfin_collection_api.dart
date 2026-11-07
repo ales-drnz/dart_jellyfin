@@ -22,7 +22,8 @@ class JellyfinCollectionApi {
   /// `POST /Collections` — create a new collection.
   ///
   /// Answers the new collection's id in
-  /// [JellyfinCollectionCreationResult.id].
+  /// [JellyfinCollectionCreationResult.id]. An answer without an id
+  /// throws a `parse` error.
   Future<JellyfinCollectionCreationResult> create({
     String? name,
     List<String> ids = const [],
@@ -39,9 +40,7 @@ class JellyfinCollectionApi {
       '/Collections',
       method: 'POST',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) =>
-          objectOf(JellyfinCollectionCreationResult.fromJson)(json) ??
-          JellyfinCollectionCreationResult.fromJson(const {}),
+      requiredObjectOf(JellyfinCollectionCreationResult.fromJson, keys: ['Id']),
     );
   }
 

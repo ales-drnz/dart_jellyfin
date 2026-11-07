@@ -43,6 +43,30 @@ T? Function(Object? json) objectOf<T>(
 ) =>
     (json) => json == null ? null : parser(_map(json));
 
+/// Parses one JSON object; an empty body is the model's defaults, as
+/// [parser] reads `{}`.
+T Function(Object? json) objectOrEmptyOf<T>(
+  T Function(Map<String, Object?>) parser,
+) =>
+    (json) => parser(json == null ? const <String, Object?>{} : _map(json));
+
+/// Parses one JSON object that must carry each of [keys]. An empty body,
+/// or a missing, null or empty key, is a `parse` error.
+T Function(Object? json) requiredObjectOf<T>(
+  T Function(Map<String, Object?>) parser, {
+  List<String> keys = const [],
+}) => (json) {
+  if (json == null) throw _parse('Expected a JSON object, got no body');
+  final map = _map(json);
+  for (final key in keys) {
+    final value = map[key];
+    if (value == null || value == '') {
+      throw _parse('Expected `$key` in the answer');
+    }
+  }
+  return parser(map);
+};
+
 // A body of the wrong shape is a malformed answer, never an empty one: an
 // empty result must mean the server said "nothing".
 
@@ -56,7 +80,8 @@ List<Object?> _list(Object json) {
   throw _shape('array', json);
 }
 
-JellyfinException _shape(String expected, Object json) => JellyfinException(
-  'Expected a JSON $expected, got ${json.runtimeType}',
-  type: JellyfinErrorType.parse,
-);
+JellyfinException _shape(String expected, Object json) =>
+    _parse('Expected a JSON $expected, got ${json.runtimeType}');
+
+JellyfinException _parse(String message) =>
+    JellyfinException(message, type: JellyfinErrorType.parse);

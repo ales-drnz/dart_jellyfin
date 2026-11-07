@@ -43,9 +43,7 @@ class JellyfinEnvironmentApi {
   Future<JellyfinDefaultDirectoryBrowser> defaultDirectoryBrowser() =>
       _http.requestJson(
         '/Environment/DefaultDirectoryBrowser',
-        (json) =>
-            objectOf(JellyfinDefaultDirectoryBrowser.fromJson)(json) ??
-            JellyfinDefaultDirectoryBrowser.fromJson(const {}),
+        objectOrEmptyOf(JellyfinDefaultDirectoryBrowser.fromJson),
       );
 
   /// `GET /Environment/Drives` — every drive mounted on the server.

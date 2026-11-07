@@ -165,7 +165,9 @@ the model does not lift.
 document whose shape depends on the key, the plugin or the provider.
 
 A single-object answer of the wrong shape now throws a `parse` error, as
-the lists already did.
+the lists already did. An empty answer is the model's defaults, except
+for `collection.create()`: an answer without an id throws a `parse`
+error.
 
 ## Events and other changes
 

@@ -97,8 +97,6 @@ class JellyfinPluginsApi {
       _http.requestJson(
         '/Plugins/$pluginId/Manifest',
         method: 'POST',
-        (json) =>
-            objectOf(JellyfinPluginManifest.fromJson)(json) ??
-            JellyfinPluginManifest.fromJson(const {}),
+        objectOrEmptyOf(JellyfinPluginManifest.fromJson),
       );
 }

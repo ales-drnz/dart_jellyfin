@@ -52,9 +52,7 @@ class JellyfinDevicesApi {
       _http.requestJson(
         '/Devices/Options',
         queryParameters: {'id': id},
-        (json) =>
-            objectOf(JellyfinDeviceOptions.fromJson)(json) ??
-            JellyfinDeviceOptions.fromJson(const {}),
+        objectOrEmptyOf(JellyfinDeviceOptions.fromJson),
       );
 
   /// `POST /Devices/Options?id={id}` — replace the device options.

@@ -113,9 +113,7 @@ class JellyfinChannelsApi {
   Future<JellyfinChannelFeatures> features({required String channelId}) =>
       _http.requestJson(
         '/Channels/$channelId/Features',
-        (json) =>
-            objectOf(JellyfinChannelFeatures.fromJson)(json) ??
-            JellyfinChannelFeatures.fromJson(const {}),
+        objectOrEmptyOf(JellyfinChannelFeatures.fromJson),
       );
 
   /// `GET /Channels/Features` — feature flags for every channel.

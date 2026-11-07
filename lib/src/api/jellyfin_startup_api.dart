@@ -32,9 +32,7 @@ class JellyfinStartupApi {
   /// [updateStartupUser] only after it.
   Future<JellyfinStartupUser> firstUser() => _http.requestJson(
     '/Startup/User',
-    (json) =>
-        objectOf(JellyfinStartupUser.fromJson)(json) ??
-        JellyfinStartupUser.fromJson(const {}),
+    objectOrEmptyOf(JellyfinStartupUser.fromJson),
   );
 
   /// `POST /Startup/User` — write the first user's name and password.

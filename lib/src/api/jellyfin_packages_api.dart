@@ -36,9 +36,7 @@ class JellyfinPackagesApi {
     return _http.requestJson(
       '/Packages/${Uri.encodeComponent(name)}',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) =>
-          objectOf(JellyfinPackageInfo.fromJson)(json) ??
-          JellyfinPackageInfo.fromJson(const {}),
+      objectOrEmptyOf(JellyfinPackageInfo.fromJson),
     );
   }
 

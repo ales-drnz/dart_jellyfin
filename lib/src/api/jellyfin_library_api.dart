@@ -146,9 +146,7 @@ class JellyfinLibraryApi {
     return _http.requestJson(
       '/Items/$itemId/ThemeMedia',
       queryParameters: qp,
-      (json) =>
-          objectOf(JellyfinThemeMedia.fromJson)(json) ??
-          JellyfinThemeMedia.fromJson(const {}),
+      objectOrEmptyOf(JellyfinThemeMedia.fromJson),
     );
   }
 
@@ -222,9 +220,7 @@ class JellyfinLibraryApi {
     return _http.requestJson(
       '/Libraries/AvailableOptions',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) =>
-          objectOf(JellyfinLibraryAvailableOptions.fromJson)(json) ??
-          JellyfinLibraryAvailableOptions.fromJson(const {}),
+      objectOrEmptyOf(JellyfinLibraryAvailableOptions.fromJson),
     );
   }
 

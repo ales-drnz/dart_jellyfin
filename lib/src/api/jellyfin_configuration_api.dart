@@ -24,9 +24,7 @@ class JellyfinConfigurationApi {
   /// send it to [update].
   Future<JellyfinServerConfiguration> get() => _http.requestJson(
     '/System/Configuration',
-    (json) =>
-        objectOf(JellyfinServerConfiguration.fromJson)(json) ??
-        JellyfinServerConfiguration.fromJson(const {}),
+    objectOrEmptyOf(JellyfinServerConfiguration.fromJson),
   );
 
   /// `POST /System/Configuration` — replace the full configuration.
@@ -77,8 +75,6 @@ class JellyfinConfigurationApi {
   /// when creating new libraries).
   Future<JellyfinMetadataOptions> defaultMetadataOptions() => _http.requestJson(
     '/System/Configuration/MetadataOptions/Default',
-    (json) =>
-        objectOf(JellyfinMetadataOptions.fromJson)(json) ??
-        JellyfinMetadataOptions.fromJson(const {}),
+    objectOrEmptyOf(JellyfinMetadataOptions.fromJson),
   );
 }

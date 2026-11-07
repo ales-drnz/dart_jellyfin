@@ -274,18 +274,14 @@ class JellyfinLiveTvApi {
   /// server. Admin only.
   Future<JellyfinLiveTvInfo> info() => _http.requestJson(
     '/LiveTv/Info',
-    (json) =>
-        objectOf(JellyfinLiveTvInfo.fromJson)(json) ??
-        JellyfinLiveTvInfo.fromJson(const {}),
+    objectOrEmptyOf(JellyfinLiveTvInfo.fromJson),
   );
 
   /// `GET /LiveTv/GuideInfo` — EPG metadata (start / end of the
   /// guide window, supported channels).
   Future<JellyfinGuideInfo> guideInfo() => _http.requestJson(
     '/LiveTv/GuideInfo',
-    (json) =>
-        objectOf(JellyfinGuideInfo.fromJson)(json) ??
-        JellyfinGuideInfo.fromJson(const {}),
+    objectOrEmptyOf(JellyfinGuideInfo.fromJson),
   );
 
   /// `GET /LiveTv/ChannelMappingOptions` — options for mapping
@@ -298,9 +294,7 @@ class JellyfinLiveTvApi {
     return _http.requestJson(
       '/LiveTv/ChannelMappingOptions',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) =>
-          objectOf(JellyfinChannelMappingOptions.fromJson)(json) ??
-          JellyfinChannelMappingOptions.fromJson(const {}),
+      objectOrEmptyOf(JellyfinChannelMappingOptions.fromJson),
     );
   }
 
@@ -312,9 +306,7 @@ class JellyfinLiveTvApi {
     '/LiveTv/ChannelMappings',
     method: 'POST',
     data: body,
-    (json) =>
-        objectOf(JellyfinTunerChannelMapping.fromJson)(json) ??
-        JellyfinTunerChannelMapping.fromJson(const {}),
+    objectOrEmptyOf(JellyfinTunerChannelMapping.fromJson),
   );
 
   // ─── Admin: tuner hosts ───────────────────────────────────────────
@@ -327,9 +319,7 @@ class JellyfinLiveTvApi {
         '/LiveTv/TunerHosts',
         method: 'POST',
         data: body,
-        (json) =>
-            objectOf(JellyfinTunerHost.fromJson)(json) ??
-            JellyfinTunerHost.fromJson(const {}),
+        objectOrEmptyOf(JellyfinTunerHost.fromJson),
       );
 
   /// `DELETE /LiveTv/TunerHosts?id={id}` — drop a tuner host.
@@ -390,9 +380,7 @@ class JellyfinLiveTvApi {
       'validateLogin': validateLogin,
     },
     data: body,
-    (json) =>
-        objectOf(JellyfinListingsProvider.fromJson)(json) ??
-        JellyfinListingsProvider.fromJson(const {}),
+    objectOrEmptyOf(JellyfinListingsProvider.fromJson),
   );
 
   /// `DELETE /LiveTv/ListingProviders?id={id}` — remove a listings
@@ -410,9 +398,7 @@ class JellyfinLiveTvApi {
   Future<JellyfinListingsProvider> defaultListingProvider() =>
       _http.requestJson(
         '/LiveTv/ListingProviders/Default',
-        (json) =>
-            objectOf(JellyfinListingsProvider.fromJson)(json) ??
-            JellyfinListingsProvider.fromJson(const {}),
+        objectOrEmptyOf(JellyfinListingsProvider.fromJson),
       );
 
   /// `GET /LiveTv/ListingProviders/Lineups` — channel lineups
@@ -505,9 +491,7 @@ class JellyfinLiveTvApi {
     return _http.requestJson(
       '/LiveTv/Timers/Defaults',
       queryParameters: qp.isEmpty ? null : qp,
-      (json) =>
-          objectOf(JellyfinSeriesTimer.fromJson)(json) ??
-          JellyfinSeriesTimer.fromJson(const {}),
+      objectOrEmptyOf(JellyfinSeriesTimer.fromJson),
     );
   }
 

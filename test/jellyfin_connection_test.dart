@@ -1069,6 +1069,14 @@ void main() {
       ('a query result', '[1,2]', queryResultOf(JellyfinItem.fromJson)),
       ('a list', '{"error":"x"}', listOf(JellyfinItem.fromJson)),
       ('an object', '[]', objectOf(JellyfinItem.fromJson)),
+      ('an object or empty', '[]', objectOrEmptyOf(JellyfinItem.fromJson)),
+      ('a required object', '[]', requiredObjectOf(JellyfinItem.fromJson)),
+      ('an empty body', '', requiredObjectOf(JellyfinItem.fromJson)),
+      (
+        'a missing key',
+        '{"Name":"x"}',
+        requiredObjectOf(JellyfinItem.fromJson, keys: ['Id']),
+      ),
     ];
     for (final (what, body, parser) in wrong) {
       test(what, () async {
@@ -1086,6 +1094,12 @@ void main() {
       );
       expect(await parse('', listOf(JellyfinItem.fromJson)), isEmpty);
       expect(await parse('', objectOf(JellyfinItem.fromJson)), isNull);
+      expect(
+        (await parse('', objectOrEmptyOf(JellyfinItem.fromJson))
+                as JellyfinItem)
+            .id,
+        '',
+      );
     });
   });
 

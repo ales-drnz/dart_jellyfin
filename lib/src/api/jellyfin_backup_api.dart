@@ -28,9 +28,7 @@ class JellyfinBackupApi {
         '/Backup/Create',
         method: 'POST',
         data: body,
-        (json) =>
-            objectOf(JellyfinBackupManifest.fromJson)(json) ??
-            JellyfinBackupManifest.fromJson(const {}),
+        objectOrEmptyOf(JellyfinBackupManifest.fromJson),
       );
 
   /// `GET /Backup/Manifest?path={path}` — read the manifest of a
@@ -39,9 +37,7 @@ class JellyfinBackupApi {
       _http.requestJson(
         '/Backup/Manifest',
         queryParameters: {'path': path},
-        (json) =>
-            objectOf(JellyfinBackupManifest.fromJson)(json) ??
-            JellyfinBackupManifest.fromJson(const {}),
+        objectOrEmptyOf(JellyfinBackupManifest.fromJson),
       );
 
   /// `POST /Backup/Restore` — restore from a backup file. [body]

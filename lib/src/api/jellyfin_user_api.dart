@@ -205,9 +205,7 @@ class JellyfinUserApi {
     '/Users/ForgotPassword',
     method: 'POST',
     data: {'EnteredUsername': username},
-    (json) =>
-        objectOf(JellyfinForgotPasswordResult.fromJson)(json) ??
-        JellyfinForgotPasswordResult.fromJson(const {}),
+    objectOrEmptyOf(JellyfinForgotPasswordResult.fromJson),
   );
 
   /// `POST /Users/ForgotPassword/Pin?pin={code}` — submit the PIN
@@ -218,9 +216,7 @@ class JellyfinUserApi {
         '/Users/ForgotPassword/Pin',
         method: 'POST',
         data: {'Pin': pin},
-        (json) =>
-            objectOf(JellyfinPinRedeemResult.fromJson)(json) ??
-            JellyfinPinRedeemResult.fromJson(const {}),
+        objectOrEmptyOf(JellyfinPinRedeemResult.fromJson),
       );
 
   /// `GET /Auth/Providers` — authentication providers configured on the
