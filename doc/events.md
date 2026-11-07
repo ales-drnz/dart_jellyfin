@@ -34,7 +34,9 @@ await jellyfin.notifications.close();
 `connect()` needs the server and the session, and returns a broadcast
 stream of `JellyfinNotification` frames (`messageType`, `data`, `raw`).
 `events()` on the stream, or `event` on one frame, decodes them into the
-sealed `JellyfinEvent` type. The client sends a keep-alive every
+sealed `JellyfinEvent` type. Keep a `case _:` in a `switch` on it: a
+release that types a new frame adds a subclass, and a `switch` without
+one stops compiling. The client sends a keep-alive every
 `keepAliveInterval` (30 seconds by default). Call `close()` before
 connecting again.
 
