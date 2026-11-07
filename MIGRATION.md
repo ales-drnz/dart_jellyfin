@@ -118,9 +118,10 @@ for (final old in favourites.items) {
 
 ## Typed answers
 
-These return typed models instead of maps. Each keeps the server's map in
-`raw`, so `x['Name']` becomes `x.name`, or `x.raw['Name']` for a field
-the model does not lift.
+These return typed answers instead of maps. Each model keeps the server's
+map in `raw`, so `x['Name']` becomes `x.name`, or `x.raw['Name']` for a
+field the model does not lift. `subtitles.getRemote()` is the exception:
+it returns the subtitle text.
 
 | Method | 0.4.0 |
 | --- | --- |
@@ -178,6 +179,12 @@ error.
   `ActivityLogEntry`. A `switch` that matched them as
   `JellyfinUnknownEvent(messageType: 'UserUpdated')` matches
   `JellyfinUserUpdatedEvent()` instead.
+- `JellyfinEvent` is sealed, so the 11 new event classes break a
+  `switch` that lists every 0.3 event and has no `default` or `_` case.
+  Add the cases, or a `_` case for the events the app ignores.
+- `genres`, `images` and `notifications` gained `musicGenre()`,
+  `pathUrl()`, `startActivityLog()` and `stopActivityLog()`. A fake that
+  implements one of these sub-APIs must add them.
 - `item.raw['Trickplay']` is `item.trickplay`, typed by media source id
   and width.
 - `images.url()` and `pathUrl()` throw `ArgumentError` for a
