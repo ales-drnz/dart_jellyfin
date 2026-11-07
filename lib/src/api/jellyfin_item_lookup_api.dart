@@ -19,6 +19,8 @@ import '../jellyfin_parsing.dart';
 /// shape varies per item kind (`{SearchInfo: {Name, Year, …},
 /// ItemId, IncludeDisabledProviders}`) and is documented at
 /// <https://api.jellyfin.org>.
+///
+/// {@category System}
 class JellyfinItemLookupApi {
   final JellyfinConnection _http;
 

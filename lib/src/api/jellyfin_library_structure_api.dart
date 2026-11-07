@@ -13,6 +13,8 @@ import '../jellyfin_parsing.dart';
 /// only. Used by the dashboard "Libraries" page to add, rename, and
 /// remove libraries, and to manage the physical folder roots backing
 /// each library.
+///
+/// {@category System}
 class JellyfinLibraryStructureApi {
   final JellyfinConnection _http;
 

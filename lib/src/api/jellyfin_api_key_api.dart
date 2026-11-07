@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `ApiKey` OpenAPI tag (3 operations). Admin only.
 /// API keys grant headless access (CI scripts, integrations) without
 /// going through the user-login flow.
+///
+/// {@category System}
 class JellyfinApiKeyApi {
   final JellyfinConnection _http;
 

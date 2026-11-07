@@ -18,6 +18,8 @@ import 'jellyfin_configuration_api.dart';
 /// of `/System/Configuration` (see [JellyfinConfigurationApi]), and 0.4.0
 /// removed them. A wizard that must still send them uses
 /// `JellyfinClient.request`.
+///
+/// {@category System}
 class JellyfinStartupApi {
   final JellyfinConnection _http;
 

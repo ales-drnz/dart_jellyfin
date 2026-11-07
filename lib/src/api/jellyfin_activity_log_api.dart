@@ -11,6 +11,8 @@ import '../jellyfin_server_models.dart';
 /// `/System/ActivityLog` — recent server activity.
 ///
 /// Wraps the `ActivityLog` OpenAPI tag (1 operation). Admin only.
+///
+/// {@category System}
 class JellyfinActivityLogApi {
   final JellyfinConnection _http;
 

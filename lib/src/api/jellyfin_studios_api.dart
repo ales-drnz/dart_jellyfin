@@ -12,6 +12,8 @@ import 'jellyfin_lookup_helpers.dart';
 /// `/Studios*` — production studios and labels.
 ///
 /// Wraps the `Studios` OpenAPI tag (2 operations).
+///
+/// {@category Library}
 class JellyfinStudiosApi {
   final JellyfinConnection _http;
 

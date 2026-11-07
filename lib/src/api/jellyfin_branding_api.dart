@@ -10,6 +10,8 @@ import '../jellyfin_parsing.dart';
 /// `/Branding` — branding configuration and custom CSS.
 ///
 /// Wraps the `Branding` OpenAPI tag (3 operations).
+///
+/// {@category System}
 class JellyfinBrandingApi {
   final JellyfinConnection _http;
 

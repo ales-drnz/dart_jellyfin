@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `Configuration` OpenAPI tag (6 operations). Admin only.
 /// The "named" configuration endpoints store/retrieve plugin-style
 /// configuration documents keyed by name.
+///
+/// {@category System}
 class JellyfinConfigurationApi {
   final JellyfinConnection _http;
 

@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `Plugins` OpenAPI tag (9 operations). Admin only.
 /// Plugins are addons that extend Jellyfin: metadata providers,
 /// channel sources, image fetchers, etc.
+///
+/// {@category System}
 class JellyfinPluginsApi {
   final JellyfinConnection _http;
 

@@ -13,6 +13,8 @@ import '../jellyfin_parsing.dart';
 /// hand-curated groupings (e.g. "Star Wars saga", "Best of 2024").
 /// They live as `BoxSet`-typed items and can be browsed through
 /// `items.list()` like any other item.
+///
+/// {@category Library}
 class JellyfinCollectionApi {
   final JellyfinConnection _http;
 

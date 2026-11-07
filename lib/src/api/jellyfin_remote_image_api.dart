@@ -13,6 +13,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `RemoteImage` OpenAPI tag (3 operations). Used by the
 /// "Edit images" UI: list candidates from configured providers,
 /// then download the chosen one to attach as the item image.
+///
+/// {@category System}
 class JellyfinRemoteImageApi {
   final JellyfinConnection _http;
 

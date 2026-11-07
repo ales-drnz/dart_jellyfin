@@ -12,6 +12,8 @@ import '../jellyfin_server_models.dart';
 /// server.
 ///
 /// Wraps the `Devices` OpenAPI tag (5 operations). Admin only.
+///
+/// {@category System}
 class JellyfinDevicesApi {
   final JellyfinConnection _http;
 

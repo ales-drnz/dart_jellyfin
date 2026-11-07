@@ -15,6 +15,8 @@ import 'jellyfin_plugins_api.dart';
 /// Pairs with [JellyfinPluginsApi]: this sub-API handles
 /// discovery/install, that one handles the lifecycle of an installed
 /// plugin.
+///
+/// {@category System}
 class JellyfinPackagesApi {
   final JellyfinConnection _http;
 

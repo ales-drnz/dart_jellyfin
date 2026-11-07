@@ -10,6 +10,8 @@ import '../jellyfin_parsing.dart';
 /// `/Backup` — server-side backup and restore.
 ///
 /// Wraps the `Backup` OpenAPI tag (4 operations). Admin only.
+///
+/// {@category System}
 class JellyfinBackupApi {
   final JellyfinConnection _http;
 

@@ -14,6 +14,8 @@ import '../jellyfin_vocabulary.dart';
 ///
 /// Wraps the `Years` OpenAPI tag (2 operations). The unit of return
 /// is a [JellyfinItem] per year, with `name` set to the year number.
+///
+/// {@category Library}
 class JellyfinYearsApi {
   final JellyfinConnection _http;
 

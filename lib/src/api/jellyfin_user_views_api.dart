@@ -14,6 +14,8 @@ import '../jellyfin_parsing.dart';
 /// (`/Users/{id}/Views`); these endpoints expose richer knobs:
 /// preset filtering, hidden libraries, external (channel/plugin)
 /// content, and the server's grouping recommendations.
+///
+/// {@category Library}
 class JellyfinUserViewsApi {
   final JellyfinConnection _http;
 

@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `Dashboard` OpenAPI tag (2 operations). Admin only.
 /// Plugin authors register configuration pages with the server; the
 /// admin web UI lists them here.
+///
+/// {@category System}
 class JellyfinDashboardApi {
   final JellyfinConnection _http;
 

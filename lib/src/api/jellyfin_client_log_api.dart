@@ -11,6 +11,8 @@ import '../jellyfin_connection.dart';
 ///
 /// Wraps the `ClientLog` OpenAPI tag (1 operation). Useful for crash
 /// reporting from native clients.
+///
+/// {@category System}
 class JellyfinClientLogApi {
   final JellyfinConnection _http;
 

@@ -14,6 +14,8 @@ import 'jellyfin_items_api.dart';
 /// Wraps the `Suggestions` OpenAPI tag (1 operation). Returns the same
 /// envelope as [JellyfinItemsApi.list]: a [JellyfinQueryResult] of
 /// [JellyfinItem]s, so the result plugs into any browsing UI.
+///
+/// {@category Search and lyrics}
 class JellyfinSuggestionsApi {
   final JellyfinConnection _http;
 

@@ -12,6 +12,8 @@ import '../jellyfin_parsing.dart';
 /// Wraps the `Environment` OpenAPI tag (5 operations). Admin only.
 /// Used by the dashboard "Add library" flow to browse the server's
 /// filesystem when choosing a media folder root.
+///
+/// {@category System}
 class JellyfinEnvironmentApi {
   final JellyfinConnection _http;
 
