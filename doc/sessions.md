@@ -203,8 +203,8 @@ the [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/to
 ```dart
 socket.events().listen((event) {
   switch (event) {
-    case JellyfinSyncPlayCommandEvent(:final command, :final when, :final position):
-      player.schedule(command, at: when, position: position);
+    case JellyfinSyncPlayCommandEvent(:final command, when: final at, :final position):
+      player.schedule(command, at: at, position: position);
     case JellyfinSyncPlayGroupUpdateEvent(updateType: 'UserJoined', :final userName):
       showToast('$userName joined');
     case _:
