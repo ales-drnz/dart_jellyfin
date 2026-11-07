@@ -34,7 +34,7 @@ as a cast target:
 
 ```dart
 await jellyfin.sessions.postCapabilities(
-  playableMediaTypes: const ['Audio', 'Video'],
+  playableMediaTypes: const [JellyfinMediaType.audio, JellyfinMediaType.video],
   supportedCommands: const [
     'Play', 'PlayState', // accept play and playstate commands
     JellyfinGeneralCommand.setVolume,
