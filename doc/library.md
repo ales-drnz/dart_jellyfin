@@ -265,7 +265,7 @@ final musicGenres = await jellyfin.genres.list(
   sortBy: const [JellyfinSortField.sortName],
 );
 
-// Exact name lookups: the music genre, and the generic one.
+// Name lookups: the music genre, and the generic one.
 final ambient = await jellyfin.genres.musicGenre(
   name: 'Ambient',
   parentId: musicLibraryId,
@@ -273,8 +273,8 @@ final ambient = await jellyfin.genres.musicGenre(
 final action = await jellyfin.genres.byName(name: 'Action');
 ```
 
-`genres.musicGenre()` finds a music genre by its exact name, ignoring
-case, in a music library; it replaces `/MusicGenres/{name}`, which
+`genres.musicGenre()` finds a music genre by its name, ignoring case, in
+a music library; it replaces `/MusicGenres/{name}`, which
 Jellyfin 12 marks obsolete. `genres.byName()` takes no `parentId` and
 answers the generic genre.
 
