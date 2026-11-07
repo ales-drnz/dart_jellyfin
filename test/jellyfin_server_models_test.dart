@@ -40,12 +40,12 @@ void main() {
 
   test('library.counts', () async {
     adapter.respond = (_) => CannedResponse.json({
-          'SongCount': 3,
-          'AlbumCount': 1,
-          'ArtistCount': 1,
-          'BoxSetCount': 1,
-          'ItemCount': 11,
-        });
+      'SongCount': 3,
+      'AlbumCount': 1,
+      'ArtistCount': 1,
+      'BoxSetCount': 1,
+      'ItemCount': 11,
+    });
     final c = await client.library.counts();
     expect(adapter.path, '/Items/Counts');
     expect(adapter.query['userId'], ['user-1']);
@@ -58,21 +58,21 @@ void main() {
 
   test('scheduledTasks.list', () async {
     adapter.respond = (_) => CannedResponse.json([
-          {
-            'Name': 'Audio Normalization',
-            'State': 'Idle',
-            'Id': 'ec2f',
-            'LastExecutionResult': {
-              'StartTimeUtc': '2026-09-08T15:42:55.7174742Z',
-              'EndTimeUtc': '2026-09-08T15:42:55.7218297Z',
-              'Status': 'Completed',
-            },
-            'Description': 'Scans files for audio normalization data.',
-            'Category': 'Library',
-            'IsHidden': false,
-            'Key': 'AudioNormalization',
-          },
-        ]);
+      {
+        'Name': 'Audio Normalization',
+        'State': 'Idle',
+        'Id': 'ec2f',
+        'LastExecutionResult': {
+          'StartTimeUtc': '2026-09-08T15:42:55.7174742Z',
+          'EndTimeUtc': '2026-09-08T15:42:55.7218297Z',
+          'Status': 'Completed',
+        },
+        'Description': 'Scans files for audio normalization data.',
+        'Category': 'Library',
+        'IsHidden': false,
+        'Key': 'AudioNormalization',
+      },
+    ]);
     final tasks = await client.scheduledTasks.list(isHidden: false);
     expect(adapter.query['isHidden'], ['false']);
     final t = tasks.single;
@@ -84,18 +84,18 @@ void main() {
 
   test('devices.list unwraps the query result', () async {
     adapter.respond = (_) => CannedResponse.json({
-          'Items': [
-            {
-              'Name': 'probe',
-              'Id': 'bootstrap-dart-jellyfin',
-              'LastUserName': 'test_admin',
-              'AppName': 'dart_jellyfin_bootstrap',
-              'AppVersion': '1',
-              'DateLastActivity': '2026-10-11T09:16:27.7026206Z',
-            },
-          ],
-          'TotalRecordCount': 1,
-        });
+      'Items': [
+        {
+          'Name': 'probe',
+          'Id': 'bootstrap-dart-jellyfin',
+          'LastUserName': 'test_admin',
+          'AppName': 'dart_jellyfin_bootstrap',
+          'AppVersion': '1',
+          'DateLastActivity': '2026-10-11T09:16:27.7026206Z',
+        },
+      ],
+      'TotalRecordCount': 1,
+    });
     final d = (await client.devices.list()).single;
     expect(d.id, 'bootstrap-dart-jellyfin');
     expect(d.appName, 'dart_jellyfin_bootstrap');
@@ -104,18 +104,18 @@ void main() {
 
   test('activityLog.entries keeps the total', () async {
     adapter.respond = (_) => CannedResponse.json({
-          'Items': [
-            {
-              'Id': 120,
-              'Name': 'test_admin has finished playing Test Artist - Track 1',
-              'Type': 'AudioPlaybackStopped',
-              'ItemId': 'b545',
-              'Date': '2026-10-11T09:18:21.8522232Z',
-              'Severity': 'Information',
-            },
-          ],
-          'TotalRecordCount': 120,
-        });
+      'Items': [
+        {
+          'Id': 120,
+          'Name': 'test_admin has finished playing Test Artist - Track 1',
+          'Type': 'AudioPlaybackStopped',
+          'ItemId': 'b545',
+          'Date': '2026-10-11T09:18:21.8522232Z',
+          'Severity': 'Information',
+        },
+      ],
+      'TotalRecordCount': 120,
+    });
     final page = await client.activityLog.entries(limit: 1);
     expect(adapter.query['limit'], ['1']);
     expect(page.totalRecordCount, 120);
@@ -125,15 +125,15 @@ void main() {
 
   test('images.listItemImages', () async {
     adapter.respond = (_) => CannedResponse.json([
-          {
-            'ImageType': 'Primary',
-            'ImageTag': 'e8ee',
-            'BlurHash': 'e9SPX',
-            'Height': 700,
-            'Width': 700,
-            'Size': 191845,
-          },
-        ]);
+      {
+        'ImageType': 'Primary',
+        'ImageTag': 'e8ee',
+        'BlurHash': 'e9SPX',
+        'Height': 700,
+        'Width': 700,
+        'Size': 191845,
+      },
+    ]);
     final img = (await client.images.listItemImages(itemId: 'al')).single;
     expect(adapter.path, '/Items/al/Images');
     expect(
@@ -144,30 +144,30 @@ void main() {
 
   test('lyrics.searchRemote, syncPlay.list, playlists.users', () async {
     adapter.respond = (r) => switch (r.uri.path) {
-          '/Audio/t/RemoteSearch/Lyrics' => CannedResponse.json([
-              {
-                'Id': 'r1',
-                'ProviderName': 'LrcLib',
-                'Lyrics': {
-                  'Lyrics': [
-                    {'Text': 'x', 'Start': 0},
-                  ],
-                },
-              },
-            ]),
-          '/SyncPlay/List' => CannedResponse.json([
-              {
-                'GroupId': 'g',
-                'GroupName': 'Room',
-                'State': 'Playing',
-                'Participants': ['a', 'b'],
-                'LastUpdatedAt': '2026-10-11T09:00:00Z',
-              },
-            ]),
-          _ => CannedResponse.json([
-              {'UserId': 'u2', 'CanEdit': true},
-            ]),
-        };
+      '/Audio/t/RemoteSearch/Lyrics' => CannedResponse.json([
+        {
+          'Id': 'r1',
+          'ProviderName': 'LrcLib',
+          'Lyrics': {
+            'Lyrics': [
+              {'Text': 'x', 'Start': 0},
+            ],
+          },
+        },
+      ]),
+      '/SyncPlay/List' => CannedResponse.json([
+        {
+          'GroupId': 'g',
+          'GroupName': 'Room',
+          'State': 'Playing',
+          'Participants': ['a', 'b'],
+          'LastUpdatedAt': '2026-10-11T09:00:00Z',
+        },
+      ]),
+      _ => CannedResponse.json([
+        {'UserId': 'u2', 'CanEdit': true},
+      ]),
+    };
     final remote = (await client.lyrics.searchRemote(itemId: 't')).single;
     expect(remote.providerName, 'LrcLib');
     expect(remote.lyrics!.lines.single.text, 'x');
@@ -183,10 +183,10 @@ void main() {
     // 12.2 answers /Branding/Css with 200, text/css and no body when no
     // custom CSS is set; 0.2 returned '' there.
     adapter.respond = (_) => CannedResponse(
-          200,
-          const [],
-          contentType: 'text/css; charset=utf-8',
-        );
+      200,
+      const [],
+      contentType: 'text/css; charset=utf-8',
+    );
     expect(await client.branding.css(), '');
     expect(adapter.path, '/Branding/Css');
     expect(await client.branding.cssFile(), '');
@@ -194,10 +194,64 @@ void main() {
     expect(await client.system.logFile(name: 'empty.log'), '');
 
     adapter.respond = (_) => CannedResponse(
-          200,
-          'body { color: red; }'.codeUnits,
-          contentType: 'text/css; charset=utf-8',
-        );
+      200,
+      'body { color: red; }'.codeUnits,
+      contentType: 'text/css; charset=utf-8',
+    );
     expect(await client.branding.css(), 'body { color: red; }');
+  });
+
+  test(
+    'genres.musicGenre keeps the exact match of the scoped search',
+    () async {
+      adapter.respond = (_) => CannedResponse.json({
+        'Items': [
+          {'Id': 'g1', 'Name': 'Ambient Techno', 'Type': 'MusicGenre'},
+          {'Id': 'g2', 'Name': 'Ambient', 'Type': 'MusicGenre'},
+        ],
+        'TotalRecordCount': 2,
+      });
+      final g = await client.genres.musicGenre(name: 'ambient', parentId: 'm');
+      expect(g!.id, 'g2');
+      expect(adapter.path, '/Genres');
+      expect(adapter.query['parentId'], ['m']);
+      expect(adapter.query['searchTerm'], ['ambient']);
+      expect(
+        await client.genres.musicGenre(name: 'Jazz', parentId: 'm'),
+        isNull,
+      );
+    },
+  );
+
+  test('subtitle builders send vttTimestampMapMpegts only when given', () {
+    String q(String url) => Uri.parse(url).query;
+    expect(
+      q(client.subtitles.streamUrl(itemId: 'i', mediaSourceId: 's', index: 2)),
+      isNot(contains('vttTimestampMapMpegts')),
+    );
+    for (final url in [
+      client.subtitles.streamUrl(
+        itemId: 'i',
+        mediaSourceId: 's',
+        index: 2,
+        vttTimestampMapMpegts: 0,
+      ),
+      client.subtitles.streamWithTicksUrl(
+        itemId: 'i',
+        mediaSourceId: 's',
+        index: 2,
+        startPositionTicks: 10,
+        vttTimestampMapMpegts: 0,
+      ),
+      client.subtitles.playlistUrl(
+        itemId: 'i',
+        mediaSourceId: 's',
+        index: 2,
+        segmentLength: 6,
+        vttTimestampMapMpegts: 0,
+      ),
+    ]) {
+      expect(Uri.parse(url).queryParameters['vttTimestampMapMpegts'], '0');
+    }
   });
 }

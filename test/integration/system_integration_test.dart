@@ -23,13 +23,15 @@ void main() {
         jf = jellyfinFromCache();
       });
 
-      test('publicInfo returns server identity without authentication',
-          () async {
-        final info = await jf.system.publicInfo();
-        expect(info.serverName, isNotEmpty);
-        expect(info.version, matches(RegExp(r'^\d+\.\d+\.\d+')));
-        expect(info.id, isNotEmpty);
-      });
+      test(
+        'publicInfo returns server identity without authentication',
+        () async {
+          final info = await jf.system.publicInfo();
+          expect(info.serverName, isNotEmpty);
+          expect(info.version, matches(RegExp(r'^\d+\.\d+\.\d+')));
+          expect(info.id, isNotEmpty);
+        },
+      );
 
       test('info (authenticated) returns the same server identity', () async {
         final info = await jf.system.info();

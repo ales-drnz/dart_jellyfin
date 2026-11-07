@@ -50,9 +50,9 @@ void main() {
 
   /// Temporary files left in the download folder.
   List<String> leftovers() => [
-        for (final f in dir.listSync(recursive: true))
-          if (f.path.endsWith('.part')) f.path,
-      ];
+    for (final f in dir.listSync(recursive: true))
+      if (f.path.endsWith('.part')) f.path,
+  ];
 
   tearDown(() async {
     client.close();
@@ -91,8 +91,11 @@ void main() {
     await expectLater(
       call,
       throwsA(
-        isA<JellyfinException>()
-            .having((e) => e.isCancelled, 'cancelled', true),
+        isA<JellyfinException>().having(
+          (e) => e.isCancelled,
+          'cancelled',
+          true,
+        ),
       ),
     );
     expect(File(path).existsSync(), isFalse);
@@ -119,8 +122,11 @@ void main() {
         absoluteUrl: false,
       ),
       throwsA(
-        isA<JellyfinException>()
-            .having((e) => e.type, 'type', JellyfinErrorType.state),
+        isA<JellyfinException>().having(
+          (e) => e.type,
+          'type',
+          JellyfinErrorType.state,
+        ),
       ),
     );
   });

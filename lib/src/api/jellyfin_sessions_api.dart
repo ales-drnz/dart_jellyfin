@@ -223,8 +223,8 @@ class JellyfinSessionsApi {
       method: 'POST',
       data: {
         'Text': text,
-        if (header != null) 'Header': header,
-        if (timeoutMs != null) 'TimeoutMs': timeoutMs,
+        'Header': ?header,
+        'TimeoutMs': ?timeoutMs,
       },
     );
   }

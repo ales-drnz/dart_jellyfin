@@ -20,14 +20,12 @@ class JellyfinPlaybackApi {
   /// Report playback start (`POST /Sessions/Playing`).
   ///
   /// [method] is how the client plays the item (default
-  /// [JellyfinPlayMethod.directPlay]); the `String` [playMethod] is
-  /// deprecated.
+  /// [JellyfinPlayMethod.directPlay]).
   Future<void> start({
     required String itemId,
     String? playSessionId,
     String? mediaSourceId,
     JellyfinPlayMethod? method,
-    @Deprecated('Use method (a JellyfinPlayMethod)') String? playMethod,
     bool canSeek = true,
   }) async {
     await _http.request<void>(
@@ -35,9 +33,9 @@ class JellyfinPlaybackApi {
       method: 'POST',
       data: {
         'ItemId': itemId,
-        if (playSessionId != null) 'PlaySessionId': playSessionId,
-        if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-        'PlayMethod': _method(method, playMethod),
+        'PlaySessionId': ?playSessionId,
+        'MediaSourceId': ?mediaSourceId,
+        'PlayMethod': (method ?? JellyfinPlayMethod.directPlay).wire,
         'CanSeek': canSeek,
       },
     );
@@ -46,8 +44,8 @@ class JellyfinPlaybackApi {
   /// Report playback progress (`POST /Sessions/Playing/Progress`) — the
   /// heartbeat, recommended every 10 s, and on pause and resume.
   ///
-  /// [method], [order] and [repeat] replace the deprecated `String`
-  /// parameters [playMethod], [playbackOrder] and [repeatMode].
+  /// [method] defaults to [JellyfinPlayMethod.directPlay]; [order] and
+  /// [repeat] are left out when `null`.
   Future<void> progress({
     required String itemId,
     required Duration position,
@@ -59,12 +57,7 @@ class JellyfinPlaybackApi {
     JellyfinPlayMethod? method,
     JellyfinPlaybackOrder? order,
     JellyfinRepeatMode? repeat,
-    @Deprecated('Use method (a JellyfinPlayMethod)') String? playMethod,
-    @Deprecated('Use order (a JellyfinPlaybackOrder)') String? playbackOrder,
-    @Deprecated('Use repeat (a JellyfinRepeatMode)') String? repeatMode,
   }) async {
-    final effectiveOrder = _either(order?.wire, playbackOrder, 'order');
-    final effectiveRepeat = _either(repeat?.wire, repeatMode, 'repeat');
     await _http.request<void>(
       '/Sessions/Playing/Progress',
       method: 'POST',
@@ -73,12 +66,12 @@ class JellyfinPlaybackApi {
         'PositionTicks': _ticks(position),
         'IsPaused': isPaused,
         'IsMuted': isMuted,
-        if (volumeLevel != null) 'VolumeLevel': volumeLevel,
-        if (playSessionId != null) 'PlaySessionId': playSessionId,
-        if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-        'PlayMethod': _method(method, playMethod),
-        if (effectiveOrder != null) 'PlaybackOrder': effectiveOrder,
-        if (effectiveRepeat != null) 'RepeatMode': effectiveRepeat,
+        'VolumeLevel': ?volumeLevel,
+        'PlaySessionId': ?playSessionId,
+        'MediaSourceId': ?mediaSourceId,
+        'PlayMethod': (method ?? JellyfinPlayMethod.directPlay).wire,
+        if (order != null) 'PlaybackOrder': order.wire,
+        if (repeat != null) 'RepeatMode': repeat.wire,
       },
     );
   }
@@ -96,8 +89,8 @@ class JellyfinPlaybackApi {
       data: {
         'ItemId': itemId,
         'PositionTicks': _ticks(position),
-        if (playSessionId != null) 'PlaySessionId': playSessionId,
-        if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
+        'PlaySessionId': ?playSessionId,
+        'MediaSourceId': ?mediaSourceId,
       },
     );
   }
@@ -132,19 +125,6 @@ class JellyfinPlaybackApi {
   }
 
   static int _ticks(Duration d) => d.inMilliseconds * 10000;
-
-  static String _method(JellyfinPlayMethod? method, String? legacy) =>
-      _either(method?.wire, legacy, 'method') ??
-      JellyfinPlayMethod.directPlay.wire;
-
-  static String? _either(String? typed, String? legacy, String name) {
-    if (typed != null && legacy != null) {
-      throw ArgumentError(
-        'Pass $name or its deprecated String form, not both.',
-      );
-    }
-    return typed ?? legacy;
-  }
 }
 
 /// How a client plays an item (`PlayMethod`).

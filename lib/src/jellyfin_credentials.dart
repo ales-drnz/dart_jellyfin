@@ -36,11 +36,10 @@ final class JellyfinCredentials {
     String? device,
     String? deviceId,
     String? version,
-  }) =>
-      JellyfinCredentials(
-        client: client ?? this.client,
-        device: device ?? this.device,
-        deviceId: deviceId ?? this.deviceId,
-        version: version ?? this.version,
-      );
+  }) => JellyfinCredentials(
+    client: client ?? this.client,
+    device: device ?? this.device,
+    deviceId: deviceId ?? this.deviceId,
+    version: version ?? this.version,
+  );
 }

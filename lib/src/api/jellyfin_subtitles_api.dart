@@ -2,10 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
+import '../jellyfin_parsing.dart';
 import '../transport/jellyfin_response.dart';
 import 'jellyfin_text_body.dart';
 import 'jellyfin_videos_api.dart';
@@ -49,6 +51,10 @@ class JellyfinSubtitlesApi {
   /// `format` should be one of [formatSrt] (recommended for sidecar
   /// rendering), [formatVtt] (HTML5 video tag), [formatAss] / [formatSsa]
   /// (libass for advanced styling), or [formatSub] (legacy).
+  ///
+  /// [vttTimestampMapMpegts] sets the MPEG-TS value of the WebVTT
+  /// `X-TIMESTAMP-MAP` header (the server's default is 900000). Jellyfin
+  /// 13.0 reads it; 12.x ignores it.
   String streamUrl({
     required String itemId,
     required String mediaSourceId,
@@ -57,6 +63,7 @@ class JellyfinSubtitlesApi {
     int? startPositionTicks,
     bool copyTimestamps = false,
     bool addVttTimeMap = false,
+    int? vttTimestampMapMpegts,
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
@@ -65,6 +72,8 @@ class JellyfinSubtitlesApi {
         'StartPositionTicks': '$startPositionTicks',
       if (copyTimestamps) 'CopyTimestamps': 'true',
       if (addVttTimeMap) 'AddVttTimeMap': 'true',
+      if (vttTimestampMapMpegts != null)
+        'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
     };
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format?${_encode(qp)}';
   }
@@ -72,6 +81,10 @@ class JellyfinSubtitlesApi {
   /// Same as [streamUrl] but the server returns a sub-segment of the
   /// subtitle stream, from [startPositionTicks] to [endPositionTicks].
   /// Used when seeking during transcoded playback.
+  ///
+  /// [vttTimestampMapMpegts] sets the MPEG-TS value of the WebVTT
+  /// `X-TIMESTAMP-MAP` header (the server's default is 900000). Jellyfin
+  /// 13.0 reads it; 12.x ignores it.
   String streamWithTicksUrl({
     required String itemId,
     required String mediaSourceId,
@@ -79,14 +92,15 @@ class JellyfinSubtitlesApi {
     required int startPositionTicks,
     String format = formatVtt,
     int? endPositionTicks,
-    @Deprecated('Not read by this route; use endPositionTicks')
-    int? segmentLength,
+    int? vttTimestampMapMpegts,
   }) {
     final base = _requireBaseUrl();
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'StartPositionTicks': '$startPositionTicks',
       if (endPositionTicks != null) 'EndPositionTicks': '$endPositionTicks',
+      if (vttTimestampMapMpegts != null)
+        'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
     };
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/$startPositionTicks/Stream.$format?${_encode(qp)}';
   }
@@ -133,23 +147,16 @@ class JellyfinSubtitlesApi {
   /// upstream providers (OpenSubtitles, Addic7ed, …) for matching
   /// subtitles. Requires server-side plugin configuration.
   ///
-  /// Returns raw search hit maps; each carries `Id`, `ProviderName`,
-  /// `Name`, `Format`, `DownloadCount`, `CommunityRating`, …
-  Future<List<Map<String, Object?>>> searchRemote({
+  /// Pass a hit's [JellyfinRemoteSubtitle.id] to [downloadRemote].
+  Future<List<JellyfinRemoteSubtitle>> searchRemote({
     required String itemId,
     required String language,
     bool isPerfectMatch = false,
-  }) async {
-    final res = await _http.request<List<Object?>>(
-      '/Items/$itemId/RemoteSearch/Subtitles/$language',
-      queryParameters: {'isPerfectMatch': isPerfectMatch},
-    );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/Items/$itemId/RemoteSearch/Subtitles/$language',
+    queryParameters: {'isPerfectMatch': isPerfectMatch},
+    listOf(JellyfinRemoteSubtitle.fromJson),
+  );
 
   /// `POST /Items/{itemId}/RemoteSearch/Subtitles/{subtitleId}` —
   /// download a remote subtitle and install it on the item.
@@ -167,28 +174,36 @@ class JellyfinSubtitlesApi {
   }
 
   /// `GET /Providers/Subtitles/Subtitles/{id}` — fetch a remote
-  /// subtitle preview by id (without installing it on any item).
-  Future<Map<String, Object?>?> getRemote({
+  /// subtitle by id, as text, without installing it on any item.
+  /// Returns null on 404 or an empty body.
+  ///
+  /// The route answers the subtitle file (`text/*`), not JSON; it is
+  /// decoded like [fetch].
+  Future<String?> getRemote({
     required String id,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Providers/Subtitles/Subtitles/$id',
-    );
-    return res.data;
+    try {
+      final res = await _http.request<List<int>>(
+        '/Providers/Subtitles/Subtitles/$id',
+        responseType: JellyfinResponseType.bytes,
+      );
+      final body = res.data;
+      if (body == null || body.isEmpty) return null;
+      return decodeTextBody(body, contentType: res.contentType);
+    } on JellyfinException catch (e) {
+      if (e.type == JellyfinErrorType.notFound) return null;
+      rethrow;
+    }
   }
 
   // ─── Fallback fonts (libass) ──────────────────────────────────────
 
   /// `GET /FallbackFont/Fonts` — fonts the server can serve to clients
   /// that render `.ass` / `.ssa` subtitles via libass.
-  Future<List<Map<String, Object?>>> fallbackFonts() async {
-    final res = await _http.request<List<Object?>>('/FallbackFont/Fonts');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinServerFile>> fallbackFonts() => _http.requestJson(
+    '/FallbackFont/Fonts',
+    listOf(JellyfinServerFile.fromJson),
+  );
 
   /// URL of a single fallback font, suitable for handing to libass.
   String fallbackFontUrl({required String name}) {
@@ -199,14 +214,23 @@ class JellyfinSubtitlesApi {
 
   /// HLS subtitle playlist — used when subtitles are delivered as a
   /// separate HLS stream rather than burned in.
+  ///
+  /// [vttTimestampMapMpegts] sets the MPEG-TS value of the WebVTT
+  /// `X-TIMESTAMP-MAP` header (the server's default is 900000). Jellyfin
+  /// 13.0 reads it; 12.x ignores it.
   String playlistUrl({
     required String itemId,
     required String mediaSourceId,
     required int index,
     required int segmentLength,
+    int? vttTimestampMapMpegts,
   }) {
     final base = _requireBaseUrl();
-    final qp = <String, String>{'ApiKey': _requireToken()};
+    final qp = <String, String>{
+      'ApiKey': _requireToken(),
+      if (vttTimestampMapMpegts != null)
+        'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
+    };
     return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/subtitles.m3u8?segmentLength=$segmentLength&${_encode(qp)}';
   }
 

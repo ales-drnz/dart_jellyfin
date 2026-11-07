@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Branding` — branding configuration and custom CSS.
 ///
@@ -16,12 +18,12 @@ class JellyfinBrandingApi {
 
   /// `GET /Branding/Configuration` — branding options the admin
   /// configured (login wording, custom CSS body, splashscreen toggle).
-  Future<Map<String, Object?>> configuration() async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Branding/Configuration',
-    );
-    return res.data ?? const {};
-  }
+  Future<JellyfinBrandingOptions> configuration() => _http.requestJson(
+    '/Branding/Configuration',
+    (json) =>
+        objectOf(JellyfinBrandingOptions.fromJson)(json) ??
+        JellyfinBrandingOptions.fromJson(const {}),
+  );
 
   /// `GET /Branding/Css` — server's custom CSS as plain text, `''` when
   /// none is set (the server answers 200 with an empty body).

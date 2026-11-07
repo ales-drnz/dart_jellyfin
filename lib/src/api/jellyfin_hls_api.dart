@@ -154,7 +154,7 @@ class JellyfinHlsApi {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
+      'PlaySessionId': ?playSessionId,
     };
     return '${_requireBaseUrl()}/Audio/$itemId/hls1/$playlistId/$segmentId.$container?${_encode(qp)}';
   }
@@ -166,10 +166,6 @@ class JellyfinHlsApi {
   String videoMasterUrl({
     required String itemId,
     String? mediaSourceId,
-    @Deprecated(
-      'Video routes do not read it; cap with videoBitRate and audioBitRate',
-    )
-    int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
     int? videoBitRate,
@@ -190,7 +186,6 @@ class JellyfinHlsApi {
   }) {
     final qp = _videoParams(
       mediaSourceId: mediaSourceId,
-      maxStreamingBitrate: maxStreamingBitrate,
       videoCodec: videoCodec,
       audioCodec: audioCodec,
       videoBitRate: videoBitRate,
@@ -215,10 +210,6 @@ class JellyfinHlsApi {
   String videoVariantUrl({
     required String itemId,
     String? mediaSourceId,
-    @Deprecated(
-      'Video routes do not read it; cap with videoBitRate and audioBitRate',
-    )
-    int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
     int? videoBitRate,
@@ -238,7 +229,6 @@ class JellyfinHlsApi {
   }) {
     final qp = _videoParams(
       mediaSourceId: mediaSourceId,
-      maxStreamingBitrate: maxStreamingBitrate,
       videoCodec: videoCodec,
       audioCodec: audioCodec,
       videoBitRate: videoBitRate,
@@ -270,7 +260,7 @@ class JellyfinHlsApi {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
+      'PlaySessionId': ?playSessionId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/hls1/$playlistId/$segmentId.$container?${_encode(qp)}';
   }
@@ -280,10 +270,6 @@ class JellyfinHlsApi {
   String videoLiveUrl({
     required String itemId,
     String? mediaSourceId,
-    @Deprecated(
-      'Video routes do not read it; cap with videoBitRate and audioBitRate',
-    )
-    int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
     String? container,
@@ -294,14 +280,12 @@ class JellyfinHlsApi {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-      if (maxStreamingBitrate != null)
-        'MaxStreamingBitrate': '$maxStreamingBitrate',
-      if (videoCodec != null) 'VideoCodec': videoCodec,
-      if (audioCodec != null) 'AudioCodec': audioCodec,
-      if (container != null) 'Container': container,
+      'MediaSourceId': ?mediaSourceId,
+      'VideoCodec': ?videoCodec,
+      'AudioCodec': ?audioCodec,
+      'Container': ?container,
       if (maxAudioChannels != null) 'MaxAudioChannels': '$maxAudioChannels',
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
+      'PlaySessionId': ?playSessionId,
       ...params,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/live.m3u8?${_encode(qp)}';
@@ -361,34 +345,6 @@ class JellyfinHlsApi {
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${_encode(qp)}';
   }
 
-  /// `DELETE /Videos/ActiveEncodings` — stop an active HLS encoding
-  /// session on the server. Pass the [deviceId] of the session to
-  /// stop (defaults to the connection's device id) and the
-  /// [playSessionId] of the encoding to stop. The server marks both
-  /// query parameters as required, so [playSessionId] is mandatory.
-  ///
-  /// Jellyfin 12 hides every HLS controller from the OpenAPI
-  /// document; this route still answers but may be removed without
-  /// notice. `playback.stopped()` ends the session the supported way.
-  @Deprecated(
-    'Hidden from the Jellyfin 12 API and may be removed without notice; '
-    'use playback.stopped() instead.',
-  )
-  Future<void> stopEncoding({
-    String? deviceId,
-    required String playSessionId,
-  }) async {
-    final qp = <String, Object?>{
-      'deviceId': deviceId ?? _http.credentials.deviceId,
-      'playSessionId': playSessionId,
-    };
-    await _http.request<void>(
-      '/Videos/ActiveEncodings',
-      method: 'DELETE',
-      queryParameters: qp,
-    );
-  }
-
   // ─── Helpers ──────────────────────────────────────────────────────
 
   Map<String, String> _audioParams({
@@ -414,19 +370,19 @@ class JellyfinHlsApi {
     return <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
+      'MediaSourceId': ?mediaSourceId,
       if (maxStreamingBitrate != null)
         'MaxStreamingBitrate': '$maxStreamingBitrate',
       if (audioBitRate != null) 'AudioBitRate': '$audioBitRate',
-      if (audioCodec != null) 'AudioCodec': audioCodec,
+      'AudioCodec': ?audioCodec,
       if (audioChannels != null) 'AudioChannels': '$audioChannels',
       if (maxAudioChannels != null) 'MaxAudioChannels': '$maxAudioChannels',
       if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
       if (maxAudioBitDepth != null) 'MaxAudioBitDepth': '$maxAudioBitDepth',
       if (startTimeTicks != null) 'StartTimeTicks': '$startTimeTicks',
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
-      if (tag != null) 'Tag': tag,
-      if (segmentContainer != null) 'SegmentContainer': segmentContainer,
+      'PlaySessionId': ?playSessionId,
+      'Tag': ?tag,
+      'SegmentContainer': ?segmentContainer,
       if (segmentLength != null) 'SegmentLength': '$segmentLength',
       if (minSegments != null) 'MinSegments': '$minSegments',
       if (enableAutoStreamCopy != null)
@@ -434,13 +390,12 @@ class JellyfinHlsApi {
       if (allowAudioStreamCopy != null)
         'AllowAudioStreamCopy': '$allowAudioStreamCopy',
       if (breakOnNonKeyFrames) 'BreakOnNonKeyFrames': 'true',
-      if (context != null) 'Context': context,
+      'Context': ?context,
     };
   }
 
   Map<String, String> _videoParams({
     String? mediaSourceId,
-    int? maxStreamingBitrate,
     String? videoCodec,
     String? audioCodec,
     int? videoBitRate,
@@ -458,28 +413,26 @@ class JellyfinHlsApi {
     String? tag,
     bool breakOnNonKeyFrames = false,
   }) {
-    // maxStreamingBitrate is accepted for compatibility and not sent: the
-    // video HLS routes do not read it (absent from every API document).
     return <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-      if (videoCodec != null) 'VideoCodec': videoCodec,
-      if (audioCodec != null) 'AudioCodec': audioCodec,
+      'MediaSourceId': ?mediaSourceId,
+      'VideoCodec': ?videoCodec,
+      'AudioCodec': ?audioCodec,
       if (videoBitRate != null) 'VideoBitRate': '$videoBitRate',
       if (audioBitRate != null) 'AudioBitRate': '$audioBitRate',
       if (audioStreamIndex != null) 'AudioStreamIndex': '$audioStreamIndex',
       if (subtitleStreamIndex != null)
         'SubtitleStreamIndex': '$subtitleStreamIndex',
-      if (subtitleMethod != null) 'SubtitleMethod': subtitleMethod,
+      'SubtitleMethod': ?subtitleMethod,
       if (maxAudioChannels != null) 'MaxAudioChannels': '$maxAudioChannels',
       if (width != null) 'Width': '$width',
       if (height != null) 'Height': '$height',
       if (maxWidth != null) 'MaxWidth': '$maxWidth',
       if (maxHeight != null) 'MaxHeight': '$maxHeight',
       if (startTimeTicks != null) 'StartTimeTicks': '$startTimeTicks',
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
-      if (tag != null) 'Tag': tag,
+      'PlaySessionId': ?playSessionId,
+      'Tag': ?tag,
       if (breakOnNonKeyFrames) 'BreakOnNonKeyFrames': 'true',
     };
   }

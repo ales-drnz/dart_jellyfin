@@ -35,3 +35,6 @@ dart_test.yaml
 
 # Dev tools: the transport drift check and the icon and diagram generator
 /tool/
+
+# CI
+.github/

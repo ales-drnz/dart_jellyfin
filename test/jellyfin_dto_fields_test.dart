@@ -753,9 +753,7 @@ void main() {
       expect(r.serverId, 'server-1');
       expect(r.user.id, 'user-abc');
       expect(r.user.name, 'admin');
-      expect(r.user.hasPassword, isTrue);
-      expect(r.user.hasConfiguredPassword, isTrue);
-      expect(r.user.hasConfiguredEasyPassword, isFalse);
+      expect(r.user.raw['HasPassword'], isTrue);
     });
   });
 

@@ -30,8 +30,9 @@ import 'jellyfin_credentials.dart';
 abstract final class JellyfinAuthHeader {
   /// Modern `Authorization: MediaBrowser …` payload, with optional `Token`.
   static String build(JellyfinCredentials c, {String? token}) {
-    final tokenPart =
-        token != null ? ', Token="${Uri.encodeComponent(token)}"' : '';
+    final tokenPart = token != null
+        ? ', Token="${Uri.encodeComponent(token)}"'
+        : '';
     return 'MediaBrowser '
         'Client="${Uri.encodeComponent(c.client)}", '
         'Device="${Uri.encodeComponent(c.device)}", '

@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
@@ -142,38 +143,39 @@ class JellyfinItemsApi {
     bool enableTotalRecordCount = true,
     int? imageTypeLimit,
   }) async {
-    final qp = _narrowing(
-      parentId: parentId,
-      includeItemTypes: includeItemTypes,
-      excludeItemTypes: excludeItemTypes,
-      mediaTypes: mediaTypes,
-      searchTerm: searchTerm,
-      filters: filters,
-      ids: ids,
-      excludeItemIds: excludeItemIds,
-      genreIds: genreIds,
-      genres: genres,
-      artistIds: artistIds,
-      artists: artists,
-      albumArtistIds: albumArtistIds,
-      contributingArtistIds: contributingArtistIds,
-      albumIds: albumIds,
-      albums: albums,
-      studioIds: studioIds,
-      studios: studios,
-      personIds: personIds,
-      tags: tags,
-      officialRatings: officialRatings,
-      years: years,
-      nameStartsWith: nameStartsWith,
-      isFavorite: isFavorite,
-      isPlayed: isPlayed,
-      recursive: recursive,
-      enableTotalRecordCount: enableTotalRecordCount,
-    )
-      ..['startIndex'] = startIndex
-      ..['enableImages'] = enableImages
-      ..['enableUserData'] = enableUserData;
+    final qp =
+        _narrowing(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            excludeItemTypes: excludeItemTypes,
+            mediaTypes: mediaTypes,
+            searchTerm: searchTerm,
+            filters: filters,
+            ids: ids,
+            excludeItemIds: excludeItemIds,
+            genreIds: genreIds,
+            genres: genres,
+            artistIds: artistIds,
+            artists: artists,
+            albumArtistIds: albumArtistIds,
+            contributingArtistIds: contributingArtistIds,
+            albumIds: albumIds,
+            albums: albums,
+            studioIds: studioIds,
+            studios: studios,
+            personIds: personIds,
+            tags: tags,
+            officialRatings: officialRatings,
+            years: years,
+            nameStartsWith: nameStartsWith,
+            isFavorite: isFavorite,
+            isPlayed: isPlayed,
+            recursive: recursive,
+            enableTotalRecordCount: enableTotalRecordCount,
+          )
+          ..['startIndex'] = startIndex
+          ..['enableImages'] = enableImages
+          ..['enableUserData'] = enableUserData;
     if (limit != null) qp['limit'] = limit;
     if (sortBy.isNotEmpty) {
       qp['sortBy'] = sortBy;
@@ -223,38 +225,39 @@ class JellyfinItemsApi {
     bool? isPlayed,
     bool recursive = true,
   }) async {
-    final qp = _narrowing(
-      parentId: parentId,
-      includeItemTypes: includeItemTypes,
-      excludeItemTypes: excludeItemTypes,
-      mediaTypes: mediaTypes,
-      searchTerm: searchTerm,
-      filters: filters,
-      ids: ids,
-      excludeItemIds: excludeItemIds,
-      genreIds: genreIds,
-      genres: genres,
-      artistIds: artistIds,
-      artists: artists,
-      albumArtistIds: albumArtistIds,
-      contributingArtistIds: contributingArtistIds,
-      albumIds: albumIds,
-      albums: albums,
-      studioIds: studioIds,
-      studios: studios,
-      personIds: personIds,
-      tags: tags,
-      officialRatings: officialRatings,
-      years: years,
-      nameStartsWith: nameStartsWith,
-      isFavorite: isFavorite,
-      isPlayed: isPlayed,
-      recursive: recursive,
-      enableTotalRecordCount: true,
-    )
-      ..['limit'] = 0
-      ..['enableImages'] = false
-      ..['enableUserData'] = false;
+    final qp =
+        _narrowing(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            excludeItemTypes: excludeItemTypes,
+            mediaTypes: mediaTypes,
+            searchTerm: searchTerm,
+            filters: filters,
+            ids: ids,
+            excludeItemIds: excludeItemIds,
+            genreIds: genreIds,
+            genres: genres,
+            artistIds: artistIds,
+            artists: artists,
+            albumArtistIds: albumArtistIds,
+            contributingArtistIds: contributingArtistIds,
+            albumIds: albumIds,
+            albums: albums,
+            studioIds: studioIds,
+            studios: studios,
+            personIds: personIds,
+            tags: tags,
+            officialRatings: officialRatings,
+            years: years,
+            nameStartsWith: nameStartsWith,
+            isFavorite: isFavorite,
+            isPlayed: isPlayed,
+            recursive: recursive,
+            enableTotalRecordCount: true,
+          )
+          ..['limit'] = 0
+          ..['enableImages'] = false
+          ..['enableUserData'] = false;
 
     final res = await _http.request<Map<String, Object?>>(
       '/Items',
@@ -481,15 +484,16 @@ class JellyfinItemsApi {
   }
 
   /// `GET /Items/{itemId}/MetadataEditor` — info needed to populate
-  /// the "Edit metadata" UI (available genres, tags, lock options).
-  Future<Map<String, Object?>> metadataEditorInfo({
+  /// the "Edit metadata" UI (parental ratings, countries, cultures,
+  /// external id providers, content types).
+  Future<JellyfinMetadataEditorInfo> metadataEditorInfo({
     required String itemId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Items/$itemId/MetadataEditor',
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Items/$itemId/MetadataEditor',
+    (json) =>
+        objectOf(JellyfinMetadataEditorInfo.fromJson)(json) ??
+        JellyfinMetadataEditorInfo.fromJson(const {}),
+  );
 
   /// `GET /Items/{itemId}/Download` — direct download URL (signed
   /// with the session token) for the item's primary media file.

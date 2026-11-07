@@ -47,15 +47,14 @@ JellyfinConnection _connection(
   Duration connectTimeout = const Duration(seconds: 15),
   Duration receiveTimeout = const Duration(seconds: 30),
   int jsonIsolateThreshold = JellyfinConnection.defaultJsonIsolateThreshold,
-}) =>
-    JellyfinConnection(
-      credentials: _credentials,
-      baseUrl: 'https://jf.example.test/',
-      httpClient: client,
-      connectTimeout: connectTimeout,
-      receiveTimeout: receiveTimeout,
-      jsonIsolateThreshold: jsonIsolateThreshold,
-    );
+}) => JellyfinConnection(
+  credentials: _credentials,
+  baseUrl: 'https://jf.example.test/',
+  httpClient: client,
+  connectTimeout: connectTimeout,
+  receiveTimeout: receiveTimeout,
+  jsonIsolateThreshold: jsonIsolateThreshold,
+);
 
 /// The [JellyfinException] that [call] fails with.
 Future<JellyfinException> _caught(Future<Object?> call) async {
@@ -186,14 +185,14 @@ void main() {
 
     test('decodes JSON, text and bytes', () async {
       adapter.respond = (r) => switch (r.uri.path) {
-            '/json' => CannedResponse.json({'k': 'v'}),
-            '/text' => CannedResponse(
-                200,
-                utf8.encode('hello'),
-                contentType: 'text/css',
-              ),
-            _ => CannedResponse(200, [9, 8], contentType: 'image/jpeg'),
-          };
+        '/json' => CannedResponse.json({'k': 'v'}),
+        '/text' => CannedResponse(
+          200,
+          utf8.encode('hello'),
+          contentType: 'text/css',
+        ),
+        _ => CannedResponse(200, [9, 8], contentType: 'image/jpeg'),
+      };
       final json = await conn.request<Map<String, dynamic>>('/json');
       expect(json.data, {'k': 'v'});
       final text = await conn.request<String>('/text');
@@ -322,8 +321,11 @@ void main() {
       await expectLater(
         conn.request<void>('/x', cancelToken: token),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.cancelled),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.cancelled,
+          ),
         ),
       );
       // The capturing client records only after reading the body: give a
@@ -347,8 +349,11 @@ void main() {
       await expectLater(
         call,
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.cancelled),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.cancelled,
+          ),
         ),
       );
       // The abort trigger reached the client, so a real one closes the socket.
@@ -362,8 +367,11 @@ void main() {
         _FnClient((r) async => http.StreamedResponse(body.stream, 200)),
       );
       final token = JellyfinCancelToken();
-      final call =
-          conn.requestBytes('/x', absoluteUrl: false, cancelToken: token);
+      final call = conn.requestBytes(
+        '/x',
+        absoluteUrl: false,
+        cancelToken: token,
+      );
       await Future<void>.delayed(Duration.zero);
       body.add([1, 2]);
       await Future<void>.delayed(Duration.zero);
@@ -371,8 +379,11 @@ void main() {
       await expectLater(
         call,
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.cancelled),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.cancelled,
+          ),
         ),
       );
       await body.close();
@@ -403,8 +414,11 @@ void main() {
         await expectLater(
           call,
           throwsA(
-            isA<JellyfinException>()
-                .having((e) => e.type, 'type', JellyfinErrorType.cancelled),
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.cancelled,
+            ),
           ),
         );
       }
@@ -466,8 +480,11 @@ void main() {
       await expectLater(
         conn.requestJson<int>('/x', (json) => (json! as Map)['n'] as int),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.parse),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.parse,
+          ),
         ),
       );
     });
@@ -510,8 +527,11 @@ void main() {
       await expectLater(
         conn.requestStream('/dl', absoluteUrl: false),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.notFound),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.notFound,
+          ),
         ),
       );
     });
@@ -525,8 +545,9 @@ void main() {
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((req) async {
-        final gz =
-            (req.headers.value('accept-encoding') ?? '').contains('gzip');
+        final gz = (req.headers.value('accept-encoding') ?? '').contains(
+          'gzip',
+        );
         final body = utf8.encode(
           jsonEncode({
             'Items': [
@@ -757,8 +778,11 @@ void main() {
       await expectLater(
         call,
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.isCancelled, 'cancelled', true),
+          isA<JellyfinException>().having(
+            (e) => e.isCancelled,
+            'cancelled',
+            true,
+          ),
         ),
       );
       expect(seen, hasLength(1));
@@ -810,8 +834,11 @@ void main() {
           cancelToken: token,
         ),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.isCancelled, 'cancelled', true),
+          isA<JellyfinException>().having(
+            (e) => e.isCancelled,
+            'cancelled',
+            true,
+          ),
         ),
       );
     });
@@ -854,24 +881,29 @@ void main() {
       expect(got, [1, 2]);
     });
 
-    test('a server that stalls while the listener reads still times out',
-        () async {
-      final body = StreamController<List<int>>();
-      final conn = _connection(
-        _FnClient((r) async => http.StreamedResponse(body.stream, 200)),
-        receiveTimeout: const Duration(milliseconds: 50),
-      );
-      final res = await conn.requestStream('/x', absoluteUrl: false);
-      body.add([1]);
-      await expectLater(
-        res.stream.drain<void>(),
-        throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.timeout),
-        ),
-      );
-      await body.close();
-    });
+    test(
+      'a server that stalls while the listener reads still times out',
+      () async {
+        final body = StreamController<List<int>>();
+        final conn = _connection(
+          _FnClient((r) async => http.StreamedResponse(body.stream, 200)),
+          receiveTimeout: const Duration(milliseconds: 50),
+        );
+        final res = await conn.requestStream('/x', absoluteUrl: false);
+        body.add([1]);
+        await expectLater(
+          res.stream.drain<void>(),
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.timeout,
+            ),
+          ),
+        );
+        await body.close();
+      },
+    );
   });
 
   group('failures that used to escape untyped', () {
@@ -880,8 +912,11 @@ void main() {
       await expectLater(
         conn.requestJson<int>('/x', (_) => throw RangeError('x')),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.parse),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.parse,
+          ),
         ),
       );
     });
@@ -891,14 +926,16 @@ void main() {
       await expectLater(
         conn.request<void>('http://[bad', absoluteUrl: true),
         throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.state),
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.state,
+          ),
         ),
       );
     });
 
-    test(
-        'closing the client mid-request is a state error, not a network '
+    test('closing the client mid-request is a state error, not a network '
         'failure', () async {
       final pending = Completer<http.StreamedResponse>();
       late JellyfinConnection conn;
@@ -967,30 +1004,39 @@ void main() {
       expect(e.message, contains('plain failure'));
     });
 
-    test('a gzip body cut short is a parse error, not a short answer',
-        () async {
-      await expectLater(
-        conn.request<Object?>('/truncated'),
-        throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.parse),
-        ),
-      );
-      final res = await conn.requestStream('/truncated', absoluteUrl: false);
-      await expectLater(
-        res.stream.drain<void>(),
-        throwsA(
-          isA<JellyfinException>()
-              .having((e) => e.type, 'type', JellyfinErrorType.parse),
-        ),
-      );
-    });
+    test(
+      'a gzip body cut short is a parse error, not a short answer',
+      () async {
+        await expectLater(
+          conn.request<Object?>('/truncated'),
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.parse,
+            ),
+          ),
+        );
+        final res = await conn.requestStream('/truncated', absoluteUrl: false);
+        await expectLater(
+          res.stream.drain<void>(),
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.parse,
+            ),
+          ),
+        );
+      },
+    );
   });
 
   group('a body of the wrong shape is a parse error, never empty', () {
     Future<Object?> parse(String body, Object? Function(Object?) parser) =>
-        _connection(CapturingAdapter()..body = body)
-            .requestJson<Object?>('/x', parser);
+        _connection(
+          CapturingAdapter()..body = body,
+        ).requestJson<Object?>('/x', parser);
 
     final wrong = [
       ('a query result', '[1,2]', queryResultOf(JellyfinItem.fromJson)),

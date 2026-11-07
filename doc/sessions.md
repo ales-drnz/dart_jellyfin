@@ -21,6 +21,10 @@ final controllable = await jellyfin.sessions.list(
 );
 ```
 
+A session's `nowPlayingQueue` lists its queue as `JellyfinQueueItem`s:
+item ids and entry ids. Jellyfin 12 removed the queue's full items, so
+fetch them with `items.list(ids:)`.
+
 ### Registering this client as a cast target
 
 Once this client posts its capabilities, other Jellyfin clients list it
@@ -187,4 +191,21 @@ await jellyfin.syncPlay.removeFromPlaylist(playlistItemIds: const ['entry-1']);
 // While buffering, and once ready.
 await jellyfin.syncPlay.buffering(playlistItemId: entryId, positionTicks: 0, isPlaying: false);
 await jellyfin.syncPlay.ready(playlistItemId: entryId, positionTicks: 0, isPlaying: false);
+```
+
+### Following the group
+
+The group's commands and changes arrive on the notification socket (see
+the [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html) topic):
+
+```dart
+socket.events().listen((event) {
+  switch (event) {
+    case JellyfinSyncPlayCommandEvent(:final command, :final when, :final position):
+      player.schedule(command, at: when, position: position);
+    case JellyfinSyncPlayGroupUpdateEvent(updateType: 'UserJoined', :final userName):
+      showToast('$userName joined');
+    case _:
+  }
+});
 ```

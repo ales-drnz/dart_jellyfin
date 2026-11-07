@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_plugins_api.dart';
 
 /// `/Packages` and `/Repositories` — install new plugins from a
@@ -20,28 +22,26 @@ class JellyfinPackagesApi {
   JellyfinPackagesApi(this._http);
 
   /// `GET /Packages` — list every package the server can install.
-  Future<List<Map<String, Object?>>> list() async {
-    final res = await _http.request<List<Object?>>('/Packages');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinPackageInfo>> list() => _http.requestJson(
+    '/Packages',
+    listOf(JellyfinPackageInfo.fromJson),
+  );
 
   /// `GET /Packages/{name}` — info for one package (releases,
   /// download urls, dependencies).
-  Future<Map<String, Object?>> byName({
+  Future<JellyfinPackageInfo> byName({
     required String name,
     String? assemblyGuid,
-  }) async {
+  }) {
     final qp = <String, Object?>{};
     if (assemblyGuid != null) qp['assemblyGuid'] = assemblyGuid;
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Packages/${Uri.encodeComponent(name)}',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) =>
+          objectOf(JellyfinPackageInfo.fromJson)(json) ??
+          JellyfinPackageInfo.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   /// `POST /Packages/Installed/{name}` — start installing a package.
@@ -74,14 +74,10 @@ class JellyfinPackagesApi {
   }
 
   /// `GET /Repositories` — list configured plugin repositories.
-  Future<List<Map<String, Object?>>> repositories() async {
-    final res = await _http.request<List<Object?>>('/Repositories');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinRepository>> repositories() => _http.requestJson(
+    '/Repositories',
+    listOf(JellyfinRepository.fromJson),
+  );
 
   /// `POST /Repositories` — replace the list of configured plugin
   /// repositories. Pass the full new list as [body].

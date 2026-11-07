@@ -48,16 +48,19 @@ void main() {
         );
       });
 
-      test('items.count for Audio matches items.list totalRecordCount',
-          () async {
-        final count = await jf.items
-            .count(includeItemTypes: const [JellyfinItemKind.audio]);
-        final result = await jf.items.list(
-          includeItemTypes: const [JellyfinItemKind.audio],
-          limit: 0,
-        );
-        expect(count, result.totalRecordCount);
-      });
+      test(
+        'items.count for Audio matches items.list totalRecordCount',
+        () async {
+          final count = await jf.items.count(
+            includeItemTypes: const [JellyfinItemKind.audio],
+          );
+          final result = await jf.items.list(
+            includeItemTypes: const [JellyfinItemKind.audio],
+            limit: 0,
+          );
+          expect(count, result.totalRecordCount);
+        },
+      );
 
       test('items.byId on a real audio item returns a populated DTO', () async {
         final list = await jf.items.list(
@@ -82,6 +85,18 @@ void main() {
           artists.items.any((a) => a.name.contains('Test Artist')),
           isTrue,
         );
+      });
+
+      test('an artist person filters items and resolves by name', () async {
+        final artist = await jf.artists.byName(name: 'Test Artist');
+        expect(artist, isNotNull);
+        expect(artist!.type, 'Person');
+        final tracks = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.audio],
+          artistIds: [artist.id],
+        );
+        expect(tracks.items, isNotEmpty);
+        expect(await jf.artists.byName(name: 'No Such Artist'), isNull);
       });
     },
     skip: bootstrapSkipReason,

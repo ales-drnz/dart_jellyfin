@@ -20,10 +20,11 @@ const String _upstreamUrl =
     'https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json';
 
 /// The pinned document, committed (unlike the rest of `docs/`) and left out
-/// of the package by `.pubignore`: Jellyfin 12.2.0 (`x-jellyfin-version`),
-/// byte-identical to the copy fetched from [_upstreamUrl] on 2026-10-10,
+/// of the package by `.pubignore`: Jellyfin 12.4.0 (`x-jellyfin-version`),
+/// byte-identical to the copy fetched from [_upstreamUrl] on 2026-11-07,
 /// sha256
-/// `bd31bb194443d1c57616fa0a8521e099b17d096b92794e471c0e0725c50949c8`.
+/// `02a6064916b7e08f1f1d8d7ffc1fb1c7623df0e378729fcd7fd353766868036e`.
+/// Its paths, operations and schemas are those of 12.2.0.
 /// Replace it with a newer download, and update this note, when the
 /// watchdog reports drift that the library has caught up with.
 const String _pinnedPath = 'docs/jellyfin-openapi-stable.json';
@@ -166,7 +167,8 @@ Future<JellyfinSpecDriftReport> runJellyfinSpecWatchdog({
   );
 }
 
-String _formatEndpoint(_Endpoint e) => '${e.method.padRight(6)} ${e.path}'
+String _formatEndpoint(_Endpoint e) =>
+    '${e.method.padRight(6)} ${e.path}'
     '${e.operationId == null ? '' : '  (${e.operationId})'}';
 
 bool _isCacheFresh(File stampFile) {

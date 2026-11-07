@@ -13,8 +13,10 @@ import 'jellyfin_lookup_helpers.dart';
 ///
 /// Wraps the `Persons` OpenAPI tag (2 operations). Since Jellyfin 12
 /// music artists are people too, and `GET /Persons` is the declared
-/// successor of the `/Artists` routes; filter with
+/// successor of the `/Artists` routes: `JellyfinArtistsApi` asks it with
 /// `personTypes: ['Artist']` or `['AlbumArtist']`.
+///
+/// {@category Library}
 class JellyfinPersonsApi {
   final JellyfinConnection _http;
 
@@ -87,6 +89,5 @@ class JellyfinPersonsApi {
   /// null on 404.
   Future<JellyfinItem?> byName({
     required String name,
-  }) =>
-      lookupItemByName('/Persons', name, _http);
+  }) => lookupItemByName('/Persons', name, _http);
 }

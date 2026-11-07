@@ -35,16 +35,13 @@ void main() {
           parentId: musicId,
           includeItemTypes: const [JellyfinItemKind.musicAlbum],
           fields: JellyfinItemsApi.browseFields,
-        ))
-            .items
-            .first;
+        )).items.first;
         tracks = (await jf.items.list(
           parentId: album.id,
           includeItemTypes: const [JellyfinItemKind.audio],
           fields: JellyfinItemsApi.musicFields,
           sortBy: const [JellyfinSortField.indexNumber],
-        ))
-            .items;
+        )).items;
       });
 
       test('JellyfinPaging walks the tracks two at a time', () async {
@@ -59,8 +56,7 @@ void main() {
               enableTotalRecordCount: false,
               startIndex: start,
               limit: size,
-            ))
-                .items;
+            )).items;
           },
           pageSize: 2,
         ).toList();
@@ -101,78 +97,82 @@ void main() {
         expect(await jf.syncPlay.list(), isA<List<JellyfinSyncPlayGroup>>());
       });
 
-      test('/Genres scoped to the library answers the /MusicGenres ids',
-          () async {
-        final genres = await jf.genres.list(parentId: musicId);
-        // ignore: deprecated_member_use
-        final legacy = await jf.musicGenres.list(parentId: musicId);
-        expect(
-          genres.items.map((g) => g.id).toSet(),
-          legacy.items.map((g) => g.id).toSet(),
-        );
-        final all = await jf.items.count(
-          includeItemTypes: const [JellyfinItemKind.audio],
-        );
-        for (final g in genres.items) {
-          final inGenre = await jf.items.list(
+      test(
+        '/Genres scoped to the library answers the MusicGenre ids',
+        () async {
+          final genres = await jf.genres.list(parentId: musicId);
+          expect(genres.items.map((g) => g.type).toSet(), {'MusicGenre'});
+          final all = await jf.items.count(
             includeItemTypes: const [JellyfinItemKind.audio],
-            genreIds: [g.id],
+          );
+          for (final g in genres.items) {
+            final inGenre = await jf.items.list(
+              includeItemTypes: const [JellyfinItemKind.audio],
+              genreIds: [g.id],
+              fields: JellyfinItemsApi.browseFields,
+            );
+            expect(inGenre.items, isNotEmpty, reason: g.name);
+            expect(inGenre.totalRecordCount, lessThan(all), reason: g.name);
+            expect(
+              inGenre.items.every((t) => t.genres.contains(g.name)),
+              isTrue,
+              reason: g.name,
+            );
+          }
+        },
+      );
+
+      test(
+        'items carry genre and artist ids; entry ids are item ids on 12.2',
+        () async {
+          final t = tracks.first;
+          expect(t.genreItems, isNotEmpty);
+          expect(t.genreItems.map((g) => g.name), t.genres);
+          expect(t.albumArtistItems.single.name, t.albumArtists.single);
+          expect(t.albumArtistItems.single.id, isNotEmpty);
+
+          final playlist = await jf.playlists.create(
+            name: 'IT probe entries',
+            itemIds: [t.id, t.id, tracks[1].id],
+          );
+          try {
+            final entries = await jf.playlists.items(playlistId: playlist.id);
+            expect(entries.items, hasLength(3));
+            expect(
+              entries.items.every((e) => e.playlistItemId != null),
+              isTrue,
+            );
+            // Pinned server behaviour (12.2): the entry id is the item id, so
+            // removing it removes both copies. If this starts failing, the
+            // server gained real entry ids — revisit the docs.
+            expect(entries.items.first.playlistItemId, t.id);
+            await jf.playlists.removeItems(
+              playlistId: playlist.id,
+              entryIds: [entries.items.first.playlistItemId!],
+            );
+            final left = await jf.playlists.items(playlistId: playlist.id);
+            expect(left.items.map((e) => e.id), [tracks[1].id]);
+          } finally {
+            await jf.playlists.delete(playlistId: playlist.id);
+          }
+        },
+      );
+
+      test(
+        'instant mix from a scoped genre id answers that genre\'s tracks',
+        () async {
+          final genre = (await jf.genres.list(parentId: musicId)).items.first;
+          expect(genre.type, 'MusicGenre');
+          final mix = await jf.instantMix.fromItem(
+            itemId: genre.id,
+            limit: 50,
             fields: JellyfinItemsApi.browseFields,
           );
-          expect(inGenre.items, isNotEmpty, reason: g.name);
-          expect(inGenre.totalRecordCount, lessThan(all), reason: g.name);
-          expect(
-            inGenre.items.every((t) => t.genres.contains(g.name)),
-            isTrue,
-            reason: g.name,
-          );
-        }
-      });
-
-      test('items carry genre and artist ids; entry ids are item ids on 12.2',
-          () async {
-        final t = tracks.first;
-        expect(t.genreItems, isNotEmpty);
-        expect(t.genreItems.map((g) => g.name), t.genres);
-        expect(t.albumArtistItems.single.name, t.albumArtists.single);
-        expect(t.albumArtistItems.single.id, isNotEmpty);
-
-        final playlist = await jf.playlists.create(
-          name: 'IT probe entries',
-          itemIds: [t.id, t.id, tracks[1].id],
-        );
-        try {
-          final entries = await jf.playlists.items(playlistId: playlist.id);
-          expect(entries.items, hasLength(3));
-          expect(entries.items.every((e) => e.playlistItemId != null), isTrue);
-          // Pinned server behaviour (12.2): the entry id is the item id, so
-          // removing it removes both copies. If this starts failing, the
-          // server gained real entry ids — revisit the docs.
-          expect(entries.items.first.playlistItemId, t.id);
-          await jf.playlists.removeItems(
-            playlistId: playlist.id,
-            entryIds: [entries.items.first.playlistItemId!],
-          );
-          final left = await jf.playlists.items(playlistId: playlist.id);
-          expect(left.items.map((e) => e.id), [tracks[1].id]);
-        } finally {
-          await jf.playlists.delete(playlistId: playlist.id);
-        }
-      });
-
-      test('instant mix from a scoped genre id answers that genre\'s tracks',
-          () async {
-        final genre = (await jf.genres.list(parentId: musicId)).items.first;
-        expect(genre.type, 'MusicGenre');
-        final mix = await jf.instantMix.fromItem(
-          itemId: genre.id,
-          limit: 50,
-          fields: JellyfinItemsApi.browseFields,
-        );
-        expect(mix.items, isNotEmpty);
-        expect(mix.items.every((i) => i.isAudio), isTrue);
-        expect(mix.items.every((i) => i.genres.contains(genre.name)), isTrue);
-      });
+          expect(mix.items, isNotEmpty);
+          expect(mix.items.every((i) => i.isAudio), isTrue);
+          expect(mix.items.every((i) => i.genres.contains(genre.name)), isTrue);
+        },
+      );
 
       test('an unscoped genre id filters, but seeds an empty mix', () async {
         // Pinned server behaviour (12.2): without parentId, /Genres and
@@ -184,9 +184,7 @@ void main() {
             JellyfinItemKind.musicAlbum,
             JellyfinItemKind.audio,
           ],
-        ))
-            .items
-            .firstWhere((g) => g.name == music.name);
+        )).items.firstWhere((g) => g.name == music.name);
         final byName = await jf.genres.byName(name: music.name);
         expect(unscoped.type, 'Genre');
         expect(byName!.id, unscoped.id);
@@ -206,25 +204,34 @@ void main() {
         final mix = await jf.instantMix.fromItem(itemId: unscoped.id);
         expect(mix.items, isEmpty);
 
-        final exact = await jf.musicGenres.byName(name: music.name);
+        final exact = await jf.genres.musicGenre(
+          name: music.name.toUpperCase(),
+          parentId: musicId,
+        );
         expect(exact!.id, music.id);
+        expect(
+          await jf.genres.musicGenre(name: 'no such genre', parentId: musicId),
+          isNull,
+        );
       });
 
-      test('a track carries its album cover version without any field',
-          () async {
-        final bare = await jf.items.list(
-          parentId: album.id,
-          includeItemTypes: const [JellyfinItemKind.audio],
-          limit: 1,
-        );
-        final track = bare.items.single;
-        if (album.primaryImageTag == null) {
-          markTestSkipped('the seeded album has no cover');
-          return;
-        }
-        expect(track.artworkItemId, album.id);
-        expect(track.artworkVersion, album.primaryImageTag);
-      });
+      test(
+        'a track carries its album cover version without any field',
+        () async {
+          final bare = await jf.items.list(
+            parentId: album.id,
+            includeItemTypes: const [JellyfinItemKind.audio],
+            limit: 1,
+          );
+          final track = bare.items.single;
+          if (album.primaryImageTag == null) {
+            markTestSkipped('the seeded album has no cover');
+            return;
+          }
+          expect(track.artworkItemId, album.id);
+          expect(track.artworkVersion, album.primaryImageTag);
+        },
+      );
 
       test('maxWidth + format=Jpg come back as a fitted JPEG', () async {
         if (album.primaryImageTag == null) {
@@ -272,7 +279,7 @@ void main() {
           final n = await jf.downloadToFile(
             url,
             path,
-            onProgress: (_, __) => calls++,
+            onProgress: (_, _) => calls++,
           );
           expect(n, source.size);
           expect(await File(path).length(), source.size);

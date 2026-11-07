@@ -157,6 +157,56 @@ class JellyfinImagesApi {
     return '$base/Items/$itemId/Images/$type$indexPart${_query(qp)}';
   }
 
+  /// `GET /Items/{itemId}/Images/{imageType}/{imageIndex}/{tag}/{format}/{maxWidth}/{maxHeight}/{percentPlayed}/{unplayedCount}`
+  /// — the same image as [url], with everything that shapes it in the
+  /// path.
+  ///
+  /// A cache or CDN that keys on the path alone, or drops query strings,
+  /// keeps one entry per size and version this way. Every segment is
+  /// required by the route: [tag] is the image tag (see
+  /// `JellyfinItem.artworkVersion`), [format] one of the `format…`
+  /// constants, and a [percentPlayed] or [unplayedCount] of 0 draws no
+  /// progress bar or badge. [quality], [blur] and [backgroundColor] stay
+  /// in the query, as in [url].
+  String pathUrl({
+    required String itemId,
+    required String tag,
+    required int maxWidth,
+    required int maxHeight,
+    String type = typePrimary,
+    int imageIndex = 0,
+    String format = formatJpg,
+    double percentPlayed = 0,
+    int unplayedCount = 0,
+    int? quality,
+    int? blur,
+    String? backgroundColor,
+  }) {
+    final base = _requireBase();
+    final qp = <String, String>{
+      if (quality != null) 'quality': '$quality',
+      if (blur != null) 'blur': '$blur',
+    };
+    if (backgroundColor != null) {
+      if (!_hexColor.hasMatch(backgroundColor)) {
+        throw ArgumentError.value(
+          backgroundColor,
+          'backgroundColor',
+          'not a hex colour (RGB, ARGB, RRGGBB or AARRGGBB, optional #)',
+        );
+      }
+      qp['backgroundColor'] = backgroundColor;
+    }
+    final played = percentPlayed == percentPlayed.truncateToDouble()
+        ? '${percentPlayed.toInt()}'
+        : '$percentPlayed';
+    final path =
+        '/Items/$itemId/Images/$type/$imageIndex/'
+        '${Uri.encodeComponent(tag)}/$format/$maxWidth/$maxHeight/'
+        '$played/$unplayedCount';
+    return '$base$path${_query(qp)}';
+  }
+
   /// Fetch image bytes, sized and encoded as with [url]. Returns `null` on
   /// a 404 (the item has no such image). Pass a [cancelToken] to drop the
   /// download when the image is no longer wanted.
@@ -210,18 +260,17 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      {
-        if (tag != null) 'tag': tag,
-        if (maxWidth != null) 'maxWidth': '$maxWidth',
-        if (maxHeight != null) 'maxHeight': '$maxHeight',
-        if (width != null) 'width': '$width',
-        if (height != null) 'height': '$height',
-        if (fillWidth != null) 'fillWidth': '$fillWidth',
-        if (fillHeight != null) 'fillHeight': '$fillHeight',
-        if (quality != null) 'quality': '$quality',
-        if (format != null) 'format': format,
-      };
+  }) => {
+    'tag': ?tag,
+    if (maxWidth != null) 'maxWidth': '$maxWidth',
+    if (maxHeight != null) 'maxHeight': '$maxHeight',
+    if (width != null) 'width': '$width',
+    if (height != null) 'height': '$height',
+    if (fillWidth != null) 'fillWidth': '$fillWidth',
+    if (fillHeight != null) 'fillHeight': '$fillHeight',
+    if (quality != null) 'quality': '$quality',
+    'format': ?format,
+  };
 
   // ---------------------------------------------------------------------------
   // Entity image URL builders (Artist / Genre / MusicGenre / Studio / Person)
@@ -242,24 +291,24 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      _entityImageUrl(
-        'Artists',
-        artistName,
-        type,
-        imageIndex,
-        tag: tag,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        width: width,
-        height: height,
-        fillWidth: fillWidth,
-        fillHeight: fillHeight,
-        quality: quality,
-        format: format,
-      );
+  }) => _entityImageUrl(
+    'Artists',
+    artistName,
+    type,
+    imageIndex,
+    tag: tag,
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+    width: width,
+    height: height,
+    fillWidth: fillWidth,
+    fillHeight: fillHeight,
+    quality: quality,
+    format: format,
+  );
 
-  /// `GET /Genres/{name}/Images/{imageType}` (with optional index).
+  /// `GET /Genres/{name}/Images/{imageType}[/{imageIndex}]` — the image
+  /// of a genre by name; the index is sent when given.
   String genreImageUrl({
     required String genreName,
     String type = typePrimary,
@@ -273,24 +322,24 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      _entityImageUrl(
-        'Genres',
-        genreName,
-        type,
-        imageIndex,
-        tag: tag,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        width: width,
-        height: height,
-        fillWidth: fillWidth,
-        fillHeight: fillHeight,
-        quality: quality,
-        format: format,
-      );
+  }) => _entityImageUrl(
+    'Genres',
+    genreName,
+    type,
+    imageIndex,
+    tag: tag,
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+    width: width,
+    height: height,
+    fillWidth: fillWidth,
+    fillHeight: fillHeight,
+    quality: quality,
+    format: format,
+  );
 
-  /// `GET /MusicGenres/{name}/Images/{imageType}` (with optional index).
+  /// `GET /MusicGenres/{name}/Images/{imageType}[/{imageIndex}]` — the image
+  /// of a music genre by name; the index is sent when given.
   String musicGenreImageUrl({
     required String genreName,
     String type = typePrimary,
@@ -304,24 +353,24 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      _entityImageUrl(
-        'MusicGenres',
-        genreName,
-        type,
-        imageIndex,
-        tag: tag,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        width: width,
-        height: height,
-        fillWidth: fillWidth,
-        fillHeight: fillHeight,
-        quality: quality,
-        format: format,
-      );
+  }) => _entityImageUrl(
+    'MusicGenres',
+    genreName,
+    type,
+    imageIndex,
+    tag: tag,
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+    width: width,
+    height: height,
+    fillWidth: fillWidth,
+    fillHeight: fillHeight,
+    quality: quality,
+    format: format,
+  );
 
-  /// `GET /Studios/{name}/Images/{imageType}` (with optional index).
+  /// `GET /Studios/{name}/Images/{imageType}[/{imageIndex}]` — the image
+  /// of a studio by name; the index is sent when given.
   String studioImageUrl({
     required String studioName,
     String type = typePrimary,
@@ -335,24 +384,24 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      _entityImageUrl(
-        'Studios',
-        studioName,
-        type,
-        imageIndex,
-        tag: tag,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        width: width,
-        height: height,
-        fillWidth: fillWidth,
-        fillHeight: fillHeight,
-        quality: quality,
-        format: format,
-      );
+  }) => _entityImageUrl(
+    'Studios',
+    studioName,
+    type,
+    imageIndex,
+    tag: tag,
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+    width: width,
+    height: height,
+    fillWidth: fillWidth,
+    fillHeight: fillHeight,
+    quality: quality,
+    format: format,
+  );
 
-  /// `GET /Persons/{name}/Images/{imageType}` (with optional index).
+  /// `GET /Persons/{name}/Images/{imageType}[/{imageIndex}]` — the image
+  /// of a person by name; the index is sent when given.
   String personImageUrl({
     required String personName,
     String type = typePrimary,
@@ -366,22 +415,21 @@ class JellyfinImagesApi {
     int? fillHeight,
     int? quality,
     String? format,
-  }) =>
-      _entityImageUrl(
-        'Persons',
-        personName,
-        type,
-        imageIndex,
-        tag: tag,
-        maxWidth: maxWidth,
-        maxHeight: maxHeight,
-        width: width,
-        height: height,
-        fillWidth: fillWidth,
-        fillHeight: fillHeight,
-        quality: quality,
-        format: format,
-      );
+  }) => _entityImageUrl(
+    'Persons',
+    personName,
+    type,
+    imageIndex,
+    tag: tag,
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+    width: width,
+    height: height,
+    fillWidth: fillWidth,
+    fillHeight: fillHeight,
+    quality: quality,
+    format: format,
+  );
 
   // ---------------------------------------------------------------------------
   // User image
@@ -437,11 +485,10 @@ class JellyfinImagesApi {
   /// Width, Height, …).
   Future<List<JellyfinImageInfo>> listItemImages({
     required String itemId,
-  }) =>
-      _http.requestJson(
-        '/Items/$itemId/Images',
-        listOf(JellyfinImageInfo.fromJson),
-      );
+  }) => _http.requestJson(
+    '/Items/$itemId/Images',
+    listOf(JellyfinImageInfo.fromJson),
+  );
 
   /// `POST /Items/{itemId}/Images/{imageType}[/{imageIndex}]` —
   /// upload a new image for the item. [body] is the raw image bytes,

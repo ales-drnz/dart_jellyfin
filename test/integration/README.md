@@ -68,10 +68,12 @@ Destructive admin endpoints (deleteLibrary, uninstallPlugin, …) and
 hardware-dependent endpoints (Live TV tuner discovery) are not
 exercised.
 
-## Why no CI?
+## In CI
 
-These tests require Docker, several minutes per cold start, and a
-local network port. They are designed to run on a contributor's
-machine before opening a PR, not on every push. The spec drift
-watchdog is the lightweight CI-friendly counterpart and runs on every
+These tests need Docker, several minutes per cold start, and a local
+network port, so they do not run on every push. The CI workflow
+(`.github/workflows/ci.yml`) runs them on demand: start it by hand
+(`workflow_dispatch`) and its `integration` job bootstraps the stack
+from this directory and runs the suite. The spec drift watchdog and the
+contract test are the lightweight counterparts and run on every
 `dart test`.

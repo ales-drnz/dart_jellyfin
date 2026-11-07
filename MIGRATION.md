@@ -1,3 +1,153 @@
+# Migrating to 0.4.0
+
+0.4.0 targets Jellyfin 12.4 and needs a server from 12.0 on and Dart
+3.10. It removes every member deprecated in 0.3, moves `artists` to the
+people routes, and returns typed models where 0.3 returned maps. The
+analyzer names every call to change.
+
+## Dart and the server
+
+| 0.3.x | 0.4.0 |
+| --- | --- |
+| Dart `^3.5.0` | Dart `^3.10.0` |
+| Jellyfin 12.2 targeted | Jellyfin 12.4 targeted, 12.0 or later required |
+
+Use a server from 12.0 on: 12.0 fixed security advisories, disables the
+legacy authorization by default, and removed the `/emby` and
+`/mediabrowser` prefixes. The package sends only the `MediaBrowser`
+header and never used the prefixes.
+
+## Removed members
+
+| 0.3.x | 0.4.0 |
+| --- | --- |
+| `jf.musicGenres.list(parentId: music)` | `jf.genres.list(parentId: music)`: the same ids |
+| `jf.musicGenres.byName(name: n)` | `jf.genres.musicGenre(name: n, parentId: music)` |
+| `jf.trailers.list(…)` | `jf.items.list(includeItemTypes: [JellyfinItemKind.trailer], …)` |
+| `jf.tmdb.clientConfiguration()` | gone, with no replacement; `jf.request('/Tmdb/ClientConfiguration')` while 12.x serves it |
+| `instantMix.fromMusicGenre(name: n)`, `fromMusicGenreById(genreId: id)` | `instantMix.fromItem(itemId: id)` with the `MusicGenre` id |
+| `instantMix.fromArtistByName(name: n)` | `instantMix.fromArtist(artistId: id)` with the `MusicArtist` id |
+| `startup.configuration()`, `updateInitialConfiguration()`, `setRemoteAccess()` | `configuration.get()`, `update()`, `updateNamed(key: 'network', body: …)`; during the wizard, `jf.request('/Startup/Configuration', method: 'POST', data: …)` |
+| `startup.firstUserAlt()` | `startup.firstUser()` |
+| `liveTv.recordingGroups()`, `recordingsSeries()` | `liveTv.recordingFolders()`, `recordings()` |
+| `hls.stopEncoding()` | `playback.stopped()` |
+| `audio.lyricsRaw(itemId: id)` | `(await audio.lyrics(itemId: id))?.toLrc(enhanced: true)` |
+| `e.isRetriable`, `type.isRetriable` | `e.isNetworkFailure`, or `e.isTransient` to include 5xx and 429 |
+| `user.hasPassword`, `hasConfiguredPassword`, `hasConfiguredEasyPassword` | gone: Jellyfin 12 made them meaningless; `user.raw['HasPassword']` |
+
+## Removed parameters
+
+Each was ignored by the server, so removing it changes no request.
+
+| 0.3.x | 0.4.0 |
+| --- | --- |
+| `liveTv.channels(searchTerm: q)` | filter the answer by name |
+| `tvShows.nextUp(disableFirstEpisode: …)` | drop it |
+| `videos.streamUrl(maxStreamingBitrate: b)`, `hls.videoMasterUrl()`, `videoVariantUrl()`, `videoLiveUrl()` with it | `videoBitRate:` and `audioBitRate:` |
+| `subtitles.streamWithTicksUrl(segmentLength: n)` | `endPositionTicks:` |
+| `playback.start(playMethod: 'Transcode')` | `playback.start(method: JellyfinPlayMethod.transcode)` |
+| `playback.progress(playbackOrder: 'Shuffle', repeatMode: 'RepeatAll')` | `playback.progress(order: JellyfinPlaybackOrder.shuffle, repeat: JellyfinRepeatMode.all)` |
+
+## Artists are people
+
+Jellyfin 12 stores music artists as people and marks `/Artists`,
+`/Artists/AlbumArtists` and `/Artists/{name}` obsolete, naming
+`/Persons` as their successor. `artists` now asks `/Persons`, as Jellyfin
+Web 12 does.
+
+| 0.3.x | 0.4.0 |
+| --- | --- |
+| `artists.list()` → `/Artists` | `/Persons?personTypes=Artist` |
+| `artists.albumArtists()` → `/Artists/AlbumArtists` | `/Persons?personTypes=AlbumArtist` |
+| `artists.byName(name: n)` → `/Artists/{name}` | `/Persons/{name}` |
+| `sortBy:`, `descending:`, `genres:`, `genreIds:`, `tags:`, `officialRatings:`, `years:`, `mediaTypes:`, `minCommunityRating:`, `includeItemTypes:`, `excludeItemTypes:` | gone: `/Persons` has none of them |
+| | `nameStartsWith:`, `nameStartsWithOrGreater:`, `nameLessThan:`, `enableImages:` |
+
+The answers are `Person` items, with ids of their own. A person id filters
+`items.list(artistIds:)` and `albumArtistIds:` like an artist id, and
+scoped by `parentId` the lists match what `/Artists` answered. But a
+person id seeds an empty instant mix and carries no MusicBrainz id. For
+an instant mix, a sorted list or provider ids, use the `MusicArtist`
+item:
+
+```dart
+// From a track.
+final artistId = track.artistItems.first.id;
+
+// Or by listing them.
+final musicArtists = await jf.items.list(
+  includeItemTypes: const [JellyfinItemKind.musicArtist],
+  sortBy: const [JellyfinSortField.sortName],
+);
+final mix = await jf.instantMix.fromArtist(artistId: musicArtists.items.first.id);
+```
+
+An artist id stored by 0.3 is a `MusicArtist` id and keeps working with
+`items.list()` and `instantMix`.
+
+## Typed answers
+
+These return typed models instead of maps. Each keeps the server's map in
+`raw`, so `x['Name']` becomes `x.name`, or `x.raw['Name']` for a field
+the model does not lift.
+
+| Method | 0.4.0 |
+| --- | --- |
+| `apiKey.list()` | `List<JellyfinApiKey>` |
+| `backup.list()`, `create()`, `manifest()` | `List<JellyfinBackupManifest>`, `JellyfinBackupManifest` |
+| `branding.configuration()` | `JellyfinBrandingOptions` |
+| `channels.features()`, `allFeatures()` | `JellyfinChannelFeatures`, a list of them |
+| `collection.create()` | `JellyfinCollectionCreationResult`: `created['Id']` becomes `created.id` |
+| `configuration.get()`, `defaultMetadataOptions()` | `JellyfinServerConfiguration`, `JellyfinMetadataOptions` |
+| `dashboard.configurationPages()` | `List<JellyfinConfigurationPage>` |
+| `devices.options()` | `JellyfinDeviceOptions` |
+| `environment.directoryContents()`, `drives()`, `defaultDirectoryBrowser()` | `List<JellyfinFileSystemEntry>`, `JellyfinDefaultDirectoryBrowser` |
+| `itemLookup.externalIdInfos()` | `List<JellyfinExternalIdInfo>` |
+| `itemLookup.searchMovies()` and the other eight `search…()` | `List<JellyfinRemoteSearchResult>`; pass `result.raw` to `applySearchResult()` |
+| `items.metadataEditorInfo()` | `JellyfinMetadataEditorInfo` |
+| `library.themeMedia()`, `availableOptions()` | `JellyfinThemeMedia`, `JellyfinLibraryAvailableOptions` |
+| `libraryStructure.list()` | `List<JellyfinVirtualFolder>` |
+| `liveTv.timers()`, `seriesTimers()` | `JellyfinQueryResult<JellyfinTimer>`, `JellyfinQueryResult<JellyfinSeriesTimer>` |
+| `liveTv.info()`, `guideInfo()` | `JellyfinLiveTvInfo`, `JellyfinGuideInfo` |
+| `liveTv.channelMappingOptions()`, `setChannelMapping()` | `JellyfinChannelMappingOptions`, `JellyfinTunerChannelMapping` |
+| `liveTv.addTunerHost()`, `discoverTuners()`, `discoverTunersAlt()` | `JellyfinTunerHost`, a list of them |
+| `liveTv.tunerHostTypes()`, `lineups()` | `List<JellyfinNameIdPair>` |
+| `liveTv.addListingProvider()`, `defaultListingProvider()` | `JellyfinListingsProvider` |
+| `liveTv.defaultTimer()` | `JellyfinSeriesTimer` |
+| `localization.countries()`, `cultures()`, `parentalRatings()` | `List<JellyfinCountry>`, `List<JellyfinCulture>`, `List<JellyfinParentalRating>` |
+| `localization.options()` | `List<JellyfinNameValuePair>` |
+| `packages.list()`, `byName()`, `repositories()` | `List<JellyfinPackageInfo>`, `JellyfinPackageInfo`, `List<JellyfinRepository>` |
+| `playlists.userAccess()` | `JellyfinPlaylistUserPermission?` |
+| `plugins.list()`, `manifest()` | `List<JellyfinPluginInfo>`, `JellyfinPluginManifest` |
+| `remoteImage.list()`, `providers()` | `JellyfinRemoteImageResult`, `List<JellyfinImageProviderInfo>` |
+| `startup.firstUser()` | `JellyfinStartupUser` |
+| `subtitles.searchRemote()`, `fallbackFonts()` | `List<JellyfinRemoteSubtitle>`, `List<JellyfinServerFile>` |
+| `subtitles.getRemote()` | `String?`: the subtitle text, not JSON |
+| `system.storage()`, `logs()` | `JellyfinSystemStorage`, `List<JellyfinServerFile>` |
+| `user.forgotPassword()`, `forgotPasswordPin()` | `JellyfinForgotPasswordResult`, `JellyfinPinRedeemResult` |
+| `user.authProviders()`, `passwordResetProviders()` | `List<JellyfinNameIdPair>` |
+| `userViews.groupingOptions()` | `List<JellyfinNameIdPair>` |
+| `videos.additionalParts()` | `JellyfinQueryResult<JellyfinItem>`: iterate `.items` |
+
+`configuration.getNamed()`, `plugins.configuration()` and
+`liveTv.schedulesDirectCountries()` still return maps: each answers a
+document whose shape depends on the key, the plugin or the provider.
+
+A single-object answer of the wrong shape now throws a `parse` error, as
+the lists already did.
+
+## Events and other changes
+
+- Frames that 0.3 surfaced as `JellyfinUnknownEvent` have their own
+  types: `SyncPlayCommand`, `SyncPlayGroupUpdate`, `UserUpdated`,
+  `UserDeleted`, `RestartRequired`, `ServerRestarting`,
+  `ServerShuttingDown`, the four timer frames, the five plugin frames and
+  `ActivityLogEntry`. A `switch` that matched them as
+  `JellyfinUnknownEvent(messageType: 'UserUpdated')` matches
+  `JellyfinUserUpdatedEvent()` instead.
+- `item.raw['Trickplay']` is `item.trickplay`, typed by media source id
+  and width.
+
 # Migrating to 0.3.0
 
 0.3.0 replaces Dio with `package:http`, names every id, types the values of

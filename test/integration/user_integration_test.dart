@@ -45,9 +45,8 @@ void main() {
 
       test('authProviders is callable and returns a parseable list', () async {
         final providers = await jf.user.authProviders();
-        expect(providers, isA<List<Map<String, dynamic>>>());
-        // Most Jellyfin builds ship at least one provider, but field
-        // names vary by version, so we don't assert on contents.
+        expect(providers, isNotEmpty);
+        expect(providers.every((p) => p.id.isNotEmpty), isTrue);
       });
     },
     skip: bootstrapSkipReason,

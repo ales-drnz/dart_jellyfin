@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Items/RemoteSearch/*` and `/Items/{id}/ExternalIdInfos` —
 /// metadata-provider lookup.
@@ -25,25 +27,19 @@ class JellyfinItemLookupApi {
 
   /// `GET /Items/{itemId}/ExternalIdInfos` — providers that can
   /// supply external ids for this item kind (IMDB, TMDB, MusicBrainz,
-  /// …). Each entry is a raw map describing one provider.
-  Future<List<Map<String, Object?>>> externalIdInfos({
+  /// …), with the `ProviderIds` key each one fills.
+  Future<List<JellyfinExternalIdInfo>> externalIdInfos({
     required String itemId,
-  }) async {
-    final res = await _http.request<List<Object?>>(
-      '/Items/$itemId/ExternalIdInfos',
-    );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/Items/$itemId/ExternalIdInfos',
+    listOf(JellyfinExternalIdInfo.fromJson),
+  );
 
   /// `POST /Items/RemoteSearch/Apply/{itemId}` — write the selected
   /// remote search result back onto the item (downloads images,
   /// updates external ids, replaces metadata).
   ///
-  /// [body] is the chosen `RemoteSearchResult` map (one of the
+  /// [body] is the chosen [JellyfinRemoteSearchResult.raw] (one of the
   /// entries from a `searchXxx()` call), wrapped per upstream
   /// expectation: `{... search result fields ..., ReplaceAllImages,
   /// ApplyTo, ...}`.
@@ -62,62 +58,60 @@ class JellyfinItemLookupApi {
 
   /// `POST /Items/RemoteSearch/Movie` — metadata search for a movie
   /// item. [body] is the upstream `MovieInfoRemoteSearchQuery`.
-  Future<List<Map<String, Object?>>> searchMovies(Map<String, Object?> body) =>
-      _search('/Items/RemoteSearch/Movie', body);
+  Future<List<JellyfinRemoteSearchResult>> searchMovies(
+    Map<String, Object?> body,
+  ) => _search('/Items/RemoteSearch/Movie', body);
 
-  /// `POST /Items/RemoteSearch/Series`.
-  Future<List<Map<String, Object?>>> searchSeries(Map<String, Object?> body) =>
-      _search('/Items/RemoteSearch/Series', body);
+  /// `POST /Items/RemoteSearch/Series`. [body] is the upstream
+  /// `SeriesInfoRemoteSearchQuery`. Jellyfin 13.0 reads
+  /// `SearchInfo.DisplayOrder`, the episode order group to match
+  /// (`aired`, `dvd`, …); 12.x ignores it.
+  Future<List<JellyfinRemoteSearchResult>> searchSeries(
+    Map<String, Object?> body,
+  ) => _search('/Items/RemoteSearch/Series', body);
 
   /// `POST /Items/RemoteSearch/Trailer`.
-  Future<List<Map<String, Object?>>> searchTrailers(
+  Future<List<JellyfinRemoteSearchResult>> searchTrailers(
     Map<String, Object?> body,
-  ) =>
-      _search('/Items/RemoteSearch/Trailer', body);
+  ) => _search('/Items/RemoteSearch/Trailer', body);
 
   /// `POST /Items/RemoteSearch/MusicAlbum`.
-  Future<List<Map<String, Object?>>> searchMusicAlbums(
+  Future<List<JellyfinRemoteSearchResult>> searchMusicAlbums(
     Map<String, Object?> body,
-  ) =>
-      _search('/Items/RemoteSearch/MusicAlbum', body);
+  ) => _search('/Items/RemoteSearch/MusicAlbum', body);
 
   /// `POST /Items/RemoteSearch/MusicArtist`.
-  Future<List<Map<String, Object?>>> searchMusicArtists(
+  Future<List<JellyfinRemoteSearchResult>> searchMusicArtists(
     Map<String, Object?> body,
-  ) =>
-      _search('/Items/RemoteSearch/MusicArtist', body);
+  ) => _search('/Items/RemoteSearch/MusicArtist', body);
 
   /// `POST /Items/RemoteSearch/MusicVideo`.
-  Future<List<Map<String, Object?>>> searchMusicVideos(
+  Future<List<JellyfinRemoteSearchResult>> searchMusicVideos(
     Map<String, Object?> body,
-  ) =>
-      _search('/Items/RemoteSearch/MusicVideo', body);
+  ) => _search('/Items/RemoteSearch/MusicVideo', body);
 
   /// `POST /Items/RemoteSearch/Person`.
-  Future<List<Map<String, Object?>>> searchPersons(Map<String, Object?> body) =>
-      _search('/Items/RemoteSearch/Person', body);
+  Future<List<JellyfinRemoteSearchResult>> searchPersons(
+    Map<String, Object?> body,
+  ) => _search('/Items/RemoteSearch/Person', body);
 
   /// `POST /Items/RemoteSearch/Book`.
-  Future<List<Map<String, Object?>>> searchBooks(Map<String, Object?> body) =>
-      _search('/Items/RemoteSearch/Book', body);
+  Future<List<JellyfinRemoteSearchResult>> searchBooks(
+    Map<String, Object?> body,
+  ) => _search('/Items/RemoteSearch/Book', body);
 
   /// `POST /Items/RemoteSearch/BoxSet`.
-  Future<List<Map<String, Object?>>> searchBoxSets(Map<String, Object?> body) =>
-      _search('/Items/RemoteSearch/BoxSet', body);
+  Future<List<JellyfinRemoteSearchResult>> searchBoxSets(
+    Map<String, Object?> body,
+  ) => _search('/Items/RemoteSearch/BoxSet', body);
 
-  Future<List<Map<String, Object?>>> _search(
+  Future<List<JellyfinRemoteSearchResult>> _search(
     String path,
     Map<String, Object?> body,
-  ) async {
-    final res = await _http.request<List<Object?>>(
-      path,
-      method: 'POST',
-      data: body,
-    );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  ) => _http.requestJson(
+    path,
+    method: 'POST',
+    data: body,
+    listOf(JellyfinRemoteSearchResult.fromJson),
+  );
 }

@@ -19,9 +19,9 @@ import '../jellyfin_vocabulary.dart';
 /// [JellyfinQueryResult] of [JellyfinItem] (same shape as
 /// `items.list()`), so the result drops straight into a UI list.
 ///
-/// Jellyfin 12 marks the music-genre and artist-by-name variants
-/// obsolete: [fromItem] accepts any seed id (song, album, artist,
-/// music genre, playlist) and is the one to reach for.
+/// [fromItem] accepts any seed id (song, album, artist, music genre,
+/// playlist) and is the one to reach for. Jellyfin 12 made the
+/// music-genre routes obsolete; 0.4.0 removed them.
 ///
 /// {@category Search and lyrics}
 class JellyfinInstantMixApi {
@@ -35,9 +35,14 @@ class JellyfinInstantMixApi {
   ///
   /// A genre seeds a mix by its `MusicGenre` id — from a track's
   /// `genreItems`, `genres.list(parentId: musicLibraryId)` or
-  /// `musicGenres.byName()`. The generic `Genre` id that
+  /// `genres.musicGenre()`. The generic `Genre` id that
   /// `genres.byName()` and an unscoped `genres.list()` answer gets 200
-  /// with an empty mix (12.2).
+  /// with an empty mix (12.4).
+  ///
+  /// An artist seeds a mix by its `MusicArtist` id — from a track's
+  /// `artistItems` or `albumArtistItems`, or `items.list(includeItemTypes:
+  /// [JellyfinItemKind.musicArtist])`. The `Person` id that
+  /// `artists.list()` answers gets an empty mix (12.4).
   Future<JellyfinQueryResult<JellyfinItem>> fromItem({
     required String itemId,
     int? limit,
@@ -45,15 +50,14 @@ class JellyfinInstantMixApi {
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Items/$itemId/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
+  }) => _request(
+    '/Items/$itemId/InstantMix',
+    limit: limit,
+    fields: fields,
+    enableImages: enableImages,
+    enableUserData: enableUserData,
+    imageTypeLimit: imageTypeLimit,
+  );
 
   /// `/Songs/{songId}/InstantMix` — seeded by a song.
   Future<JellyfinQueryResult<JellyfinItem>> fromSong({
@@ -63,15 +67,14 @@ class JellyfinInstantMixApi {
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Songs/$songId/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
+  }) => _request(
+    '/Songs/$songId/InstantMix',
+    limit: limit,
+    fields: fields,
+    enableImages: enableImages,
+    enableUserData: enableUserData,
+    imageTypeLimit: imageTypeLimit,
+  );
 
   /// `/Albums/{albumId}/InstantMix`.
   Future<JellyfinQueryResult<JellyfinItem>> fromAlbum({
@@ -81,17 +84,21 @@ class JellyfinInstantMixApi {
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Albums/$albumId/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
+  }) => _request(
+    '/Albums/$albumId/InstantMix',
+    limit: limit,
+    fields: fields,
+    enableImages: enableImages,
+    enableUserData: enableUserData,
+    imageTypeLimit: imageTypeLimit,
+  );
 
-  /// `/Artists/{artistId}/InstantMix` (modern variant — uses item id).
+  /// `/Artists/{artistId}/InstantMix` — seeded by an artist.
+  ///
+  /// [artistId] is a `MusicArtist` id: a track's `artistItems` or
+  /// `albumArtistItems`, or `items.list(includeItemTypes:
+  /// [JellyfinItemKind.musicArtist])`. The `Person` id that
+  /// `artists.list()` answers gets an empty mix (12.4).
   Future<JellyfinQueryResult<JellyfinItem>> fromArtist({
     required String artistId,
     int? limit,
@@ -99,95 +106,14 @@ class JellyfinInstantMixApi {
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Artists/$artistId/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
-
-  /// `/MusicGenres/{name}/InstantMix` (by name).
-  ///
-  /// Obsolete in Jellyfin 12: resolve the genre with
-  /// `musicGenres.byName()` (or `genres.list(parentId: musicLibraryId)`)
-  /// and pass its id to [fromItem]. Not `genres.byName()`: that answers
-  /// the generic `Genre` item, whose id seeds an empty mix.
-  @Deprecated(
-    'Obsolete in Jellyfin 12; resolve the genre id with '
-    'musicGenres.byName() and call fromItem() instead.',
-  )
-  Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenre({
-    required String name,
-    int? limit,
-    List<JellyfinItemField> fields = const [],
-    bool enableImages = true,
-    bool enableUserData = true,
-    int? imageTypeLimit,
-  }) =>
-      _request(
-        '/MusicGenres/${Uri.encodeComponent(name)}/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
-
-  /// `/MusicGenres/InstantMix?id={genreId}` (by id).
-  ///
-  /// Obsolete in Jellyfin 12: [fromItem] takes the same genre id — a
-  /// `MusicGenre` id, as `musicGenres.byName()`,
-  /// `genres.list(parentId: musicLibraryId)` and a track's `genreItems`
-  /// answer.
-  @Deprecated('Obsolete in Jellyfin 12; call fromItem(itemId: genreId).')
-  Future<JellyfinQueryResult<JellyfinItem>> fromMusicGenreById({
-    required String genreId,
-    int? limit,
-    List<JellyfinItemField> fields = const [],
-    bool enableImages = true,
-    bool enableUserData = true,
-    int? imageTypeLimit,
-  }) =>
-      _request(
-        '/MusicGenres/InstantMix',
-        extra: {'id': genreId},
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
-
-  /// `/Artists/InstantMix?name={name}` — alternative name-keyed
-  /// entry point for the artist mix (`GetInstantMixFromArtists2`).
-  ///
-  /// Hidden from the Jellyfin 12 OpenAPI document and may be removed
-  /// without notice. Resolve the artist with `artists.byName()` and
-  /// pass its id to [fromArtist] or [fromItem].
-  @Deprecated(
-    'Hidden from the Jellyfin 12 API; resolve the artist id and call '
-    'fromArtist() or fromItem() instead.',
-  )
-  Future<JellyfinQueryResult<JellyfinItem>> fromArtistByName({
-    required String name,
-    int? limit,
-    List<JellyfinItemField> fields = const [],
-    bool enableImages = true,
-    bool enableUserData = true,
-    int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Artists/InstantMix',
-        extra: {'name': name},
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
+  }) => _request(
+    '/Artists/$artistId/InstantMix',
+    limit: limit,
+    fields: fields,
+    enableImages: enableImages,
+    enableUserData: enableUserData,
+    imageTypeLimit: imageTypeLimit,
+  );
 
   /// `/Playlists/{playlistId}/InstantMix` — seeded by a playlist.
   Future<JellyfinQueryResult<JellyfinItem>> fromPlaylist({
@@ -197,15 +123,14 @@ class JellyfinInstantMixApi {
     bool enableImages = true,
     bool enableUserData = true,
     int? imageTypeLimit,
-  }) =>
-      _request(
-        '/Playlists/$playlistId/InstantMix',
-        limit: limit,
-        fields: fields,
-        enableImages: enableImages,
-        enableUserData: enableUserData,
-        imageTypeLimit: imageTypeLimit,
-      );
+  }) => _request(
+    '/Playlists/$playlistId/InstantMix',
+    limit: limit,
+    fields: fields,
+    enableImages: enableImages,
+    enableUserData: enableUserData,
+    imageTypeLimit: imageTypeLimit,
+  );
 
   // ─── Internal helper ──────────────────────────────────────────────
 

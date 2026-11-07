@@ -30,9 +30,9 @@ class JellyfinSyncPlayApi {
 
   /// `GET /SyncPlay/List` — list groups the current user can join.
   Future<List<JellyfinSyncPlayGroup>> list() => _http.requestJson(
-        '/SyncPlay/List',
-        listOf(JellyfinSyncPlayGroup.fromJson),
-      );
+    '/SyncPlay/List',
+    listOf(JellyfinSyncPlayGroup.fromJson),
+  );
 
   // ─── Group lifecycle ───────────────────────────────────────────────
 
@@ -244,11 +244,10 @@ class JellyfinSyncPlayApi {
   /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id.
   Future<JellyfinSyncPlayGroup?> group({
     required String id,
-  }) =>
-      _http.requestJson(
-        '/SyncPlay/$id',
-        objectOf(JellyfinSyncPlayGroup.fromJson),
-      );
+  }) => _http.requestJson(
+    '/SyncPlay/$id',
+    objectOf(JellyfinSyncPlayGroup.fromJson),
+  );
 
   /// `POST /SyncPlay/SetNewQueue` — replace the group's playback
   /// queue with a new set of items.

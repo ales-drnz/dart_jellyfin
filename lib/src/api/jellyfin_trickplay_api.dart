@@ -8,10 +8,21 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 
 /// `/Videos/{itemId}/Trickplay/{width}/{index}.jpg` — scrubbing
-/// thumbnails. Each video item carries one or more trickplay tile
-/// resolutions (e.g. 320×, 160×) discoverable on
-/// `JellyfinItem.raw['Trickplay']` (the typed `Trickplay` field is not
-/// yet promoted onto `JellyfinItem`; read it from `.raw`).
+/// thumbnails. A video item lists the resolutions the server generated
+/// (e.g. 320, 160) in `JellyfinItem.trickplay`: `items.byId` sends it, a
+/// list sends it when `fields` has `JellyfinItemField.trickplay`.
+///
+/// ```dart
+/// final item = (await jf.items.byId(itemId: id))!;
+/// final info = item.trickplay[item.mediaSources.first.id]?[320];
+/// if (info != null) {
+///   final url = jf.trickplay.tileUrl(
+///     itemId: id,
+///     width: info.width,
+///     index: info.tileIndexAt(position),
+///   );
+/// }
+/// ```
 ///
 /// {@category Video and subtitles}
 class JellyfinTrickplayApi {
@@ -33,7 +44,7 @@ class JellyfinTrickplayApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
+      'mediaSourceId': ?mediaSourceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/$index.jpg?${_encode(qp)}';
   }
@@ -51,7 +62,7 @@ class JellyfinTrickplayApi {
   }) {
     final qp = <String, String>{
       'ApiKey': _requireToken(),
-      if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
+      'mediaSourceId': ?mediaSourceId,
     };
     return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/tiles.m3u8?${_encode(qp)}';
   }

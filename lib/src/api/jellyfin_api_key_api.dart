@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Auth/Keys` — API key management.
 ///
@@ -19,16 +21,11 @@ class JellyfinApiKeyApi {
   /// `GET /Auth/Keys` — list active API keys.
   ///
   /// The server wraps the keys in a `QueryResult` envelope
-  /// (`{Items, TotalRecordCount}`), so we lift the `Items` array out.
-  Future<List<Map<String, Object?>>> list() async {
-    final res = await _http.request<Map<String, Object?>>('/Auth/Keys');
-    final items = res.data?['Items'];
-    if (items is! List) return const [];
-    return [
-      for (final e in items)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// (`{Items, TotalRecordCount}`); this answers its `Items`.
+  Future<List<JellyfinApiKey>> list() => _http.requestJson(
+    '/Auth/Keys',
+    (json) => queryResultOf(JellyfinApiKey.fromJson)(json).items,
+  );
 
   /// `POST /Auth/Keys?app={app}` — create a new API key for [app].
   Future<void> create({

@@ -77,7 +77,7 @@ Future<void> main(List<String> args) async {
 
   // 2. Docker stack
   _step(
-    'Starting Docker stack (Jellyfin ${env['JELLYFIN_IMAGE_TAG'] ?? '12.2'})',
+    'Starting Docker stack (Jellyfin ${env['JELLYFIN_IMAGE_TAG'] ?? '12.4'})',
   );
   await _composeUp();
 
@@ -300,7 +300,9 @@ Future<void> _waitForHttp(String url, {int maxSeconds = 120}) async {
   final deadline = DateTime.now().add(Duration(seconds: maxSeconds));
   while (DateTime.now().isBefore(deadline)) {
     try {
-      final res = await http.get(Uri.parse(url)).timeout(
+      final res = await http
+          .get(Uri.parse(url))
+          .timeout(
             const Duration(seconds: 3),
           );
       if (res.statusCode == 200) {
@@ -322,13 +324,20 @@ Future<void> _runFirstRunWizard(
 ) async {
   // The Jellyfin Web wizard steps in this order:
   //   configuration → user → remote access → complete
-  // Re-ordering causes the server to reject later POSTs.
+  // Re-ordering causes the server to reject later POSTs. The package
+  // dropped the configuration and remote-access steps, which Jellyfin 12
+  // marks obsolete, but the 12.x wizard still walks them, so they go
+  // through the raw escape hatch.
   print('   ▶ /Startup/Configuration');
-  await client.startup.updateInitialConfiguration({
-    'UICulture': 'en-US',
-    'MetadataCountryCode': 'US',
-    'PreferredMetadataLanguage': 'en',
-  });
+  await client.request<void>(
+    '/Startup/Configuration',
+    method: 'POST',
+    data: {
+      'UICulture': 'en-US',
+      'MetadataCountryCode': 'US',
+      'PreferredMetadataLanguage': 'en',
+    },
+  );
   // The server tracks the wizard step server-side. Doing a GET on
   // /Startup/User first advances the state machine, after which the
   // POST is accepted; without the GET it returns 404.
@@ -339,10 +348,14 @@ Future<void> _runFirstRunWizard(
     password: password,
   );
   print('   ▶ /Startup/RemoteAccess');
-  await client.startup.setRemoteAccess({
-    'EnableRemoteAccess': false,
-    'EnableAutomaticPortMapping': false,
-  });
+  await client.request<void>(
+    '/Startup/RemoteAccess',
+    method: 'POST',
+    data: {
+      'EnableRemoteAccess': false,
+      'EnableAutomaticPortMapping': false,
+    },
+  );
   print('   ▶ /Startup/Complete');
   await client.startup.completeWizard();
   print('   ✓ Wizard complete');
@@ -372,8 +385,10 @@ Future<void> _waitForScan(
     }
     await Future<void>.delayed(const Duration(seconds: 2));
   }
-  print('   ⚠ Scan didn\'t settle within ${maxSeconds}s — '
-      'final count: $lastCount audio items');
+  print(
+    '   ⚠ Scan didn\'t settle within ${maxSeconds}s — '
+    'final count: $lastCount audio items',
+  );
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────

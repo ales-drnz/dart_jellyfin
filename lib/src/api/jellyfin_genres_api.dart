@@ -8,12 +8,12 @@ import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_lookup_helpers.dart';
-import 'jellyfin_music_genres_api.dart';
 
 /// `/Genres*` — generic genres across the library.
 ///
-/// Wraps the `Genres` OpenAPI tag (2 operations). For music-specific
-/// genres see [JellyfinMusicGenresApi].
+/// Wraps the `Genres` OpenAPI tag (2 operations). Jellyfin 12 folds the
+/// `/MusicGenres` routes into these: list music genres with
+/// `list(parentId: musicLibraryId)` and find one with [musicGenre].
 ///
 /// Jellyfin keeps two genre items per name: a `Genre` and, for music, a
 /// `MusicGenre`, with different ids. Both ids filter
@@ -32,10 +32,10 @@ class JellyfinGenresApi {
   /// by item kind.
   ///
   /// Which genre item comes back depends on [parentId], not on
-  /// [includeItemTypes] (verified on 12.2):
+  /// [includeItemTypes] (verified on 12.4):
   ///
   /// * with the id of a music library, the `MusicGenre` items — the ids
-  ///   `/MusicGenres` answers and a track's `genreItems` carry, which
+  ///   a track's `genreItems` carry, which
   ///   `instantMix.fromItem` takes;
   /// * without [parentId], the `Genre` items, even with
   ///   `includeItemTypes` set to albums and tracks. Their ids filter
@@ -59,39 +59,55 @@ class JellyfinGenresApi {
     String? nameLessThan,
     List<JellyfinSortField> sortBy = const [],
     bool descending = false,
-  }) =>
-      _browse(
-        '/Genres',
-        parentId: parentId,
-        searchTerm: searchTerm,
-        startIndex: startIndex,
-        limit: limit,
-        fields: fields,
-        includeItemTypes: includeItemTypes,
-        excludeItemTypes: excludeItemTypes,
-        isFavorite: isFavorite,
-        imageTypeLimit: imageTypeLimit,
-        enableImageTypes: enableImageTypes,
-        nameStartsWith: nameStartsWith,
-        nameStartsWithOrGreater: nameStartsWithOrGreater,
-        nameLessThan: nameLessThan,
-        sortBy: sortBy,
-        descending: descending,
-      );
+  }) => _browse(
+    '/Genres',
+    parentId: parentId,
+    searchTerm: searchTerm,
+    startIndex: startIndex,
+    limit: limit,
+    fields: fields,
+    includeItemTypes: includeItemTypes,
+    excludeItemTypes: excludeItemTypes,
+    isFavorite: isFavorite,
+    imageTypeLimit: imageTypeLimit,
+    enableImageTypes: enableImageTypes,
+    nameStartsWith: nameStartsWith,
+    nameStartsWithOrGreater: nameStartsWithOrGreater,
+    nameLessThan: nameLessThan,
+    sortBy: sortBy,
+    descending: descending,
+  );
 
   /// `GET /Genres/{genreName}` — lookup a genre by exact name.
   /// Returns null on 404.
   ///
   /// Answers the `Genre` item, never the `MusicGenre` one: the route
   /// takes no `parentId`. Its id filters `items.list(genreIds:)`, but an
-  /// instant mix seeded by it is empty (verified on 12.2). For a music
-  /// genre use [JellyfinMusicGenresApi.byName], or
-  /// `list(parentId: musicLibraryId, searchTerm: name)` and keep the
-  /// exact match — `searchTerm` also matches parts of names.
+  /// instant mix seeded by it is empty (verified on 12.4). For a music
+  /// genre use [musicGenre].
   Future<JellyfinItem?> byName({
     required String name,
-  }) =>
-      lookupItemByName('/Genres', name, _http);
+  }) => lookupItemByName('/Genres', name, _http);
+
+  /// The `MusicGenre` item named [name] in the music library
+  /// [parentId], or `null` when there is none.
+  ///
+  /// Replaces `GET /MusicGenres/{genreName}`, which Jellyfin 12 marks
+  /// obsolete. It asks `GET /Genres` with [parentId] and [name] as the
+  /// search term, and keeps the entry whose name equals [name], ignoring
+  /// case: the search also matches parts of names. The id seeds
+  /// `instantMix.fromItem` and filters `items.list(genreIds:)`.
+  Future<JellyfinItem?> musicGenre({
+    required String name,
+    required String parentId,
+  }) async {
+    final page = await list(parentId: parentId, searchTerm: name);
+    final wanted = name.toLowerCase();
+    for (final genre in page.items) {
+      if (genre.name.toLowerCase() == wanted) return genre;
+    }
+    return null;
+  }
 
   Future<JellyfinQueryResult<JellyfinItem>> _browse(
     String path, {

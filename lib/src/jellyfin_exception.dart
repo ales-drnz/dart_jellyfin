@@ -28,6 +28,11 @@ final class JellyfinException implements Exception {
   /// `429` or `503`), when it said.
   final Duration? retryAfter;
 
+  /// The body of the error answer as text, whole, when the server sent
+  /// one ([message] holds at most its first 512 bytes). Kept so a refusal
+  /// the package does not recognise can still be read, logged or shown.
+  final String? body;
+
   /// The originating stack trace, when captured. Preserves the async stack
   /// across catch-and-rethrow so crash reporters can pinpoint the failure.
   final StackTrace? stackTrace;
@@ -41,6 +46,7 @@ final class JellyfinException implements Exception {
     this.cause,
     this.stackTrace,
     this.retryAfter,
+    this.body,
   });
 
   /// No answer from the server at all: the connection failed or timed out.
@@ -68,13 +74,6 @@ final class JellyfinException implements Exception {
 
   /// Whether [type] is an authentication/authorization failure.
   bool get isAuthError => type.isAuthError;
-
-  /// Same as [isNetworkFailure].
-  @Deprecated(
-    'Use isNetworkFailure, or isTransient to include 5xx and 429. '
-    'Removed in 0.4.',
-  )
-  bool get isRetriable => isNetworkFailure;
 
   @override
   String toString() {

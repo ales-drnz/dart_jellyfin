@@ -6,6 +6,8 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
+import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_audio_api.dart';
 import 'jellyfin_media_info_api.dart';
 
@@ -40,10 +42,6 @@ class JellyfinVideosApi {
     required String itemId,
     String? container,
     String? mediaSourceId,
-    @Deprecated(
-      'Video routes do not read it; cap with videoBitRate and audioBitRate',
-    )
-    int? maxStreamingBitrate,
     int? audioStreamIndex,
     int? subtitleStreamIndex,
     String? subtitleMethod,
@@ -64,20 +62,21 @@ class JellyfinVideosApi {
   }) {
     final base = _requireBaseUrl();
     final ext = container ?? '';
-    final path =
-        ext.isEmpty ? '/Videos/$itemId/stream' : '/Videos/$itemId/stream.$ext';
+    final path = ext.isEmpty
+        ? '/Videos/$itemId/stream'
+        : '/Videos/$itemId/stream.$ext';
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
+      'MediaSourceId': ?mediaSourceId,
       if (audioStreamIndex != null) 'AudioStreamIndex': '$audioStreamIndex',
       if (subtitleStreamIndex != null)
         'SubtitleStreamIndex': '$subtitleStreamIndex',
-      if (subtitleMethod != null) 'SubtitleMethod': subtitleMethod,
+      'SubtitleMethod': ?subtitleMethod,
       if (maxAudioChannels != null) 'MaxAudioChannels': '$maxAudioChannels',
-      if (videoCodec != null) 'VideoCodec': videoCodec,
-      if (audioCodec != null) 'AudioCodec': audioCodec,
+      'VideoCodec': ?videoCodec,
+      'AudioCodec': ?audioCodec,
       if (videoBitRate != null) 'VideoBitRate': '$videoBitRate',
       if (audioBitRate != null) 'AudioBitRate': '$audioBitRate',
       if (width != null) 'Width': '$width',
@@ -85,28 +84,21 @@ class JellyfinVideosApi {
       if (maxWidth != null) 'MaxWidth': '$maxWidth',
       if (maxHeight != null) 'MaxHeight': '$maxHeight',
       if (startTimeTicks != null) 'StartTimeTicks': '$startTimeTicks',
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
-      if (tag != null) 'Tag': tag,
+      'PlaySessionId': ?playSessionId,
+      'Tag': ?tag,
       ...params,
     };
     return ('$base$path?${_encode(qp)}', ext);
   }
 
   /// "Additional parts" — multi-file movies (CD1/CD2, parts/halves).
-  Future<List<Map<String, Object?>>> additionalParts({
+  Future<JellyfinQueryResult<JellyfinItem>> additionalParts({
     required String itemId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Videos/$itemId/AdditionalParts',
-      queryParameters: {'userId': _http.userId},
-    );
-    final items = res.data?['Items'];
-    if (items is! List) return const [];
-    return [
-      for (final e in items)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/Videos/$itemId/AdditionalParts',
+    queryParameters: {'userId': _http.userId},
+    queryResultOf(JellyfinItem.fromJson),
+  );
 
   /// `DELETE /Videos/{itemId}/AlternateSources` — remove the
   /// alternate-source versions linked to this video. Keeps the

@@ -1,5 +1,24 @@
 Create a client, give it your app's identity and a server, choose the HTTP stack, and sign in.
 
+## Server versions
+
+The package follows the Jellyfin 12.4 API document, which is the 12.2
+one, and runs against any server from 12.0 on. Use 12.0 or later, for
+three reasons:
+
+- 12.0 fixed security advisories, among them an FFmpeg argument
+  injection through a subtitle path (GHSA-wwwm-px48-fpvq) and path
+  traversals in the image, plugin and HLS segment routes.
+- 12.0 disables the legacy ways to authorize by default, on new and
+  upgraded installs. The client sends only the `MediaBrowser`
+  `Authorization` header, which every 12.x server accepts.
+- 12.0 removed the `/emby` and `/mediabrowser` route prefixes. The
+  package never used them.
+
+A few fields and parameters of the 13.0 development document are read or
+sent already, and ignored by 12.x: `JellyfinItemCounts.audioBookCount`
+and the subtitle builders' `vttTimestampMapMpegts`.
+
 ## Initialization and lifecycle
 
 <img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/diagrams/client_lifecycle.png" width="100%" alt="Client lifecycle: JellyfinClient, sign in with setSession, sub-APIs, withCancelToken, close">

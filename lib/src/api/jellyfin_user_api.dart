@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
@@ -90,8 +91,8 @@ class JellyfinUserApi {
     return _http.requestJson(
       '/Users',
       queryParameters: {
-        if (isHidden != null) 'isHidden': isHidden,
-        if (isDisabled != null) 'isDisabled': isDisabled,
+        'isHidden': ?isHidden,
+        'isDisabled': ?isDisabled,
       },
       listOf(JellyfinUser.fromJson),
     );
@@ -126,7 +127,7 @@ class JellyfinUserApi {
       method: 'POST',
       data: {
         'Name': name,
-        if (password != null) 'Password': password,
+        'Password': ?password,
       },
     );
     return JellyfinUser.fromJson(res.data ?? const {});
@@ -195,8 +196,8 @@ class JellyfinUserApi {
       method: 'POST',
       queryParameters: qp.isEmpty ? null : qp,
       data: {
-        if (currentPassword != null) 'CurrentPw': currentPassword,
-        if (newPassword != null) 'NewPw': newPassword,
+        'CurrentPw': ?currentPassword,
+        'NewPw': ?newPassword,
         'ResetPassword': resetPassword,
       },
     );
@@ -210,53 +211,46 @@ class JellyfinUserApi {
   }
 
   /// `POST /Users/ForgotPassword?enteredUsername={u}` — start the
-  /// forgot-password flow. Returns the server's response (which
-  /// includes the action — usually `ContactAdmin` or `PinCode`).
-  Future<Map<String, Object?>> forgotPassword({
+  /// forgot-password flow. The answer names the next step in
+  /// [JellyfinForgotPasswordResult.action] — usually `ContactAdmin` or
+  /// `PinCode`.
+  Future<JellyfinForgotPasswordResult> forgotPassword({
     required String username,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Users/ForgotPassword',
-      method: 'POST',
-      data: {'EnteredUsername': username},
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Users/ForgotPassword',
+    method: 'POST',
+    data: {'EnteredUsername': username},
+    (json) =>
+        objectOf(JellyfinForgotPasswordResult.fromJson)(json) ??
+        JellyfinForgotPasswordResult.fromJson(const {}),
+  );
 
   /// `POST /Users/ForgotPassword/Pin?pin={code}` — submit the PIN
   /// returned by [forgotPassword] (server places it in a known file
   /// on disk for the admin to read).
-  Future<Map<String, Object?>> forgotPasswordPin({
+  Future<JellyfinPinRedeemResult> forgotPasswordPin({
     required String pin,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Users/ForgotPassword/Pin',
-      method: 'POST',
-      data: {'Pin': pin},
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Users/ForgotPassword/Pin',
+    method: 'POST',
+    data: {'Pin': pin},
+    (json) =>
+        objectOf(JellyfinPinRedeemResult.fromJson)(json) ??
+        JellyfinPinRedeemResult.fromJson(const {}),
+  );
 
-  /// `GET /Auth/Providers` — list of authentication providers
-  /// configured on the server (returned as raw maps).
-  Future<List<Map<String, Object?>>> authProviders() async {
-    final res = await _http.request<List<Object?>>('/Auth/Providers');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// `GET /Auth/Providers` — authentication providers configured on the
+  /// server.
+  Future<List<JellyfinNameIdPair>> authProviders() => _http.requestJson(
+    '/Auth/Providers',
+    listOf(JellyfinNameIdPair.fromJson),
+  );
 
-  /// `GET /Auth/PasswordResetProviders` — list of password-reset
-  /// providers configured on the server.
-  Future<List<Map<String, Object?>>> passwordResetProviders() async {
-    final res =
-        await _http.request<List<Object?>>('/Auth/PasswordResetProviders');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// `GET /Auth/PasswordResetProviders` — password-reset providers
+  /// configured on the server.
+  Future<List<JellyfinNameIdPair>> passwordResetProviders() =>
+      _http.requestJson(
+        '/Auth/PasswordResetProviders',
+        listOf(JellyfinNameIdPair.fromJson),
+      );
 }

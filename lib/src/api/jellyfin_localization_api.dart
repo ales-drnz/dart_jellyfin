@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Localization/*` — country, culture, and parental-rating
 /// catalogs maintained by the server.
@@ -20,35 +22,31 @@ class JellyfinLocalizationApi {
   JellyfinLocalizationApi(this._http);
 
   /// `GET /Localization/Countries` — every country the server knows
-  /// about, each entry returned as a raw map (`Name`,
-  /// `DisplayName`, `TwoLetterISORegionName`, …).
-  Future<List<Map<String, Object?>>> countries() =>
-      _flatList('/Localization/Countries');
+  /// about.
+  Future<List<JellyfinCountry>> countries() => _http.requestJson(
+    '/Localization/Countries',
+    listOf(JellyfinCountry.fromJson),
+  );
 
   /// `GET /Localization/Cultures` — every culture/language the
-  /// server knows about. Each entry carries the two- and three-letter
-  /// ISO codes plus display names.
-  Future<List<Map<String, Object?>>> cultures() =>
-      _flatList('/Localization/Cultures');
+  /// server knows about, with its two- and three-letter ISO codes.
+  Future<List<JellyfinCulture>> cultures() => _http.requestJson(
+    '/Localization/Cultures',
+    listOf(JellyfinCulture.fromJson),
+  );
 
-  /// `GET /Localization/Options` — the localization options
-  /// configured on the server (the choices an admin picked for
-  /// preferred metadata language, etc.).
-  Future<List<Map<String, Object?>>> options() =>
-      _flatList('/Localization/Options');
+  /// `GET /Localization/Options` — the dashboard languages the server
+  /// offers, as `{Name, Value}` pairs (`Value` is the culture code).
+  Future<List<JellyfinNameValuePair>> options() => _http.requestJson(
+    '/Localization/Options',
+    listOf(JellyfinNameValuePair.fromJson),
+  );
 
   /// `GET /Localization/ParentalRatings` — the parental rating
-  /// scale the server uses. Each entry maps a numeric value to a
-  /// display name (e.g. `'PG-13'`).
-  Future<List<Map<String, Object?>>> parentalRatings() =>
-      _flatList('/Localization/ParentalRatings');
-
-  Future<List<Map<String, Object?>>> _flatList(String path) async {
-    final res = await _http.request<List<Object?>>(path);
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// scale the server uses. Each entry maps a display name (e.g.
+  /// `'PG-13'`) to a numeric value.
+  Future<List<JellyfinParentalRating>> parentalRatings() => _http.requestJson(
+    '/Localization/ParentalRatings',
+    listOf(JellyfinParentalRating.fromJson),
+  );
 }

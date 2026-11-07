@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
@@ -51,54 +52,48 @@ class JellyfinLibraryApi {
     int? limit,
     List<JellyfinItemField> fields = const [],
     String? userId,
-  }) =>
-      _similar(
-        '/Items/$itemId/Similar',
-        excludeArtistIds: excludeArtistIds,
-        limit: limit,
-        fields: fields,
-        userId: userId,
-      );
+  }) => _similar(
+    '/Items/$itemId/Similar',
+    excludeArtistIds: excludeArtistIds,
+    limit: limit,
+    fields: fields,
+    userId: userId,
+  );
 
   /// `GET /Albums/{itemId}/Similar` — albums the server considers related.
   Future<JellyfinQueryResult<JellyfinItem>> similarAlbums({
     required String itemId,
     int? limit,
     List<JellyfinItemField> fields = const [],
-  }) =>
-      _similar('/Albums/$itemId/Similar', limit: limit, fields: fields);
+  }) => _similar('/Albums/$itemId/Similar', limit: limit, fields: fields);
 
   /// `GET /Artists/{itemId}/Similar` — related artists.
   Future<JellyfinQueryResult<JellyfinItem>> similarArtists({
     required String itemId,
     int? limit,
     List<JellyfinItemField> fields = const [],
-  }) =>
-      _similar('/Artists/$itemId/Similar', limit: limit, fields: fields);
+  }) => _similar('/Artists/$itemId/Similar', limit: limit, fields: fields);
 
   /// `GET /Movies/{itemId}/Similar` — related movies.
   Future<JellyfinQueryResult<JellyfinItem>> similarMovies({
     required String itemId,
     int? limit,
     List<JellyfinItemField> fields = const [],
-  }) =>
-      _similar('/Movies/$itemId/Similar', limit: limit, fields: fields);
+  }) => _similar('/Movies/$itemId/Similar', limit: limit, fields: fields);
 
   /// `GET /Shows/{itemId}/Similar` — related TV series.
   Future<JellyfinQueryResult<JellyfinItem>> similarShows({
     required String itemId,
     int? limit,
     List<JellyfinItemField> fields = const [],
-  }) =>
-      _similar('/Shows/$itemId/Similar', limit: limit, fields: fields);
+  }) => _similar('/Shows/$itemId/Similar', limit: limit, fields: fields);
 
   /// `GET /Trailers/{itemId}/Similar` — related trailers.
   Future<JellyfinQueryResult<JellyfinItem>> similarTrailers({
     required String itemId,
     int? limit,
     List<JellyfinItemField> fields = const [],
-  }) =>
-      _similar('/Trailers/$itemId/Similar', limit: limit, fields: fields);
+  }) => _similar('/Trailers/$itemId/Similar', limit: limit, fields: fields);
 
   /// `GET /Items/{itemId}/Ancestors` — every parent above this item,
   /// from grandparent up to the root library.
@@ -141,33 +136,33 @@ class JellyfinLibraryApi {
 
   /// `GET /Items/{itemId}/ThemeMedia` — title-screen theme media
   /// (songs and videos) plus inherited ones, returned together.
-  Future<Map<String, Object?>> themeMedia({
+  Future<JellyfinThemeMedia> themeMedia({
     required String itemId,
     bool inheritFromParent = false,
-  }) async {
+  }) {
     final qp = <String, Object?>{'inheritFromParent': inheritFromParent};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/$itemId/ThemeMedia',
       queryParameters: qp,
+      (json) =>
+          objectOf(JellyfinThemeMedia.fromJson)(json) ??
+          JellyfinThemeMedia.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   /// `GET /Items/{itemId}/ThemeSongs` — theme songs only.
   Future<JellyfinQueryResult<JellyfinItem>> themeSongs({
     required String itemId,
     bool inheritFromParent = false,
-  }) =>
-      _themeBucket('/Items/$itemId/ThemeSongs', inheritFromParent);
+  }) => _themeBucket('/Items/$itemId/ThemeSongs', inheritFromParent);
 
   /// `GET /Items/{itemId}/ThemeVideos` — theme videos only.
   Future<JellyfinQueryResult<JellyfinItem>> themeVideos({
     required String itemId,
     bool inheritFromParent = false,
-  }) =>
-      _themeBucket('/Items/$itemId/ThemeVideos', inheritFromParent);
+  }) => _themeBucket('/Items/$itemId/ThemeVideos', inheritFromParent);
 
   // ---------------------------------------------------------------------------
   // Library-level reads / writes
@@ -220,18 +215,20 @@ class JellyfinLibraryApi {
   /// `GET /Libraries/AvailableOptions` — server-side library options
   /// catalog (typed sources, metadata fetchers, …). Used by admin UIs
   /// when configuring a virtual folder.
-  Future<Map<String, Object?>> availableOptions({
+  Future<JellyfinLibraryAvailableOptions> availableOptions({
     String? libraryContentType,
-  }) async {
+  }) {
     final qp = <String, Object?>{};
     if (libraryContentType != null) {
       qp['libraryContentType'] = libraryContentType;
     }
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Libraries/AvailableOptions',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) =>
+          objectOf(JellyfinLibraryAvailableOptions.fromJson)(json) ??
+          JellyfinLibraryAvailableOptions.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   /// `POST /Library/Media/Updated` — notify the server that one or

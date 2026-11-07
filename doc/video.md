@@ -53,8 +53,8 @@ if (source.supportsDirectPlay) {
 ```dart
 // A movie split across files (CD1, CD2).
 final parts = await jellyfin.videos.additionalParts(itemId: movie.id);
-for (final p in parts) {
-  print('${p['Name']} (${p['Id']})');
+for (final p in parts.items) {
+  print('${p.name} (${p.id})');
 }
 
 // An attachment of a source, such as a font in an MKV.
@@ -151,16 +151,16 @@ final hits = await jellyfin.subtitles.searchRemote(
   language: 'eng',
 );
 for (final h in hits) {
-  print('${h['ProviderName']} - ${h['Name']} (${h['Format']})');
+  print('${h.providerName} - ${h.name} (${h.format})');
 }
 
 await jellyfin.subtitles.downloadRemote(
   itemId: movie.id,
-  subtitleId: hits.first['Id'] as String,
+  subtitleId: hits.first.id,
 );
 ```
 
-`getRemote(id:)` fetches a result without attaching it.
+`getRemote(id:)` fetches a result's text without attaching it.
 
 ### Fallback fonts
 
@@ -170,25 +170,31 @@ fallback fonts:
 ```dart
 final fonts = await jellyfin.subtitles.fallbackFonts();
 final fontUrl = jellyfin.subtitles.fallbackFontUrl(
-  name: fonts.first['Name'] as String,
+  name: fonts.first.name,
 );
 ```
 
 ## Trickplay
 
 Trickplay images are the thumbnails shown while scrubbing. Each video
-item lists its trickplay widths, and each width's `Interval`, in
-`JellyfinItem.raw['Trickplay']`. Pick a width the server generated, then
-pick the tile from the position.
+item lists the widths the server generated in `JellyfinItem.trickplay`,
+keyed by media source id, then by width. `items.byId()` sends it; a list
+sends it when `fields` has `JellyfinItemField.trickplay`. Each
+`JellyfinTrickplayInfo` finds the tile for a position.
 
 ### Tile URL
 
 ```dart
-final url = jellyfin.trickplay.tileUrl(
-  itemId: movie.id,
-  width: 320,
-  index: tileIndex, // from the position and the width's Interval
-);
+final info = movie.trickplay[movie.mediaSources.first.id]?[320];
+if (info != null) {
+  final url = jellyfin.trickplay.tileUrl(
+    itemId: movie.id,
+    width: info.width,
+    index: info.tileIndexAt(position),
+  );
+  // The thumbnail within the tile: info.thumbnailAt(position) modulo
+  // info.thumbnailsPerTile, laid out tileWidth by tileHeight.
+}
 ```
 
 ### HLS tile playlist

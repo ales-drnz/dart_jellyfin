@@ -76,6 +76,5 @@ class JellyfinStudiosApi {
   /// null on 404.
   Future<JellyfinItem?> byName({
     required String name,
-  }) =>
-      lookupItemByName('/Studios', name, _http);
+  }) => lookupItemByName('/Studios', name, _http);
 }

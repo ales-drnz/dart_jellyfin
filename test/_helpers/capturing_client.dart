@@ -45,8 +45,8 @@ final class CannedResponse {
   });
 
   CannedResponse.json(Object? value, {this.status = 200})
-      : body = utf8.encode(jsonEncode(value)),
-        contentType = 'application/json';
+    : body = utf8.encode(jsonEncode(value)),
+      contentType = 'application/json';
 }
 
 class CapturingAdapter extends http.BaseClient {
@@ -81,8 +81,12 @@ class CapturingAdapter extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final bytes = await request.finalize().toBytes();
-    final captured =
-        CapturedRequest(request.method, request.url, request.headers, bytes);
+    final captured = CapturedRequest(
+      request.method,
+      request.url,
+      request.headers,
+      bytes,
+    );
     requests.add(captured);
     final canned =
         respond?.call(captured) ?? CannedResponse(200, utf8.encode(body));

@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Items/{itemId}/RemoteImages*` — fetch images from metadata
 /// providers.
@@ -20,14 +22,14 @@ class JellyfinRemoteImageApi {
   /// `GET /Items/{itemId}/RemoteImages` — list candidate images
   /// from remote providers, optionally filtered by image type and
   /// provider name.
-  Future<Map<String, Object?>> list({
+  Future<JellyfinRemoteImageResult> list({
     required String itemId,
     String? type,
     int? startIndex,
     int? limit,
     String? providerName,
     bool includeAllLanguages = false,
-  }) async {
+  }) {
     final qp = <String, Object?>{
       'includeAllLanguages': includeAllLanguages,
     };
@@ -35,11 +37,13 @@ class JellyfinRemoteImageApi {
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
     if (providerName != null) qp['providerName'] = providerName;
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/$itemId/RemoteImages',
       queryParameters: qp,
+      (json) =>
+          objectOf(JellyfinRemoteImageResult.fromJson)(json) ??
+          JellyfinRemoteImageResult.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   /// `POST /Items/{itemId}/RemoteImages/Download?type={type}&imageUrl={url}` —
@@ -58,16 +62,10 @@ class JellyfinRemoteImageApi {
 
   /// `GET /Items/{itemId}/RemoteImages/Providers` — list providers
   /// that can supply remote images for this item.
-  Future<List<Map<String, Object?>>> providers({
+  Future<List<JellyfinImageProviderInfo>> providers({
     required String itemId,
-  }) async {
-    final res = await _http.request<List<Object?>>(
-      '/Items/$itemId/RemoteImages/Providers',
-    );
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/Items/$itemId/RemoteImages/Providers',
+    listOf(JellyfinImageProviderInfo.fromJson),
+  );
 }

@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Backup` — server-side backup and restore.
 ///
@@ -15,37 +17,35 @@ class JellyfinBackupApi {
   JellyfinBackupApi(this._http);
 
   /// `GET /Backup` — list backup files known to the server.
-  Future<List<Map<String, Object?>>> list() async {
-    final res = await _http.request<List<Object?>>('/Backup');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinBackupManifest>> list() => _http.requestJson(
+    '/Backup',
+    listOf(JellyfinBackupManifest.fromJson),
+  );
 
   /// `POST /Backup/Create` — create a new backup. [body] carries
-  /// the inclusion options (metadata, plugins, library, …).
-  Future<Map<String, Object?>> create(Map<String, Object?> body) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Backup/Create',
-      method: 'POST',
-      data: body,
-    );
-    return res.data ?? const {};
-  }
+  /// the inclusion options (`BackupOptionsDto`: `Metadata`, `Trickplay`,
+  /// `Subtitles`, `Database`). Answers the new backup's manifest.
+  Future<JellyfinBackupManifest> create(Map<String, Object?> body) =>
+      _http.requestJson(
+        '/Backup/Create',
+        method: 'POST',
+        data: body,
+        (json) =>
+            objectOf(JellyfinBackupManifest.fromJson)(json) ??
+            JellyfinBackupManifest.fromJson(const {}),
+      );
 
   /// `GET /Backup/Manifest?path={path}` — read the manifest of a
   /// specific backup file.
-  Future<Map<String, Object?>> manifest({
+  Future<JellyfinBackupManifest> manifest({
     required String path,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Backup/Manifest',
-      queryParameters: {'path': path},
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Backup/Manifest',
+    queryParameters: {'path': path},
+    (json) =>
+        objectOf(JellyfinBackupManifest.fromJson)(json) ??
+        JellyfinBackupManifest.fromJson(const {}),
+  );
 
   /// `POST /Backup/Restore` — restore from a backup file. [body]
   /// describes which file and which sections to restore.

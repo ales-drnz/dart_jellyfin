@@ -160,6 +160,15 @@ final class JellyfinSession {
   /// `RepeatMode`, `PlaybackOrder`.
   final Map<String, Object?>? playState;
 
+  /// The client's play queue (`NowPlayingQueue`), as item ids. Jellyfin 12
+  /// removed `NowPlayingQueueFullItems`, so the queue no longer carries
+  /// the items themselves: fetch them with `items.list(ids:)`.
+  final List<JellyfinQueueItem> nowPlayingQueue;
+
+  /// The playlist entry playing now (`PlaylistItemId`), matching one of
+  /// [nowPlayingQueue].
+  final String? playlistItemId;
+
   /// Untouched response body for fields not lifted above.
   final Map<String, Object?> raw;
 
@@ -183,6 +192,8 @@ final class JellyfinSession {
     this.lastPlaybackCheckIn,
     this.nowPlayingItem,
     this.playState,
+    this.nowPlayingQueue = const [],
+    this.playlistItemId,
   });
 
   /// Decodes a `/Sessions` entry, recursing into `NowPlayingItem` when present.
@@ -204,15 +215,41 @@ final class JellyfinSession {
       supportsRemoteControl: json['SupportsRemoteControl'] == true,
       playableMediaTypes: asStringList(json['PlayableMediaTypes']),
       supportedCommands: asStringList(json['SupportedCommands']),
-      nowPlayingItem:
-          npi is Map<String, Object?> ? JellyfinItem.fromJson(npi) : null,
+      nowPlayingItem: npi is Map<String, Object?>
+          ? JellyfinItem.fromJson(npi)
+          : null,
       playState: json['PlayState'] is Map<String, Object?>
           ? json['PlayState'] as Map<String, Object?>
           : null,
+      nowPlayingQueue: asObjectList(
+        json['NowPlayingQueue'],
+        JellyfinQueueItem.fromJson,
+      ),
+      playlistItemId: asString(json['PlaylistItemId']),
       raw: json,
     );
   }
 
   /// `true` when this session is actively playing media.
   bool get isPlaying => nowPlayingItem != null;
+}
+
+/// One entry of [JellyfinSession.nowPlayingQueue] (`QueueItem`).
+final class JellyfinQueueItem {
+  /// The item (`Id`).
+  final String itemId;
+
+  /// The entry's id in the queue (`PlaylistItemId`), which tells apart two
+  /// entries of the same item.
+  final String? playlistItemId;
+
+  /// Builds a queue entry from already-parsed components.
+  const JellyfinQueueItem({required this.itemId, this.playlistItemId});
+
+  /// Decodes a `{Id, PlaylistItemId}` entry.
+  factory JellyfinQueueItem.fromJson(Map<String, Object?> json) =>
+      JellyfinQueueItem(
+        itemId: asString(json['Id']) ?? '',
+        playlistItemId: asString(json['PlaylistItemId']),
+      );
 }

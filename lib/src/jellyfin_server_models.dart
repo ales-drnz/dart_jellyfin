@@ -6,7 +6,7 @@
 ///
 /// Every model keeps the decoded body in `raw`, so a field not lifted here
 /// is still one map lookup away. Shapes were checked against Jellyfin 12.2
-/// responses, not only the API document.
+/// and 12.4 responses, not only the API document.
 library;
 
 import 'jellyfin_json.dart';
@@ -61,8 +61,9 @@ final class JellyfinUtcTime {
   factory JellyfinUtcTime.fromJson(Map<String, Object?> json) =>
       JellyfinUtcTime(
         requestReceptionTime: asUtcDateTime(json['RequestReceptionTime']),
-        responseTransmissionTime:
-            asUtcDateTime(json['ResponseTransmissionTime']),
+        responseTransmissionTime: asUtcDateTime(
+          json['ResponseTransmissionTime'],
+        ),
         raw: json,
       );
 }
@@ -96,6 +97,16 @@ final class JellyfinItemCounts {
   /// Books (`BookCount`).
   final int bookCount;
 
+  /// Audiobooks (`AudioBookCount`). Jellyfin 13.0 sends it; `null` from
+  /// 12.x, which counts audiobooks nowhere on their own.
+  final int? audioBookCount;
+
+  /// Trailers (`TrailerCount`).
+  final int trailerCount;
+
+  /// Live TV programs (`ProgramCount`).
+  final int programCount;
+
   /// Every item (`ItemCount`).
   final int itemCount;
 
@@ -115,6 +126,9 @@ final class JellyfinItemCounts {
     required this.bookCount,
     required this.itemCount,
     required this.raw,
+    this.audioBookCount,
+    this.trailerCount = 0,
+    this.programCount = 0,
   });
 
   /// Decodes an `ItemCounts` body; a missing count is 0.
@@ -129,6 +143,9 @@ final class JellyfinItemCounts {
         episodeCount: asInt(json['EpisodeCount']) ?? 0,
         boxSetCount: asInt(json['BoxSetCount']) ?? 0,
         bookCount: asInt(json['BookCount']) ?? 0,
+        audioBookCount: asInt(json['AudioBookCount']),
+        trailerCount: asInt(json['TrailerCount']) ?? 0,
+        programCount: asInt(json['ProgramCount']) ?? 0,
         itemCount: asInt(json['ItemCount']) ?? 0,
         raw: json,
       );
@@ -286,16 +303,16 @@ final class JellyfinDevice {
 
   /// Decodes a `DeviceInfoDto`.
   factory JellyfinDevice.fromJson(Map<String, Object?> json) => JellyfinDevice(
-        id: asString(json['Id']) ?? '',
-        name: asString(json['Name']),
-        customName: asString(json['CustomName']),
-        appName: asString(json['AppName']),
-        appVersion: asString(json['AppVersion']),
-        lastUserName: asString(json['LastUserName']),
-        lastUserId: asString(json['LastUserId']),
-        dateLastActivity: asUtcDateTime(json['DateLastActivity']),
-        raw: json,
-      );
+    id: asString(json['Id']) ?? '',
+    name: asString(json['Name']),
+    customName: asString(json['CustomName']),
+    appName: asString(json['AppName']),
+    appVersion: asString(json['AppVersion']),
+    lastUserName: asString(json['LastUserName']),
+    lastUserId: asString(json['LastUserId']),
+    dateLastActivity: asUtcDateTime(json['DateLastActivity']),
+    raw: json,
+  );
 }
 
 /// One entry of the server activity log (`ActivityLogEntry`).

@@ -82,15 +82,13 @@ class JellyfinMediaInfoApi {
       'EnableTranscoding': enableTranscoding,
       'AllowVideoStreamCopy': allowVideoStreamCopy,
       'AllowAudioStreamCopy': allowAudioStreamCopy,
-      if (maxStreamingBitrate != null)
-        'MaxStreamingBitrate': maxStreamingBitrate,
-      if (startTimeTicks != null) 'StartTimeTicks': startTimeTicks,
-      if (audioStreamIndex != null) 'AudioStreamIndex': audioStreamIndex,
-      if (subtitleStreamIndex != null)
-        'SubtitleStreamIndex': subtitleStreamIndex,
-      if (maxAudioChannels != null) 'MaxAudioChannels': maxAudioChannels,
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
-      if (liveStreamId != null) 'LiveStreamId': liveStreamId,
+      'MaxStreamingBitrate': ?maxStreamingBitrate,
+      'StartTimeTicks': ?startTimeTicks,
+      'AudioStreamIndex': ?audioStreamIndex,
+      'SubtitleStreamIndex': ?subtitleStreamIndex,
+      'MaxAudioChannels': ?maxAudioChannels,
+      'MediaSourceId': ?mediaSourceId,
+      'LiveStreamId': ?liveStreamId,
     };
     final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/PlaybackInfo',
@@ -120,15 +118,13 @@ class JellyfinMediaInfoApi {
       'OpenToken': openToken,
       if (userId != null || _http.userId != null)
         'UserId': userId ?? _http.userId,
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
-      if (maxStreamingBitrate != null)
-        'MaxStreamingBitrate': maxStreamingBitrate,
-      if (startTimeTicks != null) 'StartTimeTicks': startTimeTicks,
-      if (audioStreamIndex != null) 'AudioStreamIndex': audioStreamIndex,
-      if (subtitleStreamIndex != null)
-        'SubtitleStreamIndex': subtitleStreamIndex,
-      if (maxAudioChannels != null) 'MaxAudioChannels': maxAudioChannels,
-      if (itemId != null) 'ItemId': itemId,
+      'PlaySessionId': ?playSessionId,
+      'MaxStreamingBitrate': ?maxStreamingBitrate,
+      'StartTimeTicks': ?startTimeTicks,
+      'AudioStreamIndex': ?audioStreamIndex,
+      'SubtitleStreamIndex': ?subtitleStreamIndex,
+      'MaxAudioChannels': ?maxAudioChannels,
+      'ItemId': ?itemId,
       if (deviceProfile != null) 'DeviceProfile': deviceProfile.toJson(),
     };
     final res = await _http.request<Map<String, Object?>>(

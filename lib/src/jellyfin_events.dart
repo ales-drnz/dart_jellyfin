@@ -5,7 +5,9 @@
 /// Typed server events, decoded from the `/socket` notification stream.
 ///
 /// The shapes follow frames captured from Jellyfin 12.2 (fixtures in
-/// `test/fixtures/notifications/`), not only the API document: every frame
+/// `test/fixtures/notifications/`) where there are captures, and the API
+/// document otherwise (SyncPlay, users, timers, plugins, server state and
+/// the activity log, which a test server rarely sends): every frame
 /// carries a `MessageId`, `RefreshProgress` sends its progress as a string,
 /// `UserDataChanged` for a track also carries its album's entry, and an
 /// entry leaves `LastPlayedDate` out (rather than sending `null`) once the
@@ -13,6 +15,7 @@
 library;
 
 import 'api/jellyfin_notifications_api.dart';
+import 'jellyfin_admin_models.dart';
 import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 import 'jellyfin_server_models.dart';
@@ -75,22 +78,65 @@ sealed class JellyfinEvent {
     final map = data is Map<String, Object?> ? data : null;
     final list = data is List<Object?> ? data : null;
     return switch (type) {
-      'UserDataChanged' when map != null =>
-        JellyfinUserDataChangedEvent._(frame, map),
-      'LibraryChanged' when map != null =>
-        JellyfinLibraryChangedEvent._(frame, map),
+      'UserDataChanged' when map != null => JellyfinUserDataChangedEvent._(
+        frame,
+        map,
+      ),
+      'LibraryChanged' when map != null => JellyfinLibraryChangedEvent._(
+        frame,
+        map,
+      ),
       'Sessions' when list != null => JellyfinSessionsEvent._(frame, list),
       'Play' when map != null => JellyfinPlayEvent._(frame, map),
       'Playstate' when map != null => JellyfinPlaystateEvent._(frame, map),
-      'GeneralCommand' when map != null =>
-        JellyfinGeneralCommandEvent._(frame, map),
-      'RefreshProgress' when map != null =>
-        JellyfinRefreshProgressEvent._(frame, map),
+      'GeneralCommand' when map != null => JellyfinGeneralCommandEvent._(
+        frame,
+        map,
+      ),
+      'RefreshProgress' when map != null => JellyfinRefreshProgressEvent._(
+        frame,
+        map,
+      ),
       'ScheduledTasksInfo' when list != null =>
         JellyfinScheduledTasksInfoEvent._(frame, list),
       'ScheduledTaskEnded' when map != null =>
         JellyfinScheduledTaskEndedEvent._(frame, map),
       'KeepAlive' || 'ForceKeepAlive' => JellyfinKeepAliveEvent._(frame, type),
+      'SyncPlayCommand' when map != null => JellyfinSyncPlayCommandEvent._(
+        frame,
+        map,
+      ),
+      'SyncPlayGroupUpdate' when map != null =>
+        JellyfinSyncPlayGroupUpdateEvent._(frame, map),
+      'UserUpdated' when map != null => JellyfinUserUpdatedEvent._(frame, map),
+      'UserDeleted' when data is String => JellyfinUserDeletedEvent._(
+        frame,
+        data,
+      ),
+      'RestartRequired' => JellyfinRestartRequiredEvent._(frame),
+      'ServerRestarting' => JellyfinServerRestartingEvent._(frame),
+      'ServerShuttingDown' => JellyfinServerShuttingDownEvent._(frame),
+      'TimerCreated' ||
+      'TimerCancelled' ||
+      'SeriesTimerCreated' ||
+      'SeriesTimerCancelled' when map != null => JellyfinTimerEvent._(
+        frame,
+        type,
+        map,
+      ),
+      'PackageInstalling' ||
+      'PackageInstallationCompleted' ||
+      'PackageInstallationFailed' ||
+      'PackageInstallationCancelled' when map != null =>
+        JellyfinPluginInstallationEvent._(frame, type, map),
+      'PackageUninstalled' when map != null => JellyfinPluginUninstalledEvent._(
+        frame,
+        map,
+      ),
+      'ActivityLogEntry' when list != null => JellyfinActivityLogEvent._(
+        frame,
+        list,
+      ),
       _ => null,
     };
   }
@@ -111,12 +157,12 @@ final class JellyfinUserDataChangedEvent extends JellyfinEvent {
   final List<JellyfinUserDataChange> changes;
 
   JellyfinUserDataChangedEvent._(super.raw, Map<String, Object?> data)
-      : userId = asString(data['UserId']) ?? '',
-        changes = [
-          if (data['UserDataList'] is List)
-            for (final e in data['UserDataList'] as List)
-              if (e is Map<String, Object?>) JellyfinUserDataChange.fromJson(e),
-        ];
+    : userId = asString(data['UserId']) ?? '',
+      changes = [
+        if (data['UserDataList'] is List)
+          for (final e in data['UserDataList'] as List)
+            if (e is Map<String, Object?>) JellyfinUserDataChange.fromJson(e),
+      ];
 
   /// The entry for [itemId], or `null` when the frame has none.
   JellyfinUserDataChange? forItem(String itemId) {
@@ -200,12 +246,12 @@ final class JellyfinLibraryChangedEvent extends JellyfinEvent {
   final List<String> collectionFolders;
 
   JellyfinLibraryChangedEvent._(super.raw, Map<String, Object?> data)
-      : itemsAdded = asStringList(data['ItemsAdded']),
-        itemsUpdated = asStringList(data['ItemsUpdated']),
-        itemsRemoved = asStringList(data['ItemsRemoved']),
-        foldersAddedTo = asStringList(data['FoldersAddedTo']),
-        foldersRemovedFrom = asStringList(data['FoldersRemovedFrom']),
-        collectionFolders = asStringList(data['CollectionFolders']);
+    : itemsAdded = asStringList(data['ItemsAdded']),
+      itemsUpdated = asStringList(data['ItemsUpdated']),
+      itemsRemoved = asStringList(data['ItemsRemoved']),
+      foldersAddedTo = asStringList(data['FoldersAddedTo']),
+      foldersRemovedFrom = asStringList(data['FoldersRemovedFrom']),
+      collectionFolders = asStringList(data['CollectionFolders']);
 
   /// No id in any list.
   bool get isEmpty =>
@@ -226,10 +272,10 @@ final class JellyfinSessionsEvent extends JellyfinEvent {
   final List<JellyfinSession> sessions;
 
   JellyfinSessionsEvent._(super.raw, List<Object?> data)
-      : sessions = [
-          for (final e in data)
-            if (e is Map<String, Object?>) JellyfinSession.fromJson(e),
-        ];
+    : sessions = [
+        for (final e in data)
+          if (e is Map<String, Object?>) JellyfinSession.fromJson(e),
+      ];
 }
 
 /// `Play`: another client asked this one to play items
@@ -261,14 +307,14 @@ final class JellyfinPlayEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinPlayEvent._(super.raw, Map<String, Object?> data)
-      : itemIds = asStringList(data['ItemIds']),
-        playCommand = asString(data['PlayCommand']) ?? '',
-        startPositionTicks = asInt(data['StartPositionTicks']),
-        startIndex = asInt(data['StartIndex']),
-        mediaSourceId = asString(data['MediaSourceId']),
-        audioStreamIndex = asInt(data['AudioStreamIndex']),
-        subtitleStreamIndex = asInt(data['SubtitleStreamIndex']),
-        controllingUserId = asString(data['ControllingUserId']);
+    : itemIds = asStringList(data['ItemIds']),
+      playCommand = asString(data['PlayCommand']) ?? '',
+      startPositionTicks = asInt(data['StartPositionTicks']),
+      startIndex = asInt(data['StartIndex']),
+      mediaSourceId = asString(data['MediaSourceId']),
+      audioStreamIndex = asInt(data['AudioStreamIndex']),
+      subtitleStreamIndex = asInt(data['SubtitleStreamIndex']),
+      controllingUserId = asString(data['ControllingUserId']);
 }
 
 /// `Playstate`: another client asked this one to pause, stop, seek, skip, …
@@ -284,9 +330,9 @@ final class JellyfinPlaystateEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinPlaystateEvent._(super.raw, Map<String, Object?> data)
-      : command = asString(data['Command']) ?? '',
-        seekPositionTicks = asInt(data['SeekPositionTicks']),
-        controllingUserId = asString(data['ControllingUserId']);
+    : command = asString(data['Command']) ?? '',
+      seekPositionTicks = asInt(data['SeekPositionTicks']),
+      controllingUserId = asString(data['ControllingUserId']);
 
   /// [seekPositionTicks] as a [Duration].
   Duration? get seekPosition => seekPositionTicks == null
@@ -308,13 +354,13 @@ final class JellyfinGeneralCommandEvent extends JellyfinEvent {
   final String? controllingUserId;
 
   JellyfinGeneralCommandEvent._(super.raw, Map<String, Object?> data)
-      : name = asString(data['Name']) ?? '',
-        arguments = {
-          if (data['Arguments'] is Map)
-            for (final e in (data['Arguments'] as Map).entries)
-              '${e.key}': asString(e.value),
-        },
-        controllingUserId = asString(data['ControllingUserId']);
+    : name = asString(data['Name']) ?? '',
+      arguments = {
+        if (data['Arguments'] is Map)
+          for (final e in (data['Arguments'] as Map).entries)
+            '${e.key}': asString(e.value),
+      },
+      controllingUserId = asString(data['ControllingUserId']);
 }
 
 /// `RefreshProgress`: a library (or the root folder) is being refreshed.
@@ -328,8 +374,8 @@ final class JellyfinRefreshProgressEvent extends JellyfinEvent {
   final double? progress;
 
   JellyfinRefreshProgressEvent._(super.raw, Map<String, Object?> data)
-      : itemId = asString(data['ItemId']) ?? '',
-        progress = asDouble(data['Progress']);
+    : itemId = asString(data['ItemId']) ?? '',
+      progress = asDouble(data['Progress']);
 
   /// The refresh reached 100.
   bool get isDone => progress != null && progress! >= 100;
@@ -343,10 +389,10 @@ final class JellyfinScheduledTasksInfoEvent extends JellyfinEvent {
   final List<JellyfinScheduledTask> tasks;
 
   JellyfinScheduledTasksInfoEvent._(super.raw, List<Object?> data)
-      : tasks = [
-          for (final e in data)
-            if (e is Map<String, Object?>) JellyfinScheduledTask.fromJson(e),
-        ];
+    : tasks = [
+        for (final e in data)
+          if (e is Map<String, Object?>) JellyfinScheduledTask.fromJson(e),
+      ];
 
   /// The tasks whose state is `Running`.
   Iterable<JellyfinScheduledTask> get running =>
@@ -363,7 +409,7 @@ final class JellyfinScheduledTaskEndedEvent extends JellyfinEvent {
   final JellyfinTaskResult result;
 
   JellyfinScheduledTaskEndedEvent._(super.raw, Map<String, Object?> data)
-      : result = JellyfinTaskResult.fromJson(data);
+    : result = JellyfinTaskResult.fromJson(data);
 
   /// The task's key, e.g. `RefreshLibrary`.
   String? get key => asString(result.raw['Key']);
@@ -383,16 +429,220 @@ final class JellyfinKeepAliveEvent extends JellyfinEvent {
   final Duration? timeout;
 
   JellyfinKeepAliveEvent._(super.raw, String type)
-      : isForced = type == 'ForceKeepAlive',
-        timeout = switch (asInt(raw['Data'])) {
-          final int s => Duration(seconds: s),
-          null => null,
-        };
+    : isForced = type == 'ForceKeepAlive',
+      timeout = switch (asInt(raw['Data'])) {
+        final int s => Duration(seconds: s),
+        null => null,
+      };
 }
 
-/// A frame without a typed event (`UserUpdated`, `ActivityLogEntry`,
-/// `SyncPlayGroupUpdate`, `TimerCreated`, `RestartRequired`, …), or a known
-/// one whose `Data` has an unexpected shape. [raw] is the whole frame.
+/// `SyncPlayCommand`: the SyncPlay group asks this client to play, pause,
+/// stop or seek at a given time, so every member acts together. Arrives
+/// after `syncPlay.joinGroup()` or `createGroup()`.
+final class JellyfinSyncPlayCommandEvent extends JellyfinEvent {
+  /// The group (`GroupId`).
+  final String groupId;
+
+  /// The queue entry the command applies to (`PlaylistItemId`).
+  final String? playlistItemId;
+
+  /// `Unpause`, `Pause`, `Stop` or `Seek` (`Command`).
+  final String command;
+
+  /// When to act, in server time (`When`).
+  final DateTime? when;
+
+  /// Where to be at [when], in ticks (`PositionTicks`).
+  final int? positionTicks;
+
+  /// When the server sent the command (`EmittedAt`).
+  final DateTime? emittedAt;
+
+  JellyfinSyncPlayCommandEvent._(super.raw, Map<String, Object?> data)
+    : groupId = asString(data['GroupId']) ?? '',
+      playlistItemId = asString(data['PlaylistItemId']),
+      command = asString(data['Command']) ?? '',
+      when = asUtcDateTime(data['When']),
+      positionTicks = asInt(data['PositionTicks']),
+      emittedAt = asUtcDateTime(data['EmittedAt']);
+
+  /// [positionTicks] as a [Duration].
+  Duration? get position => positionTicks == null
+      ? null
+      : Duration(microseconds: positionTicks! ~/ 10);
+}
+
+/// `SyncPlayGroupUpdate`: something changed in this client's SyncPlay
+/// group. [updateType] says what, and [data] carries the details, whose
+/// shape depends on it; the getters read the common ones.
+final class JellyfinSyncPlayGroupUpdateEvent extends JellyfinEvent {
+  /// The group (`GroupId`).
+  final String groupId;
+
+  /// `GroupUpdateType`: `UserJoined`, `UserLeft`, `GroupJoined`,
+  /// `GroupLeft`, `StateUpdate`, `PlayQueue`, `NotInGroup`,
+  /// `GroupDoesNotExist` or `LibraryAccessDenied` (`Type`).
+  final String updateType;
+
+  /// The update's `Data`, as the server sent it.
+  final Object? data;
+
+  JellyfinSyncPlayGroupUpdateEvent._(super.raw, Map<String, Object?> body)
+    : groupId = asString(body['GroupId']) ?? '',
+      updateType = asString(body['Type']) ?? '',
+      data = body['Data'];
+
+  /// For `GroupJoined`, the group this client joined; `null` otherwise.
+  JellyfinSyncPlayGroup? get group => switch (data) {
+    final Map<String, Object?> m when updateType == 'GroupJoined' =>
+      JellyfinSyncPlayGroup.fromJson(m),
+    _ => null,
+  };
+
+  /// For `UserJoined` and `UserLeft`, the user's name; `null` otherwise.
+  String? get userName => updateType == 'UserJoined' || updateType == 'UserLeft'
+      ? asString(data)
+      : null;
+
+  /// For `StateUpdate`, the group's new state (`Idle`, `Waiting`,
+  /// `Paused` or `Playing`); `null` otherwise.
+  String? get state => updateType == 'StateUpdate' ? _field('State') : null;
+
+  /// For `StateUpdate` and `PlayQueue`, why the server sent it
+  /// (`Reason`); `null` otherwise.
+  String? get reason => _field('Reason');
+
+  String? _field(String key) => switch (data) {
+    final Map<String, Object?> m => asString(m[key]),
+    _ => null,
+  };
+}
+
+/// `UserUpdated`: a user's name, policy or configuration changed. Sent to
+/// that user's sessions and to admins.
+final class JellyfinUserUpdatedEvent extends JellyfinEvent {
+  /// The user after the change.
+  final JellyfinUser user;
+
+  JellyfinUserUpdatedEvent._(super.raw, Map<String, Object?> data)
+    : user = JellyfinUser.fromJson(data);
+}
+
+/// `UserDeleted`: a user was deleted.
+final class JellyfinUserDeletedEvent extends JellyfinEvent {
+  /// The deleted user's id.
+  final String userId;
+
+  JellyfinUserDeletedEvent._(super.raw, this.userId);
+}
+
+/// `RestartRequired`: a change (a plugin, a setting) takes effect only
+/// after the server restarts. Sent to admins.
+final class JellyfinRestartRequiredEvent extends JellyfinEvent {
+  JellyfinRestartRequiredEvent._(super.raw);
+}
+
+/// `ServerRestarting`: the server is restarting; the socket closes and the
+/// server comes back.
+final class JellyfinServerRestartingEvent extends JellyfinEvent {
+  JellyfinServerRestartingEvent._(super.raw);
+}
+
+/// `ServerShuttingDown`: the server is stopping; the socket closes.
+final class JellyfinServerShuttingDownEvent extends JellyfinEvent {
+  JellyfinServerShuttingDownEvent._(super.raw);
+}
+
+/// `TimerCreated`, `TimerCancelled`, `SeriesTimerCreated` or
+/// `SeriesTimerCancelled`: a live TV recording was scheduled or cancelled.
+final class JellyfinTimerEvent extends JellyfinEvent {
+  /// The frame's `MessageType`.
+  final String messageType;
+
+  /// The timer (`Id`): a `liveTv.timers()` id, or a `seriesTimers()` id
+  /// when [isSeriesTimer].
+  final String timerId;
+
+  /// The program it records (`ProgramId`).
+  final String? programId;
+
+  JellyfinTimerEvent._(super.raw, this.messageType, Map<String, Object?> data)
+    : timerId = asString(data['Id']) ?? '',
+      programId = asString(data['ProgramId']);
+
+  /// A recurring rule rather than a single recording.
+  bool get isSeriesTimer => messageType.startsWith('Series');
+
+  /// The timer was cancelled rather than created.
+  bool get isCancelled => messageType.endsWith('Cancelled');
+}
+
+/// `PackageInstalling`, `PackageInstallationCompleted`,
+/// `PackageInstallationFailed` or `PackageInstallationCancelled`: a plugin
+/// install moved on. Sent to admins.
+final class JellyfinPluginInstallationEvent extends JellyfinEvent {
+  /// The frame's `MessageType`.
+  final String messageType;
+
+  /// The plugin (`Guid`).
+  final String pluginId;
+
+  /// The plugin's name (`Name`).
+  final String name;
+
+  /// The version being installed (`Version`).
+  final String? version;
+
+  /// Where the package comes from (`SourceUrl`).
+  final String? sourceUrl;
+
+  JellyfinPluginInstallationEvent._(
+    super.raw,
+    this.messageType,
+    Map<String, Object?> data,
+  ) : pluginId = asString(data['Guid']) ?? '',
+      name = asString(data['Name']) ?? '',
+      version = asString(data['Version']),
+      sourceUrl = asString(data['SourceUrl']);
+
+  /// The install has started.
+  bool get isInstalling => messageType == 'PackageInstalling';
+
+  /// The install finished; a restart may be required.
+  bool get isCompleted => messageType == 'PackageInstallationCompleted';
+
+  /// The install failed.
+  bool get isFailed => messageType == 'PackageInstallationFailed';
+
+  /// The install was cancelled.
+  bool get isCancelled => messageType == 'PackageInstallationCancelled';
+}
+
+/// `PackageUninstalled`: a plugin was uninstalled. Sent to admins.
+final class JellyfinPluginUninstalledEvent extends JellyfinEvent {
+  /// The plugin that was removed.
+  final JellyfinPluginInfo plugin;
+
+  JellyfinPluginUninstalledEvent._(super.raw, Map<String, Object?> data)
+    : plugin = JellyfinPluginInfo.fromJson(data);
+}
+
+/// `ActivityLogEntry`: new entries in the activity log, after
+/// `JellyfinNotificationsApi.startActivityLog`. Admin only.
+final class JellyfinActivityLogEvent extends JellyfinEvent {
+  /// The new entries, as `activityLog.entries()` returns them.
+  final List<JellyfinActivityLogEntry> entries;
+
+  JellyfinActivityLogEvent._(super.raw, List<Object?> data)
+    : entries = [
+        for (final e in data)
+          if (e is Map<String, Object?>) JellyfinActivityLogEntry.fromJson(e),
+      ];
+}
+
+/// A frame without a typed event (a `MessageType` the API document does not
+/// list), or a known one whose `Data` has an unexpected shape. [raw] is the
+/// whole frame.
 final class JellyfinUnknownEvent extends JellyfinEvent {
   /// The frame's `MessageType`.
   final String messageType;

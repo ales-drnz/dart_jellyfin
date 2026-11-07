@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
@@ -109,23 +110,18 @@ class JellyfinChannelsApi {
 
   /// `GET /Channels/{channelId}/Features` — feature flags for one
   /// channel (supports search, item sort, deletion, etc.).
-  Future<Map<String, Object?>> features({
+  Future<JellyfinChannelFeatures> features({
     required String channelId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Channels/$channelId/Features',
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Channels/$channelId/Features',
+    (json) =>
+        objectOf(JellyfinChannelFeatures.fromJson)(json) ??
+        JellyfinChannelFeatures.fromJson(const {}),
+  );
 
-  /// `GET /Channels/Features` — feature flags for every channel,
-  /// returned as a flat list of feature maps.
-  Future<List<Map<String, Object?>>> allFeatures() async {
-    final res = await _http.request<List<Object?>>('/Channels/Features');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// `GET /Channels/Features` — feature flags for every channel.
+  Future<List<JellyfinChannelFeatures>> allFeatures() => _http.requestJson(
+    '/Channels/Features',
+    listOf(JellyfinChannelFeatures.fromJson),
+  );
 }

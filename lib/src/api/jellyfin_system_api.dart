@@ -2,9 +2,11 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
 
 /// `/System/*` endpoints — server info, public info, ping.
@@ -26,8 +28,9 @@ class JellyfinSystemApi {
   /// for testing reachability and confirming the URL really points at a
   /// Jellyfin server before asking the user for credentials.
   Future<JellyfinSystemInfo> publicInfo() async {
-    final res =
-        await _http.request<Map<String, Object?>>('/System/Info/Public');
+    final res = await _http.request<Map<String, Object?>>(
+      '/System/Info/Public',
+    );
     return JellyfinSystemInfo.fromJson(res.data ?? const {});
   }
 
@@ -44,27 +47,22 @@ class JellyfinSystemApi {
   /// `GET /System/Endpoint` — info about the request endpoint
   /// (whether the request looks local or remote to the server).
   Future<JellyfinEndpointInfo> endpointInfo() => _http.requestJson(
-        '/System/Endpoint',
-        (json) => JellyfinEndpointInfo.fromJson(_object(json)),
-      );
+    '/System/Endpoint',
+    (json) => JellyfinEndpointInfo.fromJson(_object(json)),
+  );
 
   /// `GET /System/Info/Storage` — storage usage on every drive
   /// the server is configured to use.
-  Future<Map<String, Object?>> storage() async {
-    final res =
-        await _http.request<Map<String, Object?>>('/System/Info/Storage');
-    return res.data ?? const {};
-  }
+  Future<JellyfinSystemStorage> storage() => _http.requestJson(
+    '/System/Info/Storage',
+    (json) => JellyfinSystemStorage.fromJson(_object(json)),
+  );
 
-  /// `GET /System/Logs` — list available log files.
-  Future<List<Map<String, Object?>>> logs() async {
-    final res = await _http.request<List<Object?>>('/System/Logs');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  /// `GET /System/Logs` — list available log files, for [logFile].
+  Future<List<JellyfinServerFile>> logs() => _http.requestJson(
+    '/System/Logs',
+    listOf(JellyfinServerFile.fromJson),
+  );
 
   /// `GET /System/Logs/Log?name={name}` — fetch one log file as
   /// plain text; `''` for an empty file.
@@ -107,9 +105,9 @@ class JellyfinSystemApi {
   /// as `{ RequestReceptionTime, ResponseTransmissionTime }`. Used
   /// for time-sync between clients and server.
   Future<JellyfinUtcTime> utcTime() => _http.requestJson(
-        '/GetUtcTime',
-        (json) => JellyfinUtcTime.fromJson(_object(json)),
-      );
+    '/GetUtcTime',
+    (json) => JellyfinUtcTime.fromJson(_object(json)),
+  );
 }
 
 Map<String, Object?> _object(Object? json) =>

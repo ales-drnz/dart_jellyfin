@@ -226,6 +226,13 @@ final class JellyfinItem {
   /// Video/photo height in pixels.
   final int? height;
 
+  /// The scrubbing thumbnails the server has generated (`Trickplay`),
+  /// keyed by media source id, then by tile width in pixels. `items.byId`
+  /// sends it; a list sends it when `fields` has
+  /// [JellyfinItemField.trickplay]. Empty for an item without any. Build a
+  /// tile URL with `JellyfinTrickplayApi.tileUrl`.
+  final Map<String, Map<int, JellyfinTrickplayInfo>> trickplay;
+
   /// Untouched response body for fields not lifted above.
   final Map<String, Object?> raw;
 
@@ -239,6 +246,7 @@ final class JellyfinItem {
     this.albumArtistItems = const [],
     this.genreItems = const [],
     this.people = const [],
+    this.trickplay = const {},
     this.playlistItemId,
     required this.mediaSources,
     required this.mediaStreams,
@@ -313,12 +321,18 @@ final class JellyfinItem {
       albumArtist: asString(json['AlbumArtist']),
       albumArtists: fieldStrings(json['AlbumArtists'], 'Name'),
       artists: asStringList(json['Artists']),
-      artistItems:
-          asObjectList(json['ArtistItems'], JellyfinArtistRef.fromJson),
-      albumArtistItems:
-          asObjectList(json['AlbumArtists'], JellyfinArtistRef.fromJson),
-      genreItems:
-          asObjectList(json['GenreItems'], JellyfinNameGuidPair.fromJson),
+      artistItems: asObjectList(
+        json['ArtistItems'],
+        JellyfinArtistRef.fromJson,
+      ),
+      albumArtistItems: asObjectList(
+        json['AlbumArtists'],
+        JellyfinArtistRef.fromJson,
+      ),
+      genreItems: asObjectList(
+        json['GenreItems'],
+        JellyfinNameGuidPair.fromJson,
+      ),
       playlistItemId: switch (asString(json['PlaylistItemId'])) {
         final String id => JellyfinPlaylistEntryId(id),
         null => null,
@@ -330,10 +344,14 @@ final class JellyfinItem {
       dateCreated: asUtcDateTime(json['DateCreated']),
       runTimeTicks: asInt(json['RunTimeTicks']),
       container: asString(json['Container']),
-      mediaSources:
-          asObjectList(json['MediaSources'], JellyfinMediaSource.fromJson),
-      mediaStreams:
-          asObjectList(json['MediaStreams'], JellyfinMediaStream.fromJson),
+      mediaSources: asObjectList(
+        json['MediaSources'],
+        JellyfinMediaSource.fromJson,
+      ),
+      mediaStreams: asObjectList(
+        json['MediaStreams'],
+        JellyfinMediaStream.fromJson,
+      ),
       isFolder: json['IsFolder'] == true,
       childCount: asInt(json['ChildCount']),
       recursiveItemCount: asInt(json['RecursiveItemCount']),
@@ -347,6 +365,7 @@ final class JellyfinItem {
       trailerCount: asInt(json['TrailerCount']),
       programCount: asInt(json['ProgramCount']),
       people: asObjectList(json['People'], JellyfinItemPerson.fromJson),
+      trickplay: _trickplay(json['Trickplay']),
       hasLyrics: json['HasLyrics'] == true,
       genres: asStringList(json['Genres']),
       tags: asStringList(json['Tags']),
@@ -365,6 +384,18 @@ final class JellyfinItem {
       raw: json,
     );
   }
+
+  static Map<String, Map<int, JellyfinTrickplayInfo>> _trickplay(Object? v) => {
+    if (v is Map)
+      for (final MapEntry(key: source, value: byWidth) in v.entries)
+        if (source is String && byWidth is Map)
+          source: {
+            for (final MapEntry(key: width, value: info) in byWidth.entries)
+              if (asInt(width) case final int w
+                  when info is Map<String, Object?>)
+                w: JellyfinTrickplayInfo.fromJson(info),
+          },
+  };
 
   /// Duration in milliseconds, computed from [runTimeTicks].
   int? get durationMs =>
@@ -385,8 +416,8 @@ final class JellyfinItem {
   String? get artworkItemId => primaryImageTag != null
       ? id
       : albumPrimaryImageTag != null
-          ? albumId
-          : null;
+      ? albumId
+      : null;
 
   /// Version of the cover named by [artworkItemId]: the image tag Jellyfin
   /// recomputes whenever the picture changes. Put it in an artwork cache
@@ -397,6 +428,80 @@ final class JellyfinItem {
   /// `ImageTags` but still sends `AlbumPrimaryImageTag` (12.2), so a
   /// track's version stays and an album's is null.
   String? get artworkVersion => primaryImageTag ?? albumPrimaryImageTag;
+}
+
+/// One resolution of scrubbing thumbnails (`TrickplayInfoDto`), from
+/// [JellyfinItem.trickplay].
+///
+/// The server packs [tileWidth] × [tileHeight] thumbnails into each tile
+/// image, one every [interval]. [tileIndexAt] and [thumbnailAt] find the
+/// tile and the thumbnail within it for a playback position.
+final class JellyfinTrickplayInfo {
+  /// Width of one thumbnail in pixels (`Width`); the `width` of the tile
+  /// URL.
+  final int width;
+
+  /// Height of one thumbnail in pixels (`Height`).
+  final int height;
+
+  /// Thumbnails per row of a tile image (`TileWidth`).
+  final int tileWidth;
+
+  /// Thumbnails per column of a tile image (`TileHeight`).
+  final int tileHeight;
+
+  /// Thumbnails in total (`ThumbnailCount`).
+  final int thumbnailCount;
+
+  /// Time between two thumbnails (`Interval`, in milliseconds).
+  final Duration interval;
+
+  /// Peak bandwidth of the tile playlist in bits per second (`Bandwidth`).
+  final int? bandwidth;
+
+  /// The entry as the server sent it.
+  final Map<String, Object?> raw;
+
+  /// Builds trickplay info from already-parsed components.
+  const JellyfinTrickplayInfo({
+    required this.width,
+    required this.height,
+    required this.tileWidth,
+    required this.tileHeight,
+    required this.thumbnailCount,
+    required this.interval,
+    required this.raw,
+    this.bandwidth,
+  });
+
+  /// Decodes a `TrickplayInfoDto`; a missing number is 0.
+  factory JellyfinTrickplayInfo.fromJson(Map<String, Object?> json) =>
+      JellyfinTrickplayInfo(
+        width: asInt(json['Width']) ?? 0,
+        height: asInt(json['Height']) ?? 0,
+        tileWidth: asInt(json['TileWidth']) ?? 0,
+        tileHeight: asInt(json['TileHeight']) ?? 0,
+        thumbnailCount: asInt(json['ThumbnailCount']) ?? 0,
+        interval: Duration(milliseconds: asInt(json['Interval']) ?? 0),
+        bandwidth: asInt(json['Bandwidth']),
+        raw: json,
+      );
+
+  /// Thumbnails in one tile image.
+  int get thumbnailsPerTile => tileWidth * tileHeight;
+
+  /// The thumbnail shown at [position], counted from 0 and clamped to the
+  /// last one; 0 when the info is incomplete.
+  int thumbnailAt(Duration position) {
+    if (interval <= Duration.zero || thumbnailCount <= 0) return 0;
+    final i = position.inMilliseconds ~/ interval.inMilliseconds;
+    return i.clamp(0, thumbnailCount - 1);
+  }
+
+  /// The tile image holding the thumbnail at [position]: the `index` of
+  /// the tile URL.
+  int tileIndexAt(Duration position) =>
+      thumbnailsPerTile <= 0 ? 0 : thumbnailAt(position) ~/ thumbnailsPerTile;
 }
 
 /// Lightweight artist reference (`{Id, Name}`) used inside [JellyfinItem.artistItems].
@@ -535,8 +640,10 @@ final class JellyfinMediaSource {
         transcodingUrl: asString(json['TranscodingUrl']),
         transcodingSubProtocol: asString(json['TranscodingSubProtocol']),
         transcodingContainer: asString(json['TranscodingContainer']),
-        mediaStreams:
-            asObjectList(json['MediaStreams'], JellyfinMediaStream.fromJson),
+        mediaStreams: asObjectList(
+          json['MediaStreams'],
+          JellyfinMediaStream.fromJson,
+        ),
         raw: json,
       );
 }

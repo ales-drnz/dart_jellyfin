@@ -34,8 +34,11 @@ void main() {
 
   test('limit caps rows and the last request asks for what is left', () async {
     final (fetch, asked) = source(1000);
-    final rows =
-        await JellyfinPaging.items(fetch, limit: 130, start: 10).toList();
+    final rows = await JellyfinPaging.items(
+      fetch,
+      limit: 130,
+      start: 10,
+    ).toList();
     expect(rows.first, 10);
     expect(rows, hasLength(130));
     expect(asked, [(10, 100), (110, 30)]);

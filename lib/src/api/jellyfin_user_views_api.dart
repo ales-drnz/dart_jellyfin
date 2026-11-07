@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
@@ -45,20 +46,16 @@ class JellyfinUserViewsApi {
 
   /// `GET /UserViews/GroupingOptions` — the server's recommendations
   /// for how to group views in the UI (e.g. "by media type", "by
-  /// folder"). Returned as a flat list of option maps.
-  Future<List<Map<String, Object?>>> groupingOptions() async {
+  /// folder"), as `{Name, Id}` pairs (`SpecialViewOptionDto`).
+  Future<List<JellyfinNameIdPair>> groupingOptions() {
     final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
 
-    final res = await _http.request<List<Object?>>(
+    return _http.requestJson(
       '/UserViews/GroupingOptions',
       queryParameters: qp.isEmpty ? null : qp,
+      listOf(JellyfinNameIdPair.fromJson),
     );
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
   }
 }

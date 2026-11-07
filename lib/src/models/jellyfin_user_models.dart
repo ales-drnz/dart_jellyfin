@@ -68,27 +68,6 @@ final class JellyfinUser {
   /// Image tag for the user's avatar; combine with `/Users/{id}/Images/Primary`.
   final String? primaryImageTag;
 
-  /// Whether the server reports a password on the account.
-  ///
-  /// Jellyfin 12 marks `HasPassword` obsolete: it no longer carries
-  /// useful information (it is `true` for every account) and may be
-  /// dropped from the payload in a later release.
-  @Deprecated('Obsolete in Jellyfin 12; the value is no longer meaningful.')
-  final bool hasPassword;
-
-  /// Whether the server reports a configured password.
-  ///
-  /// Obsolete in Jellyfin 12 alongside [hasPassword].
-  @Deprecated('Obsolete in Jellyfin 12; the value is no longer meaningful.')
-  final bool hasConfiguredPassword;
-
-  /// Whether a numeric easy-password was configured.
-  ///
-  /// Jellyfin 12 removed the EasyPassword feature, so this is always
-  /// `false` on 12.0 and the field is marked obsolete.
-  @Deprecated('The EasyPassword feature was removed in Jellyfin 12.')
-  final bool hasConfiguredEasyPassword;
-
   /// Last successful login timestamp, in UTC.
   final DateTime? lastLoginDate;
 
@@ -107,27 +86,18 @@ final class JellyfinUser {
     this.primaryImageTag,
     this.lastLoginDate,
     this.lastActivityDate,
-    @Deprecated('Obsolete in Jellyfin 12; the value is no longer meaningful.')
-    this.hasPassword = false,
-    @Deprecated('Obsolete in Jellyfin 12; the value is no longer meaningful.')
-    this.hasConfiguredPassword = false,
-    @Deprecated('The EasyPassword feature was removed in Jellyfin 12.')
-    this.hasConfiguredEasyPassword = false,
   });
 
   /// Decodes a `/Users/{id}` (or `/Users/Me`) payload.
   factory JellyfinUser.fromJson(Map<String, Object?> json) => JellyfinUser(
-        id: asString(json['Id']) ?? '',
-        name: asString(json['Name']) ?? '',
-        serverId: asString(json['ServerId']),
-        primaryImageTag: asString(json['PrimaryImageTag']),
-        hasPassword: json['HasPassword'] == true,
-        hasConfiguredPassword: json['HasConfiguredPassword'] == true,
-        hasConfiguredEasyPassword: json['HasConfiguredEasyPassword'] == true,
-        lastLoginDate: asUtcDateTime(json['LastLoginDate']),
-        lastActivityDate: asUtcDateTime(json['LastActivityDate']),
-        raw: json,
-      );
+    id: asString(json['Id']) ?? '',
+    name: asString(json['Name']) ?? '',
+    serverId: asString(json['ServerId']),
+    primaryImageTag: asString(json['PrimaryImageTag']),
+    lastLoginDate: asUtcDateTime(json['LastLoginDate']),
+    lastActivityDate: asUtcDateTime(json['LastActivityDate']),
+    raw: json,
+  );
 }
 
 /// Result of `POST /Users/AuthenticateByName` (and Quick Connect).

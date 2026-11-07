@@ -64,8 +64,10 @@ void main() {
       });
 
       test('artists of this library only', () async {
-        final artists =
-            await jf.artists.albumArtists(parentId: musicId, limit: 5);
+        final artists = await jf.artists.albumArtists(
+          parentId: musicId,
+          limit: 5,
+        );
         expect(artists.items, isNotEmpty);
       });
 
@@ -75,9 +77,7 @@ void main() {
           includeItemTypes: const [JellyfinItemKind.audio],
           fields: JellyfinItemsApi.musicFields,
           limit: 1,
-        ))
-            .items
-            .single;
+        )).items.single;
         expect(track.mediaSources, isNotEmpty);
         final cover = track.artworkItemId;
         if (cover != null) {

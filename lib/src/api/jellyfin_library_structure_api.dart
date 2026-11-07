@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Library/VirtualFolders` — server-side library configuration.
 ///
@@ -18,14 +20,10 @@ class JellyfinLibraryStructureApi {
   JellyfinLibraryStructureApi(this._http);
 
   /// `GET /Library/VirtualFolders` — list every configured library.
-  Future<List<Map<String, Object?>>> list() async {
-    final res = await _http.request<List<Object?>>('/Library/VirtualFolders');
-    final list = res.data ?? const [];
-    return [
-      for (final e in list)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinVirtualFolder>> list() => _http.requestJson(
+    '/Library/VirtualFolders',
+    listOf(JellyfinVirtualFolder.fromJson),
+  );
 
   /// `POST /Library/VirtualFolders` — create a new library.
   Future<void> add({

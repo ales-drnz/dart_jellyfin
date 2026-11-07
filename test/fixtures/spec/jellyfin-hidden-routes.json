@@ -1,17 +1,5 @@
 {
  "routes": {
-  "/Artists/InstantMix": {
-   "GET": [
-    "enableImageTypes",
-    "enableImages",
-    "enableUserData",
-    "fields",
-    "id",
-    "imageTypeLimit",
-    "limit",
-    "userId"
-   ]
-  },
   "/Audio/{itemId}/hls/{segmentId}/stream.aac": {
    "GET": []
   },
@@ -230,93 +218,6 @@
     "videoCodec",
     "videoStreamIndex",
     "width"
-   ]
-  },
-  "/LiveTv/Recordings/Groups": {
-   "GET": [
-    "userId"
-   ]
-  },
-  "/LiveTv/Recordings/Series": {
-   "GET": [
-    "channelId",
-    "enableImageTypes",
-    "enableImages",
-    "enableTotalRecordCount",
-    "enableUserData",
-    "fields",
-    "groupId",
-    "imageTypeLimit",
-    "isInProgress",
-    "limit",
-    "seriesTimerId",
-    "startIndex",
-    "status",
-    "userId"
-   ]
-  },
-  "/MusicGenres": {
-   "GET": [
-    "enableImageTypes",
-    "enableImages",
-    "enableTotalRecordCount",
-    "excludeItemTypes",
-    "fields",
-    "imageTypeLimit",
-    "includeItemTypes",
-    "isFavorite",
-    "limit",
-    "nameLessThan",
-    "nameStartsWith",
-    "nameStartsWithOrGreater",
-    "parentId",
-    "searchTerm",
-    "sortBy",
-    "sortOrder",
-    "startIndex",
-    "userId"
-   ]
-  },
-  "/PlayingItems/{itemId}": {
-   "DELETE": [
-    "liveStreamId",
-    "mediaSourceId",
-    "nextMediaType",
-    "playSessionId",
-    "positionTicks"
-   ],
-   "POST": [
-    "audioStreamIndex",
-    "canSeek",
-    "liveStreamId",
-    "mediaSourceId",
-    "playMethod",
-    "playSessionId",
-    "subtitleStreamIndex"
-   ]
-  },
-  "/PlayingItems/{itemId}/Progress": {
-   "POST": [
-    "audioStreamIndex",
-    "isMuted",
-    "isPaused",
-    "liveStreamId",
-    "mediaSourceId",
-    "playMethod",
-    "playSessionId",
-    "positionTicks",
-    "repeatMode",
-    "subtitleStreamIndex",
-    "volumeLevel"
-   ]
-  },
-  "/Tmdb/ClientConfiguration": {
-   "GET": []
-  },
-  "/Videos/ActiveEncodings": {
-   "DELETE": [
-    "deviceId",
-    "playSessionId"
    ]
   },
   "/Videos/{itemId}/hls/{playlistId}/stream.m3u8": {
@@ -607,5 +508,5 @@
    ]
   }
  },
- "source": "Jellyfin OpenAPI 10.11.6 (api.jellyfin.org), routes absent from the 12.x document that a 12.2 server still serves (each probed; routes that 404 on 12.2 removed)"
+ "source": "Jellyfin OpenAPI 10.11.6 (api.jellyfin.org), routes absent from the 12.x document that a 12.2 server still serves (each probed; routes that 404 on 12.2 removed); 0.4.0 dropped the obsolete routes it no longer calls"
 }

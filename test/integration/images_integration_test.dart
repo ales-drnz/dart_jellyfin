@@ -33,6 +33,32 @@ void main() {
         expect(url, contains('tag=hash-x'));
       });
 
+      test('pathUrl answers the album cover with no query', () async {
+        final albums = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.musicAlbum],
+          limit: 1,
+        );
+        final album = albums.items.single;
+        final tag = album.primaryImageTag;
+        if (tag == null) {
+          markTestSkipped('the seeded album has no cover');
+          return;
+        }
+        final url = jf.images.pathUrl(
+          itemId: album.id,
+          tag: tag,
+          maxWidth: 64,
+          maxHeight: 64,
+        );
+        expect(Uri.parse(url).query, isEmpty);
+        final res = await jf.request<List<int>>(
+          url,
+          absoluteUrl: true,
+          responseType: JellyfinResponseType.bytes,
+        );
+        expect(res.data, isNotEmpty);
+      });
+
       test('userImageUrl builds /UserImage with the current session token', () {
         final url = jf.images.userImageUrl(format: JellyfinImagesApi.formatPng);
         expect(url, contains('/UserImage'));

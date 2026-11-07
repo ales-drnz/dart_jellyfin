@@ -92,10 +92,12 @@ final class JellyfinDisplayPreferences {
       rememberSorting: json['RememberSorting'] is bool
           ? json['RememberSorting'] as bool
           : null,
-      showBackdrop:
-          json['ShowBackdrop'] is bool ? json['ShowBackdrop'] as bool : null,
-      showSidebar:
-          json['ShowSidebar'] is bool ? json['ShowSidebar'] as bool : null,
+      showBackdrop: json['ShowBackdrop'] is bool
+          ? json['ShowBackdrop'] as bool
+          : null,
+      showSidebar: json['ShowSidebar'] is bool
+          ? json['ShowSidebar'] as bool
+          : null,
       primaryImageHeight: asInt(json['PrimaryImageHeight']),
       primaryImageWidth: asInt(json['PrimaryImageWidth']),
       customPrefs: cp is Map ? asStringMap(cp) : const {},
@@ -105,22 +107,21 @@ final class JellyfinDisplayPreferences {
 
   /// JSON shape accepted by `POST /DisplayPreferences/{id}`.
   Map<String, Object?> toJson() => <String, Object?>{
-        if (id != null) 'Id': id,
-        if (client != null) 'Client': client,
-        if (viewType != null) 'ViewType': viewType,
-        if (sortBy != null) 'SortBy': sortBy,
-        if (sortOrder != null) 'SortOrder': sortOrder,
-        if (indexBy != null) 'IndexBy': indexBy,
-        if (scrollDirection != null) 'ScrollDirection': scrollDirection,
-        if (rememberIndexing != null) 'RememberIndexing': rememberIndexing,
-        if (rememberSorting != null) 'RememberSorting': rememberSorting,
-        if (showBackdrop != null) 'ShowBackdrop': showBackdrop,
-        if (showSidebar != null) 'ShowSidebar': showSidebar,
-        if (primaryImageHeight != null)
-          'PrimaryImageHeight': primaryImageHeight,
-        if (primaryImageWidth != null) 'PrimaryImageWidth': primaryImageWidth,
-        if (customPrefs.isNotEmpty) 'CustomPrefs': customPrefs,
-      };
+    if (id != null) 'Id': id,
+    if (client != null) 'Client': client,
+    if (viewType != null) 'ViewType': viewType,
+    if (sortBy != null) 'SortBy': sortBy,
+    if (sortOrder != null) 'SortOrder': sortOrder,
+    if (indexBy != null) 'IndexBy': indexBy,
+    if (scrollDirection != null) 'ScrollDirection': scrollDirection,
+    if (rememberIndexing != null) 'RememberIndexing': rememberIndexing,
+    if (rememberSorting != null) 'RememberSorting': rememberSorting,
+    if (showBackdrop != null) 'ShowBackdrop': showBackdrop,
+    if (showSidebar != null) 'ShowSidebar': showSidebar,
+    if (primaryImageHeight != null) 'PrimaryImageHeight': primaryImageHeight,
+    if (primaryImageWidth != null) 'PrimaryImageWidth': primaryImageWidth,
+    if (customPrefs.isNotEmpty) 'CustomPrefs': customPrefs,
+  };
 }
 
 // ---------------------------------------------------------------------------

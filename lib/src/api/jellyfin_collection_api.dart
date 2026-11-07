@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Collections` — manage Jellyfin's "Collection" item type.
 ///
@@ -19,26 +21,28 @@ class JellyfinCollectionApi {
 
   /// `POST /Collections` — create a new collection.
   ///
-  /// Returns the raw `CollectionCreationResult` map; the new
-  /// collection's id sits in the `Id` field.
-  Future<Map<String, Object?>> create({
+  /// Answers the new collection's id in
+  /// [JellyfinCollectionCreationResult.id].
+  Future<JellyfinCollectionCreationResult> create({
     String? name,
     List<String> ids = const [],
     String? parentId,
     bool? isLocked,
-  }) async {
+  }) {
     final qp = <String, Object?>{};
     if (name != null) qp['name'] = name;
     if (ids.isNotEmpty) qp['ids'] = ids;
     if (parentId != null) qp['parentId'] = parentId;
     if (isLocked != null) qp['isLocked'] = isLocked;
 
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Collections',
       method: 'POST',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) =>
+          objectOf(JellyfinCollectionCreationResult.fromJson)(json) ??
+          JellyfinCollectionCreationResult.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   /// `POST /Collections/{collectionId}/Items?ids={ids}` — splice

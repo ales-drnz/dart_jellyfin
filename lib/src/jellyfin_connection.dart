@@ -17,7 +17,8 @@ import 'transport/jellyfin_cancel_token.dart';
 import 'transport/jellyfin_response.dart';
 import 'transport/jellyfin_retry_policy.dart';
 import 'transport/platform_io.dart'
-    if (dart.library.js_interop) 'transport/platform_web.dart' as platform;
+    if (dart.library.js_interop) 'transport/platform_web.dart'
+    as platform;
 
 /// What a connection and every scoped view of it share (see
 /// [JellyfinConnection.scoped]): the HTTP client, the server URL and the
@@ -99,16 +100,16 @@ final class JellyfinConnection {
     Duration receiveTimeout = const Duration(seconds: 30),
     int jsonIsolateThreshold = defaultJsonIsolateThreshold,
     JellyfinRetryPolicy retryPolicy = JellyfinRetryPolicy.none,
-  })  : _shared = _Shared(
-          client: httpClient ?? platform.createDefaultClient(connectTimeout),
-          ownsClient: httpClient == null,
-          connectTimeout: connectTimeout,
-          receiveTimeout: receiveTimeout,
-          jsonIsolateThreshold: jsonIsolateThreshold,
-          inflates: httpClient == null && platform.defaultClientLeavesGzip,
-          retryPolicy: retryPolicy,
-        ),
-        scopeToken = null {
+  }) : _shared = _Shared(
+         client: httpClient ?? platform.createDefaultClient(connectTimeout),
+         ownsClient: httpClient == null,
+         connectTimeout: connectTimeout,
+         receiveTimeout: receiveTimeout,
+         jsonIsolateThreshold: jsonIsolateThreshold,
+         inflates: httpClient == null && platform.defaultClientLeavesGzip,
+         retryPolicy: retryPolicy,
+       ),
+       scopeToken = null {
     if (baseUrl != null) this.baseUrl = baseUrl;
   }
 
@@ -120,9 +121,9 @@ final class JellyfinConnection {
   JellyfinConnection.scoped(
     JellyfinConnection parent,
     JellyfinCancelToken cancelToken,
-  )   : _shared = parent._shared,
-        credentials = parent.credentials,
-        scopeToken = cancelToken;
+  ) : _shared = parent._shared,
+      credentials = parent.credentials,
+      scopeToken = cancelToken;
 
   /// Effective isolate threshold for this connection. For tests.
   @visibleForTesting
@@ -185,9 +186,9 @@ final class JellyfinConnection {
   /// (`EnableLegacyAuthorization` is off, and the `X-Emby-Authorization` /
   /// `X-MediaBrowser-Token` headers are rejected).
   Map<String, String> get _baseHeaders => {
-        'Accept': 'application/json',
-        'Authorization': JellyfinAuthHeader.build(credentials, token: token),
-      };
+    'Accept': 'application/json',
+    'Authorization': JellyfinAuthHeader.build(credentials, token: token),
+  };
 
   /// Issues an HTTP request relative to [baseUrl] (or absolute when
   /// `absoluteUrl` is `true`) and decodes the body per [responseType].
@@ -306,14 +307,13 @@ final class JellyfinConnection {
     Map<String, Object?>? queryParameters,
     bool absoluteUrl = true,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      request<Uint8List>(
-        url,
-        queryParameters: queryParameters,
-        absoluteUrl: absoluteUrl,
-        responseType: JellyfinResponseType.bytes,
-        cancelToken: cancelToken,
-      );
+  }) => request<Uint8List>(
+    url,
+    queryParameters: queryParameters,
+    absoluteUrl: absoluteUrl,
+    responseType: JellyfinResponseType.bytes,
+    cancelToken: cancelToken,
+  );
 
   /// Opens a GET whose body is delivered as it arrives, for downloads.
   ///
@@ -367,11 +367,13 @@ final class JellyfinConnection {
     final body = _guard(opened);
     return JellyfinStreamedResponse(
       stream: gzipped
-          ? platform.gunzipStream(body).handleError(
-                (Object e, StackTrace st) =>
-                    throw _parseError(e, st, opened.uri),
-                test: (e) => e is FormatException,
-              )
+          ? platform
+                .gunzipStream(body)
+                .handleError(
+                  (Object e, StackTrace st) =>
+                      throw _parseError(e, st, opened.uri),
+                  test: (e) => e is FormatException,
+                )
           : body,
       statusCode: res.statusCode,
       headers: res.headers,
@@ -390,20 +392,19 @@ final class JellyfinConnection {
     required Map<String, String>? extraHeaders,
     required bool absoluteUrl,
     required JellyfinCancelToken? cancelToken,
-  }) =>
-      _retrying(
-        method,
-        cancelToken,
-        () => _exchangeOnce(
-          path,
-          method: method,
-          queryParameters: queryParameters,
-          data: data,
-          extraHeaders: extraHeaders,
-          absoluteUrl: absoluteUrl,
-          cancelToken: cancelToken,
-        ),
-      );
+  }) => _retrying(
+    method,
+    cancelToken,
+    () => _exchangeOnce(
+      path,
+      method: method,
+      queryParameters: queryParameters,
+      data: data,
+      extraHeaders: extraHeaders,
+      absoluteUrl: absoluteUrl,
+      cancelToken: cancelToken,
+    ),
+  );
 
   /// Runs [attempt] under the client's [JellyfinRetryPolicy].
   Future<T> _retrying<T>(
@@ -412,7 +413,7 @@ final class JellyfinConnection {
     Future<T> Function() attempt,
   ) async {
     final token = cancelToken ?? scopeToken;
-    for (var n = 1;; n++) {
+    for (var n = 1; ; n++) {
       try {
         return await attempt();
       } on JellyfinException catch (e) {
@@ -508,9 +509,14 @@ final class JellyfinConnection {
       uri,
       abortTrigger: abort.future,
     );
-    request.headers.addAll(_baseHeaders);
-    if (_shared.inflates) request.headers['Accept-Encoding'] = 'gzip';
-    if (extraHeaders != null) request.headers.addAll(extraHeaders);
+    // An empty extra header removes the header: `Authorization: ''`.
+    request.headers.addAll(
+      {
+        ..._baseHeaders,
+        if (_shared.inflates) 'Accept-Encoding': 'gzip',
+        ...?extraHeaders,
+      }..removeWhere((_, value) => value.isEmpty),
+    );
     _encodeBody(request, data);
 
     final opened = _Opened(uri, abort, token, _shared.receiveTimeout);
@@ -816,6 +822,7 @@ final class JellyfinConnection {
       statusCode: status,
       path: uri.toString(),
       retryAfter: _retryAfter(headers['retry-after']),
+      body: body.isEmpty ? null : utf8.decode(body, allowMalformed: true),
     );
   }
 
@@ -865,10 +872,10 @@ final class JellyfinConnection {
     final type = text.contains('timed out')
         ? JellyfinErrorType.timeout
         : e is http.ClientException && text.contains('Redirect')
-            ? JellyfinErrorType.unknown
-            : e is http.ClientException
-                ? JellyfinErrorType.connection
-                : JellyfinErrorType.unknown;
+        ? JellyfinErrorType.unknown
+        : e is http.ClientException
+        ? JellyfinErrorType.connection
+        : JellyfinErrorType.unknown;
     return JellyfinException(
       text,
       type: type,
@@ -892,14 +899,13 @@ final class JellyfinConnection {
     Uri uri, [
     Object? cause,
     StackTrace? st,
-  ]) =>
-      JellyfinException(
-        message,
-        type: JellyfinErrorType.timeout,
-        path: uri.toString(),
-        cause: cause,
-        stackTrace: st ?? StackTrace.current,
-      );
+  ]) => JellyfinException(
+    message,
+    type: JellyfinErrorType.timeout,
+    path: uri.toString(),
+    cause: cause,
+    stackTrace: st ?? StackTrace.current,
+  );
 
   /// Throws a cancellation when the token for this request was cancelled
   /// while its body was being decoded.
@@ -909,10 +915,10 @@ final class JellyfinConnection {
   }
 
   static JellyfinException _cancelled(Uri uri) => JellyfinException(
-        'Request cancelled',
-        type: JellyfinErrorType.cancelled,
-        path: uri.toString(),
-      );
+    'Request cancelled',
+    type: JellyfinErrorType.cancelled,
+    path: uri.toString(),
+  );
 }
 
 /// Decodes a JSON body; `null` when empty. Top-level so it can run on
@@ -924,8 +930,9 @@ final class JellyfinConnection {
 Object? _jsonOf(Uint8List bytes) =>
     bytes.isEmpty ? null : _utf8Json.convert(bytes);
 
-final Converter<List<int>, Object?> _utf8Json =
-    const Utf8Decoder().fuse(const JsonDecoder());
+final Converter<List<int>, Object?> _utf8Json = const Utf8Decoder().fuse(
+  const JsonDecoder(),
+);
 
 /// A request whose headers have arrived.
 final class _Opened {

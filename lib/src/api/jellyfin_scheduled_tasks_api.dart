@@ -38,11 +38,10 @@ class JellyfinScheduledTasksApi {
   /// `GET /ScheduledTasks/{taskId}` — one task's full status.
   Future<JellyfinScheduledTask?> byId({
     required String taskId,
-  }) =>
-      _http.requestJson(
-        '/ScheduledTasks/$taskId',
-        objectOf(JellyfinScheduledTask.fromJson),
-      );
+  }) => _http.requestJson(
+    '/ScheduledTasks/$taskId',
+    objectOf(JellyfinScheduledTask.fromJson),
+  );
 
   /// `POST /ScheduledTasks/{taskId}/Triggers` — replace the task's
   /// triggers (cron-like schedule definitions).

@@ -64,10 +64,9 @@ class JellyfinUserDataApi {
     required String itemId,
     required bool isFavorite,
     String? userId,
-  }) =>
-      isFavorite
-          ? markFavorite(itemId: itemId, userId: userId)
-          : unmarkFavorite(itemId: itemId, userId: userId);
+  }) => isFavorite
+      ? markFavorite(itemId: itemId, userId: userId)
+      : unmarkFavorite(itemId: itemId, userId: userId);
 
   /// Mark an item as played.
   ///
@@ -171,7 +170,8 @@ class JellyfinUserDataApi {
     Map<String, Object?>? raw,
     String? userId,
   }) async {
-    final body = raw ??
+    final body =
+        raw ??
         {
           if (userData?.playbackPositionTicks != null)
             'PlaybackPositionTicks': userData!.playbackPositionTicks,
@@ -179,8 +179,9 @@ class JellyfinUserDataApi {
           'IsFavorite': userData?.isFavorite ?? false,
           if (userData?.likes != null) 'Likes': userData!.likes,
           if (userData?.lastPlayedDate != null)
-            'LastPlayedDate':
-                userData!.lastPlayedDate!.toUtc().toIso8601String(),
+            'LastPlayedDate': userData!.lastPlayedDate!
+                .toUtc()
+                .toIso8601String(),
           'Played': userData?.played ?? false,
         };
     final res = await _http.request<Map<String, Object?>>(
@@ -202,7 +203,7 @@ class JellyfinUserDataApi {
   }) {
     final uid = userId ?? _http.userId;
     final qp = <String, Object?>{
-      if (uid != null) 'userId': uid,
+      'userId': ?uid,
       ...?extra,
     };
     return qp.isEmpty ? null : qp;

@@ -35,7 +35,6 @@ import 'api/jellyfin_lyrics_api.dart';
 import 'api/jellyfin_media_info_api.dart';
 import 'api/jellyfin_media_segments_api.dart';
 import 'api/jellyfin_movies_api.dart';
-import 'api/jellyfin_music_genres_api.dart';
 import 'api/jellyfin_notifications_api.dart';
 import 'api/jellyfin_packages_api.dart';
 import 'api/jellyfin_persons_api.dart';
@@ -53,8 +52,6 @@ import 'api/jellyfin_subtitles_api.dart';
 import 'api/jellyfin_suggestions_api.dart';
 import 'api/jellyfin_sync_play_api.dart';
 import 'api/jellyfin_system_api.dart';
-import 'api/jellyfin_tmdb_api.dart';
-import 'api/jellyfin_trailers_api.dart';
 import 'api/jellyfin_trickplay_api.dart';
 import 'api/jellyfin_tv_shows_api.dart';
 import 'api/jellyfin_user_api.dart';
@@ -189,11 +186,6 @@ class JellyfinClient {
   /// `/Genres` operations — list and fetch genres.
   late final JellyfinGenresApi genres;
 
-  /// `/MusicGenres` operations — obsolete in Jellyfin 12. `list` is
-  /// deprecated for `genres.list(parentId: musicLibraryId)`; `byName` has
-  /// no exact replacement.
-  late final JellyfinMusicGenresApi musicGenres;
-
   /// `/Years` operations — list and fetch year groupings.
   late final JellyfinYearsApi years;
 
@@ -242,18 +234,11 @@ class JellyfinClient {
   /// `/ClientLog` operations — client-side log submission.
   late final JellyfinClientLogApi clientLog;
 
-  /// TMDB integration endpoints (hidden from the Jellyfin 12 API).
-  late final JellyfinTmdbApi tmdb;
-
   /// `/RemoteImages` operations — fetch images from metadata providers.
   late final JellyfinRemoteImageApi remoteImage;
 
   /// `/Devices` operations — list and manage registered devices.
   late final JellyfinDevicesApi devices;
-
-  /// `/Trailers` operations — obsolete in Jellyfin 12; use
-  /// `items.list(includeItemTypes: [JellyfinItemKind.trailer])`.
-  late final JellyfinTrailersApi trailers;
 
   /// `/Notifications` operations — server notification feed.
   late final JellyfinNotificationsApi notifications;
@@ -284,19 +269,19 @@ class JellyfinClient {
     int jsonIsolateThreshold = JellyfinConnection.defaultJsonIsolateThreshold,
     JellyfinRetryPolicy retryPolicy = JellyfinRetryPolicy.none,
   }) : _http = JellyfinConnection(
-          credentials: credentials,
-          baseUrl: baseUrl,
-          httpClient: httpClient,
-          connectTimeout: connectTimeout,
-          receiveTimeout: receiveTimeout,
-          jsonIsolateThreshold: jsonIsolateThreshold,
-          retryPolicy: retryPolicy,
-        ) {
+         credentials: credentials,
+         baseUrl: baseUrl,
+         httpClient: httpClient,
+         connectTimeout: connectTimeout,
+         receiveTimeout: receiveTimeout,
+         jsonIsolateThreshold: jsonIsolateThreshold,
+         retryPolicy: retryPolicy,
+       ) {
     _wire(JellyfinNotificationsApi(_http));
   }
 
   JellyfinClient._scoped(JellyfinClient parent, JellyfinCancelToken token)
-      : _http = JellyfinConnection.scoped(parent._http, token) {
+    : _http = JellyfinConnection.scoped(parent._http, token) {
     _wire(parent.notifications);
   }
 
@@ -358,7 +343,6 @@ class JellyfinClient {
     persons = JellyfinPersonsApi(_http);
     studios = JellyfinStudiosApi(_http);
     genres = JellyfinGenresApi(_http);
-    musicGenres = JellyfinMusicGenresApi(_http);
     years = JellyfinYearsApi(_http);
     localization = JellyfinLocalizationApi(_http);
     itemLookup = JellyfinItemLookupApi(_http);
@@ -375,11 +359,9 @@ class JellyfinClient {
     dashboard = JellyfinDashboardApi(_http);
     activityLog = JellyfinActivityLogApi(_http);
     clientLog = JellyfinClientLogApi(_http);
-    tmdb = JellyfinTmdbApi(_http);
     remoteImage = JellyfinRemoteImageApi(_http);
     devices = JellyfinDevicesApi(_http);
     this.notifications = notifications;
-    trailers = JellyfinTrailersApi(_http);
   }
 
   /// Client identity sent on every request.
@@ -445,17 +427,16 @@ class JellyfinClient {
     bool absoluteUrl = false,
     JellyfinResponseType? responseType,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      _http.request<T>(
-        path,
-        method: method,
-        queryParameters: queryParameters,
-        data: data,
-        extraHeaders: extraHeaders,
-        absoluteUrl: absoluteUrl,
-        responseType: responseType,
-        cancelToken: cancelToken,
-      );
+  }) => _http.request<T>(
+    path,
+    method: method,
+    queryParameters: queryParameters,
+    data: data,
+    extraHeaders: extraHeaders,
+    absoluteUrl: absoluteUrl,
+    responseType: responseType,
+    cancelToken: cancelToken,
+  );
 
   /// Convenience for byte GETs (artwork, small files). The whole body is
   /// held in memory; use [requestStream] for media downloads.
@@ -464,13 +445,12 @@ class JellyfinClient {
     Map<String, Object?>? queryParameters,
     bool absoluteUrl = true,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      _http.requestBytes(
-        url,
-        queryParameters: queryParameters,
-        absoluteUrl: absoluteUrl,
-        cancelToken: cancelToken,
-      );
+  }) => _http.requestBytes(
+    url,
+    queryParameters: queryParameters,
+    absoluteUrl: absoluteUrl,
+    cancelToken: cancelToken,
+  );
 
   /// Streams a GET body as it arrives — for downloads, so a whole track
   /// never sits in memory. Write [JellyfinStreamedResponse.stream] to a
@@ -485,15 +465,14 @@ class JellyfinClient {
     bool absoluteUrl = true,
     bool stallTimeout = true,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      _http.requestStream(
-        url,
-        queryParameters: queryParameters,
-        extraHeaders: extraHeaders,
-        absoluteUrl: absoluteUrl,
-        stallTimeout: stallTimeout,
-        cancelToken: cancelToken,
-      );
+  }) => _http.requestStream(
+    url,
+    queryParameters: queryParameters,
+    extraHeaders: extraHeaders,
+    absoluteUrl: absoluteUrl,
+    stallTimeout: stallTimeout,
+    cancelToken: cancelToken,
+  );
 
   // ─── Lightweight method aliases ────────────────────────────────────
 
@@ -503,13 +482,12 @@ class JellyfinClient {
     Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      request<T>(
-        path,
-        queryParameters: queryParameters,
-        extraHeaders: extraHeaders,
-        cancelToken: cancelToken,
-      );
+  }) => request<T>(
+    path,
+    queryParameters: queryParameters,
+    extraHeaders: extraHeaders,
+    cancelToken: cancelToken,
+  );
 
   /// Shorthand for a `POST` [request].
   Future<JellyfinResponse<T>> post<T>(
@@ -518,15 +496,14 @@ class JellyfinClient {
     Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      request<T>(
-        path,
-        method: 'POST',
-        data: data,
-        queryParameters: queryParameters,
-        extraHeaders: extraHeaders,
-        cancelToken: cancelToken,
-      );
+  }) => request<T>(
+    path,
+    method: 'POST',
+    data: data,
+    queryParameters: queryParameters,
+    extraHeaders: extraHeaders,
+    cancelToken: cancelToken,
+  );
 
   /// Shorthand for a `DELETE` [request].
   Future<JellyfinResponse<T>> delete<T>(
@@ -534,12 +511,11 @@ class JellyfinClient {
     Map<String, Object?>? queryParameters,
     Map<String, String>? extraHeaders,
     JellyfinCancelToken? cancelToken,
-  }) =>
-      request<T>(
-        path,
-        method: 'DELETE',
-        queryParameters: queryParameters,
-        extraHeaders: extraHeaders,
-        cancelToken: cancelToken,
-      );
+  }) => request<T>(
+    path,
+    method: 'DELETE',
+    queryParameters: queryParameters,
+    extraHeaders: extraHeaders,
+    cancelToken: cancelToken,
+  );
 }

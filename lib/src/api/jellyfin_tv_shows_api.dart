@@ -121,11 +121,6 @@ class JellyfinTvShowsApi {
     int? imageTypeLimit,
     List<String> enableImageTypes = const [],
     bool enableTotalRecordCount = true,
-    @Deprecated(
-      'Jellyfin 12 removed disableFirstEpisode from /Shows/NextUp; it is '
-      'sent only when passed, for 10.11 servers',
-    )
-    bool? disableFirstEpisode,
     bool enableResumable = true,
     bool enableRewatching = false,
   }) async {
@@ -133,8 +128,6 @@ class JellyfinTvShowsApi {
       'enableImages': enableImages,
       'enableUserData': enableUserData,
       'enableTotalRecordCount': enableTotalRecordCount,
-      if (disableFirstEpisode != null)
-        'disableFirstEpisode': disableFirstEpisode,
       'enableResumable': enableResumable,
       'enableRewatching': enableRewatching,
     };

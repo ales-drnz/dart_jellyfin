@@ -22,10 +22,10 @@ JellyfinQueryResult<T> Function(Object? json) queryResultOf<T>(
   String itemsKey = 'Items',
 }) =>
     (json) => JellyfinQueryResult.fromJson(
-          json == null ? const <String, Object?>{} : _map(json),
-          parser,
-          itemsKey: itemsKey,
-        );
+      json == null ? const <String, Object?>{} : _map(json),
+      parser,
+      itemsKey: itemsKey,
+    );
 
 /// Parses a bare JSON array, skipping entries that are not objects; an
 /// empty body is an empty list.
@@ -33,9 +33,9 @@ List<T> Function(Object? json) listOf<T>(
   T Function(Map<String, Object?>) parser,
 ) =>
     (json) => [
-          for (final e in json == null ? const <Object?>[] : _list(json))
-            if (e is Map<String, Object?>) parser(e),
-        ];
+      for (final e in json == null ? const <Object?>[] : _list(json))
+        if (e is Map<String, Object?>) parser(e),
+    ];
 
 /// Parses one JSON object, or `null` for an empty body.
 T? Function(Object? json) objectOf<T>(
@@ -57,6 +57,6 @@ List<Object?> _list(Object json) {
 }
 
 JellyfinException _shape(String expected, Object json) => JellyfinException(
-      'Expected a JSON $expected, got ${json.runtimeType}',
-      type: JellyfinErrorType.parse,
-    );
+  'Expected a JSON $expected, got ${json.runtimeType}',
+  type: JellyfinErrorType.parse,
+);

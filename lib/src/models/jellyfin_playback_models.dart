@@ -39,8 +39,10 @@ final class JellyfinPlaybackInfo {
   /// Decodes the `PlaybackInfoResponse` envelope.
   factory JellyfinPlaybackInfo.fromJson(Map<String, Object?> json) =>
       JellyfinPlaybackInfo(
-        mediaSources:
-            asObjectList(json['MediaSources'], JellyfinMediaSource.fromJson),
+        mediaSources: asObjectList(
+          json['MediaSources'],
+          JellyfinMediaSource.fromJson,
+        ),
         playSessionId: asString(json['PlaySessionId']),
         errorCode: asString(json['ErrorCode']),
         raw: json,
@@ -85,8 +87,8 @@ final class JellyfinDirectPlayProfile {
   const JellyfinDirectPlayProfile.audio({
     this.container,
     this.audioCodec,
-  })  : type = 'Audio',
-        videoCodec = null;
+  }) : type = 'Audio',
+       videoCodec = null;
 
   /// Convenience constructor for a video direct-play profile
   /// (`type: 'Video'`).
@@ -98,11 +100,11 @@ final class JellyfinDirectPlayProfile {
 
   /// `DirectPlayProfile` JSON body. Null constraints are omitted.
   Map<String, Object?> toJson() => <String, Object?>{
-        'Type': type,
-        if (container != null) 'Container': container,
-        if (audioCodec != null) 'AudioCodec': audioCodec,
-        if (videoCodec != null) 'VideoCodec': videoCodec,
-      };
+    'Type': type,
+    if (container != null) 'Container': container,
+    if (audioCodec != null) 'AudioCodec': audioCodec,
+    if (videoCodec != null) 'VideoCodec': videoCodec,
+  };
 }
 
 /// Subset of `DeviceProfile` from the OpenAPI spec — enough to tell

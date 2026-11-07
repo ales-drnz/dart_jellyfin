@@ -19,10 +19,11 @@ const _track = 'b5455b2dcaf64392527a5ae01dd1523f';
 const _album = '72839210ba8018a1bf1039f340953486';
 
 JellyfinNotification _frame(String name) => JellyfinNotification.fromJson(
-      jsonDecode(
+  jsonDecode(
         File('test/fixtures/notifications/$name.json').readAsStringSync(),
-      ) as Map<String, Object?>,
-    );
+      )
+      as Map<String, Object?>,
+);
 
 T _event<T extends JellyfinEvent>(String name) {
   final event = _frame(name).event;
@@ -133,8 +134,9 @@ void main() {
     );
     expect(e.tasks.length, greaterThan(10));
     expect(e.running.map((t) => t.key), ['DeleteTranscodeFiles']);
-    final normalization =
-        e.tasks.firstWhere((t) => t.key == 'AudioNormalization');
+    final normalization = e.tasks.firstWhere(
+      (t) => t.key == 'AudioNormalization',
+    );
     expect(normalization.lastExecutionResult!.status, 'Completed');
   });
 
@@ -172,14 +174,14 @@ void main() {
   group('fallback', () {
     test('an unknown type becomes JellyfinUnknownEvent with the frame', () {
       final frame = <String, Object?>{
-        'MessageType': 'UserUpdated',
+        'MessageType': 'SomethingNew',
         'MessageId': '1',
         'Data': {'Id': _user},
       };
       final e = JellyfinEvent.fromFrame(frame);
       expect(e, isA<JellyfinUnknownEvent>());
       e as JellyfinUnknownEvent;
-      expect(e.messageType, 'UserUpdated');
+      expect(e.messageType, 'SomethingNew');
       expect(e.raw, same(frame));
       expect(e.data, {'Id': _user});
       expect(e.messageId, '1');
@@ -191,6 +193,10 @@ void main() {
         {'MessageType': 'Sessions', 'Data': <String, Object?>{}},
         {'MessageType': 'LibraryChanged'},
         {'MessageType': 'ScheduledTasksInfo', 'Data': 42},
+        {'MessageType': 'UserDeleted', 'Data': <String, Object?>{}},
+        {'MessageType': 'SyncPlayCommand', 'Data': 'nope'},
+        {'MessageType': 'ActivityLogEntry', 'Data': <String, Object?>{}},
+        {'MessageType': 'TimerCreated'},
       ]) {
         final e = JellyfinEvent.fromFrame(frame);
         expect(e, isA<JellyfinUnknownEvent>(), reason: '$frame');
@@ -199,17 +205,19 @@ void main() {
     });
 
     test('odd entries inside a payload are skipped, not thrown', () {
-      final e = JellyfinEvent.fromFrame({
-        'MessageType': 'UserDataChanged',
-        'Data': {
-          'UserId': _user,
-          'UserDataList': [
-            'nope',
-            null,
-            {'ItemId': _track, 'IsFavorite': true, 'PlayCount': 'x'},
-          ],
-        },
-      }) as JellyfinUserDataChangedEvent;
+      final e =
+          JellyfinEvent.fromFrame({
+                'MessageType': 'UserDataChanged',
+                'Data': {
+                  'UserId': _user,
+                  'UserDataList': [
+                    'nope',
+                    null,
+                    {'ItemId': _track, 'IsFavorite': true, 'PlayCount': 'x'},
+                  ],
+                },
+              })
+              as JellyfinUserDataChangedEvent;
       expect(e.changes.single.isFavorite, isTrue);
       expect(e.changes.single.playCount, 0);
     });
@@ -227,6 +235,158 @@ void main() {
       expect(events[0], isA<JellyfinUnknownEvent>());
       expect(events[1], isA<JellyfinUnknownEvent>());
       expect(events[2], isA<JellyfinPlaystateEvent>());
+    });
+  });
+
+  // Frames shaped after the API document's *Message schemas: a test server
+  // rarely sends these, so there are no captures.
+  JellyfinEvent ev(String type, [Object? data]) => JellyfinEvent.fromFrame({
+    'MessageType': type,
+    'MessageId': 'm1',
+    'Data': ?data,
+  });
+
+  group('documented frames', () {
+    test('SyncPlayCommand', () {
+      final e =
+          ev('SyncPlayCommand', {
+                'GroupId': 'g1',
+                'PlaylistItemId': 'p1',
+                'When': '2026-11-07T10:00:00.0000000Z',
+                'PositionTicks': 50000000,
+                'Command': 'Seek',
+                'EmittedAt': '2026-11-07T09:59:59.5000000Z',
+              })
+              as JellyfinSyncPlayCommandEvent;
+      expect(e.groupId, 'g1');
+      expect(e.playlistItemId, 'p1');
+      expect(e.command, 'Seek');
+      expect(e.when, DateTime.utc(2026, 11, 7, 10));
+      expect(e.position, const Duration(seconds: 5));
+      expect(e.emittedAt!.isBefore(e.when!), isTrue);
+    });
+
+    test('SyncPlayGroupUpdate', () {
+      final joined =
+          ev('SyncPlayGroupUpdate', {
+                'GroupId': 'g1',
+                'Type': 'GroupJoined',
+                'Data': {
+                  'GroupId': 'g1',
+                  'GroupName': 'Movie night',
+                  'State': 'Idle',
+                  'Participants': ['alice'],
+                  'LastUpdatedAt': '2026-11-07T10:00:00Z',
+                },
+              })
+              as JellyfinSyncPlayGroupUpdateEvent;
+      expect(joined.updateType, 'GroupJoined');
+      expect(joined.group!.name, 'Movie night');
+      expect(joined.userName, isNull);
+
+      final user =
+          ev('SyncPlayGroupUpdate', {
+                'GroupId': 'g1',
+                'Type': 'UserJoined',
+                'Data': 'bob',
+              })
+              as JellyfinSyncPlayGroupUpdateEvent;
+      expect(user.userName, 'bob');
+      expect(user.group, isNull);
+
+      final state =
+          ev('SyncPlayGroupUpdate', {
+                'GroupId': 'g1',
+                'Type': 'StateUpdate',
+                'Data': {'State': 'Waiting', 'Reason': 'Buffer'},
+              })
+              as JellyfinSyncPlayGroupUpdateEvent;
+      expect(state.state, 'Waiting');
+      expect(state.reason, 'Buffer');
+    });
+
+    test('UserUpdated and UserDeleted', () {
+      final updated =
+          ev('UserUpdated', {'Id': _user, 'Name': 'alice'})
+              as JellyfinUserUpdatedEvent;
+      expect(updated.user.id, _user);
+      expect(updated.user.name, 'alice');
+      final deleted = ev('UserDeleted', _user) as JellyfinUserDeletedEvent;
+      expect(deleted.userId, _user);
+    });
+
+    test('server state frames carry no data', () {
+      expect(ev('RestartRequired'), isA<JellyfinRestartRequiredEvent>());
+      expect(ev('ServerRestarting'), isA<JellyfinServerRestartingEvent>());
+      expect(
+        ev('ServerShuttingDown'),
+        isA<JellyfinServerShuttingDownEvent>(),
+      );
+    });
+
+    test('timer frames', () {
+      final created =
+          ev('TimerCreated', {'Id': 't1', 'ProgramId': 'p1'})
+              as JellyfinTimerEvent;
+      expect(created.timerId, 't1');
+      expect(created.programId, 'p1');
+      expect(created.isSeriesTimer, isFalse);
+      expect(created.isCancelled, isFalse);
+      final series =
+          ev('SeriesTimerCancelled', {'Id': 's1'}) as JellyfinTimerEvent;
+      expect(series.isSeriesTimer, isTrue);
+      expect(series.isCancelled, isTrue);
+      expect(series.programId, isNull);
+    });
+
+    test('plugin frames', () {
+      const info = {
+        'Guid': 'a4df60c5-6ab4-412a-8f79-2cab93fb2bc5',
+        'Name': 'Open Subtitles',
+        'Version': '20.0.0.0',
+        'SourceUrl': 'https://repo.jellyfin.org/x.zip',
+      };
+      for (final (type, check)
+          in <(String, bool Function(JellyfinPluginInstallationEvent))>[
+            ('PackageInstalling', (e) => e.isInstalling),
+            ('PackageInstallationCompleted', (e) => e.isCompleted),
+            ('PackageInstallationFailed', (e) => e.isFailed),
+            ('PackageInstallationCancelled', (e) => e.isCancelled),
+          ]) {
+        final e = ev(type, info) as JellyfinPluginInstallationEvent;
+        expect(check(e), isTrue, reason: type);
+        expect(e.messageType, type);
+        expect(e.pluginId, info['Guid']);
+        expect(e.name, 'Open Subtitles');
+        expect(e.version, '20.0.0.0');
+      }
+      final removed =
+          ev('PackageUninstalled', {
+                'Id': 'a4df60c5-6ab4-412a-8f79-2cab93fb2bc5',
+                'Name': 'Open Subtitles',
+                'Version': '20.0.0.0',
+                'CanUninstall': true,
+                'Status': 'Active',
+              })
+              as JellyfinPluginUninstalledEvent;
+      expect(removed.plugin.name, 'Open Subtitles');
+    });
+
+    test('ActivityLogEntry', () {
+      final e =
+          ev('ActivityLogEntry', [
+                {
+                  'Id': 7,
+                  'Name': 'alice is online from Web',
+                  'Type': 'SessionStarted',
+                  'Date': '2026-11-07T10:00:00Z',
+                  'UserId': _user,
+                  'Severity': 'Information',
+                },
+                'skipped',
+              ])
+              as JellyfinActivityLogEvent;
+      expect(e.entries.single.name, 'alice is online from Web');
     });
   });
 }

@@ -124,16 +124,6 @@ void main() {
         ),
       );
     });
-
-    test('lyricsRaw decodes the body as UTF-8', () async {
-      adapter.respond = (_) => CannedResponse(
-            200,
-            utf8.encode('{"Lyrics":[{"Text":"Perché sì"}]}'),
-            contentType: 'application/json; charset=utf-8',
-          );
-      // ignore: deprecated_member_use_from_same_package
-      expect(await client.audio.lyricsRaw(itemId: 't1'), contains('Perché sì'));
-    });
   });
 
   group('playlist rename after an entry write', () {
@@ -156,28 +146,32 @@ void main() {
       expect(adapter.path, '/Playlists/p');
     });
 
-    test('create with ids, moveItem and update(ids:) count as writes',
-        () async {
-      adapter.respond = (r) => r.uri.path == '/Playlists'
-          ? CannedResponse.json({'Id': 'new'})
-          : CannedResponse(204, const []);
-      await client.playlists.create(name: 'x', itemIds: ['a']);
-      expect(
-        await timed(
-          () => client.playlists.update(playlistId: 'new', name: 'y'),
-        ),
-        greaterThanOrEqualTo(settle * 0.9),
-      );
-      await client.playlists.moveItem(
-        playlistId: 'q',
-        playlistItemId: const JellyfinPlaylistEntryId('a'),
-        newIndex: 0,
-      );
-      expect(
-        await timed(() => client.playlists.rename(playlistId: 'q', name: 'n')),
-        greaterThanOrEqualTo(settle * 0.9),
-      );
-    });
+    test(
+      'create with ids, moveItem and update(ids:) count as writes',
+      () async {
+        adapter.respond = (r) => r.uri.path == '/Playlists'
+            ? CannedResponse.json({'Id': 'new'})
+            : CannedResponse(204, const []);
+        await client.playlists.create(name: 'x', itemIds: ['a']);
+        expect(
+          await timed(
+            () => client.playlists.update(playlistId: 'new', name: 'y'),
+          ),
+          greaterThanOrEqualTo(settle * 0.9),
+        );
+        await client.playlists.moveItem(
+          playlistId: 'q',
+          playlistItemId: const JellyfinPlaylistEntryId('a'),
+          newIndex: 0,
+        );
+        expect(
+          await timed(
+            () => client.playlists.rename(playlistId: 'q', name: 'n'),
+          ),
+          greaterThanOrEqualTo(settle * 0.9),
+        );
+      },
+    );
 
     test('no wait without a recent write to that playlist', () async {
       adapter.respond = (r) => r.uri.path == '/Playlists'
@@ -221,8 +215,8 @@ void main() {
     const text = 'WEBVTT\n\n00:01.000 --> 00:02.000\nPerché sì, è già\n';
 
     Future<String?> fetch(List<int> body, {String contentType = 'text/vtt'}) {
-      adapter.respond =
-          (_) => CannedResponse(200, body, contentType: contentType);
+      adapter.respond = (_) =>
+          CannedResponse(200, body, contentType: contentType);
       return client.subtitles.fetch(
         itemId: 'i',
         mediaSourceId: 'm',
@@ -409,8 +403,8 @@ void main() {
     });
 
     test('fetch sends the same sizing and returns the bytes', () async {
-      adapter.respond =
-          (_) => CannedResponse(200, [1, 2, 3], contentType: 'image/jpeg');
+      adapter.respond = (_) =>
+          CannedResponse(200, [1, 2, 3], contentType: 'image/jpeg');
       final bytes = await client.images.fetch(
         itemId: 'al',
         maxWidth: 256,
@@ -425,6 +419,30 @@ void main() {
     test('fetch answers null on 404', () async {
       adapter.respond = (_) => CannedResponse(404, const []);
       expect(await client.images.fetch(itemId: 'none'), isNull);
+    });
+
+    test('pathUrl puts every shaping value in the path', () {
+      final url = Uri.parse(
+        client.images.pathUrl(
+          itemId: 'a1',
+          tag: 't/1',
+          maxWidth: 300,
+          maxHeight: 200,
+          percentPlayed: 42.5,
+          quality: 80,
+        ),
+      );
+      expect(url.path, '/Items/a1/Images/Primary/0/t%2F1/Jpg/300/200/42.5/0');
+      expect(url.queryParameters, {'quality': '80'});
+      expect(
+        client.images.pathUrl(
+          itemId: 'a1',
+          tag: 't',
+          maxWidth: 1,
+          maxHeight: 1,
+        ),
+        endsWith('/Jpg/1/1/0/0'),
+      );
     });
 
     test('entity images take maxWidth too', () {
@@ -524,19 +542,6 @@ void main() {
 
       await client.playback.start(itemId: 't1');
       expect((adapter.last!.json! as Map)['PlayMethod'], 'DirectPlay');
-
-      // ignore: deprecated_member_use_from_same_package
-      await client.playback.start(itemId: 't1', playMethod: 'DirectStream');
-      expect((adapter.last!.json! as Map)['PlayMethod'], 'DirectStream');
-      expect(
-        () => client.playback.start(
-          itemId: 't1',
-          method: JellyfinPlayMethod.transcode,
-          // ignore: deprecated_member_use_from_same_package
-          playMethod: 'Transcode',
-        ),
-        throwsArgumentError,
-      );
     });
 
     test('ping names the play session', () async {

@@ -2,7 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-/// A Dart client for Jellyfin 12.2.
+/// A Dart client for Jellyfin 12.4, for servers from 12.0 on.
 ///
 /// [JellyfinClient] holds the device identity and the session, and exposes
 /// one sub-API per domain:
@@ -66,7 +66,6 @@ export 'src/api/jellyfin_lyrics_api.dart';
 export 'src/api/jellyfin_media_info_api.dart';
 export 'src/api/jellyfin_media_segments_api.dart';
 export 'src/api/jellyfin_movies_api.dart';
-export 'src/api/jellyfin_music_genres_api.dart';
 export 'src/api/jellyfin_notifications_api.dart';
 export 'src/api/jellyfin_packages_api.dart';
 export 'src/api/jellyfin_persons_api.dart';
@@ -84,8 +83,6 @@ export 'src/api/jellyfin_subtitles_api.dart';
 export 'src/api/jellyfin_suggestions_api.dart';
 export 'src/api/jellyfin_sync_play_api.dart';
 export 'src/api/jellyfin_system_api.dart';
-export 'src/api/jellyfin_tmdb_api.dart';
-export 'src/api/jellyfin_trailers_api.dart';
 export 'src/api/jellyfin_trickplay_api.dart';
 export 'src/api/jellyfin_tv_shows_api.dart';
 export 'src/api/jellyfin_user_api.dart';
@@ -93,6 +90,7 @@ export 'src/api/jellyfin_user_data_api.dart';
 export 'src/api/jellyfin_user_views_api.dart';
 export 'src/api/jellyfin_videos_api.dart';
 export 'src/api/jellyfin_years_api.dart';
+export 'src/jellyfin_admin_models.dart';
 export 'src/jellyfin_auth_header.dart' show JellyfinAuthHeader;
 export 'src/jellyfin_client.dart';
 export 'src/jellyfin_credentials.dart';

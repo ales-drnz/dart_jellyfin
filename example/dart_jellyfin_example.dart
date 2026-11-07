@@ -48,8 +48,7 @@ Future<void> main() async {
         limit: size,
         fields: JellyfinItemsApi.browseFields,
         enableTotalRecordCount: false,
-      ))
-          .items,
+      )).items,
       pageSize: 50,
       limit: 200,
     );

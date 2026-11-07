@@ -245,9 +245,9 @@ class JellyfinPlaylistsApi {
     Map<String, Object?> extra = const {},
   }) async {
     final body = <String, Object?>{
-      if (name != null) 'Name': name,
-      if (isPublic != null) 'IsPublic': isPublic,
-      if (ids != null) 'Ids': ids,
+      'Name': ?name,
+      'IsPublic': ?isPublic,
+      'Ids': ?ids,
       ...extra,
     };
     await _settle(playlistId);
@@ -284,23 +284,20 @@ class JellyfinPlaylistsApi {
   /// needed.
   Future<List<JellyfinPlaylistUserPermission>> users({
     required String playlistId,
-  }) =>
-      _http.requestJson(
-        '/Playlists/$playlistId/Users',
-        listOf(JellyfinPlaylistUserPermission.fromJson),
-      );
+  }) => _http.requestJson(
+    '/Playlists/$playlistId/Users',
+    listOf(JellyfinPlaylistUserPermission.fromJson),
+  );
 
   /// `GET /Playlists/{playlistId}/Users/{userId}` — one user's
-  /// access record for a playlist.
-  Future<Map<String, Object?>?> userAccess({
+  /// access record for a playlist; `null` for an empty answer.
+  Future<JellyfinPlaylistUserPermission?> userAccess({
     required String playlistId,
     required String userId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Playlists/$playlistId/Users/$userId',
-    );
-    return res.data;
-  }
+  }) => _http.requestJson(
+    '/Playlists/$playlistId/Users/$userId',
+    objectOf(JellyfinPlaylistUserPermission.fromJson),
+  );
 
   /// `POST /Playlists/{playlistId}/Users/{userId}` — grant or update a
   /// user's access to a shared playlist. The `CanEdit` flag is sent in the

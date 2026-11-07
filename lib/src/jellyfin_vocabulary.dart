@@ -56,8 +56,9 @@ extension type const JellyfinItemKind(String wire) implements String {
   static const genre = JellyfinItemKind('Genre');
 
   /// `ManualPlaylistsFolder`.
-  static const manualPlaylistsFolder =
-      JellyfinItemKind('ManualPlaylistsFolder');
+  static const manualPlaylistsFolder = JellyfinItemKind(
+    'ManualPlaylistsFolder',
+  );
 
   /// `Movie`.
   static const movie = JellyfinItemKind('Movie');
@@ -158,8 +159,9 @@ extension type const JellyfinItemField(String wire) implements String {
   static const childCount = JellyfinItemField('ChildCount');
 
   /// `CumulativeRunTimeTicks`.
-  static const cumulativeRunTimeTicks =
-      JellyfinItemField('CumulativeRunTimeTicks');
+  static const cumulativeRunTimeTicks = JellyfinItemField(
+    'CumulativeRunTimeTicks',
+  );
 
   /// `CustomRating`.
   static const customRating = JellyfinItemField('CustomRating');
@@ -216,8 +218,9 @@ extension type const JellyfinItemField(String wire) implements String {
   static const providerIds = JellyfinItemField('ProviderIds');
 
   /// `PrimaryImageAspectRatio`.
-  static const primaryImageAspectRatio =
-      JellyfinItemField('PrimaryImageAspectRatio');
+  static const primaryImageAspectRatio = JellyfinItemField(
+    'PrimaryImageAspectRatio',
+  );
 
   /// `RecursiveItemCount`.
   static const recursiveItemCount = JellyfinItemField('RecursiveItemCount');
@@ -232,8 +235,9 @@ extension type const JellyfinItemField(String wire) implements String {
   static const sortName = JellyfinItemField('SortName');
 
   /// `SpecialEpisodeNumbers`.
-  static const specialEpisodeNumbers =
-      JellyfinItemField('SpecialEpisodeNumbers');
+  static const specialEpisodeNumbers = JellyfinItemField(
+    'SpecialEpisodeNumbers',
+  );
 
   /// `Studios`.
   static const studios = JellyfinItemField('Studios');
@@ -266,8 +270,9 @@ extension type const JellyfinItemField(String wire) implements String {
   static const channelImage = JellyfinItemField('ChannelImage');
 
   /// `EnableMediaSourceDisplay`.
-  static const enableMediaSourceDisplay =
-      JellyfinItemField('EnableMediaSourceDisplay');
+  static const enableMediaSourceDisplay = JellyfinItemField(
+    'EnableMediaSourceDisplay',
+  );
 
   /// `Width`.
   static const width = JellyfinItemField('Width');

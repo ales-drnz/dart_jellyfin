@@ -39,7 +39,8 @@ Future<void> main() async {
 
   final headers = {
     'Accept': 'application/json',
-    'Authorization': 'MediaBrowser '
+    'Authorization':
+        'MediaBrowser '
         'Client="dart_jellyfin_capture", '
         'Device="capture-tool", '
         'DeviceId="dart-jellyfin-capture", '
@@ -118,8 +119,9 @@ Future<void> main() async {
           'MediaSources,MediaStreams,Genres,Tags,ProviderIds,ParentId,People',
     });
     final pi = await http.post(
-      Uri.parse('$baseUrl/Items/$id/PlaybackInfo')
-          .replace(queryParameters: {'userId': userId}),
+      Uri.parse(
+        '$baseUrl/Items/$id/PlaybackInfo',
+      ).replace(queryParameters: {'userId': userId}),
       headers: {...headers, 'Content-Type': 'application/json'},
       body: jsonEncode({
         'UserId': userId,
@@ -144,8 +146,10 @@ Future<void> main() async {
     await get('lyrics.json', '/Audio/$id/Lyrics');
   }
 
-  stdout.writeln('Captured ${Directory(_outDir).listSync().length} fixtures '
-      'to $_outDir/');
+  stdout.writeln(
+    'Captured ${Directory(_outDir).listSync().length} fixtures '
+    'to $_outDir/',
+  );
 }
 
 void _save(String name, dynamic data) {

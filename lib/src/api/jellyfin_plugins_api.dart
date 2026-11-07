@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/Plugins` — installed plugin management.
 ///
@@ -17,14 +19,10 @@ class JellyfinPluginsApi {
   JellyfinPluginsApi(this._http);
 
   /// `GET /Plugins` — every installed plugin.
-  Future<List<Map<String, Object?>>> list() async {
-    final res = await _http.request<List<Object?>>('/Plugins');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinPluginInfo>> list() => _http.requestJson(
+    '/Plugins',
+    listOf(JellyfinPluginInfo.fromJson),
+  );
 
   /// `DELETE /Plugins/{pluginId}` — uninstall every version of a
   /// plugin.
@@ -75,6 +73,9 @@ class JellyfinPluginsApi {
 
   /// `GET /Plugins/{pluginId}/Configuration` — fetch a plugin's
   /// current configuration document.
+  ///
+  /// Stays a map: each plugin defines its own settings, and the API
+  /// document types it only as the empty `BasePluginConfiguration`.
   Future<Map<String, Object?>> configuration({
     required String pluginId,
   }) async {
@@ -98,13 +99,13 @@ class JellyfinPluginsApi {
   }
 
   /// `POST /Plugins/{pluginId}/Manifest` — get the plugin's manifest.
-  Future<Map<String, Object?>> manifest({
+  Future<JellyfinPluginManifest> manifest({
     required String pluginId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Plugins/$pluginId/Manifest',
-      method: 'POST',
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Plugins/$pluginId/Manifest',
+    method: 'POST',
+    (json) =>
+        objectOf(JellyfinPluginManifest.fromJson)(json) ??
+        JellyfinPluginManifest.fromJson(const {}),
+  );
 }

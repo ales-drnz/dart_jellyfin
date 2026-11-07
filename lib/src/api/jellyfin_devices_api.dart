@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_parsing.dart';
@@ -43,24 +44,23 @@ class JellyfinDevicesApi {
   /// `GET /Devices/Info?id={id}` — full info for one device.
   Future<JellyfinDevice?> info({
     required String id,
-  }) =>
-      _http.requestJson(
-        '/Devices/Info',
-        queryParameters: {'id': id},
-        objectOf(JellyfinDevice.fromJson),
-      );
+  }) => _http.requestJson(
+    '/Devices/Info',
+    queryParameters: {'id': id},
+    objectOf(JellyfinDevice.fromJson),
+  );
 
   /// `GET /Devices/Options?id={id}` — per-device admin options
   /// (custom name, …).
-  Future<Map<String, Object?>> options({
+  Future<JellyfinDeviceOptions> options({
     required String id,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Devices/Options',
-      queryParameters: {'id': id},
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/Devices/Options',
+    queryParameters: {'id': id},
+    (json) =>
+        objectOf(JellyfinDeviceOptions.fromJson)(json) ??
+        JellyfinDeviceOptions.fromJson(const {}),
+  );
 
   /// `POST /Devices/Options?id={id}` — replace the device options.
   Future<void> updateOptions({

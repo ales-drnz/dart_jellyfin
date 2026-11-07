@@ -11,9 +11,6 @@
 /// They guard the `LiveTv` query contract against regressions:
 ///   * `channels()` only emits `sortBy` when non-empty, and any value
 ///     it emits is a valid `ItemSortBy` enum member.
-///   * `recordingsSeries()` serializes `status` / `channelId` /
-///     `isInProgress` / `seriesTimerId` (the post-rename shape) and has
-///     no `isActive` / `isLibraryItem` knobs.
 ///   * `recordings()` has no `groupId` knob.
 library;
 
@@ -105,26 +102,6 @@ void main() {
       );
       final query = adapter.last!.uri.queryParametersAll;
       expect(query['sortBy'], ['SortName', 'PlayCount']);
-    });
-  });
-
-  group('JellyfinLiveTvApi.recordingsSeries', () {
-    test('serializes status/channelId/isInProgress/seriesTimerId', () async {
-      await client.liveTv.recordingsSeries(
-        channelId: 'ch-1',
-        status: 'Completed',
-        isInProgress: false,
-        seriesTimerId: 'st-1',
-      );
-      final qp = adapter.last!.uri.queryParameters;
-      expect(adapter.last!.uri.path, '/LiveTv/Recordings/Series');
-      expect(qp['channelId'], 'ch-1');
-      expect(qp['status'], 'Completed');
-      expect(qp['isInProgress'], 'false');
-      expect(qp['seriesTimerId'], 'st-1');
-      // The dropped legacy knobs must never be serialized.
-      expect(qp.containsKey('isActive'), isFalse);
-      expect(qp.containsKey('isLibraryItem'), isFalse);
     });
   });
 

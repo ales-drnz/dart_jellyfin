@@ -39,7 +39,8 @@ void main() {
       expect(
         report.pinnedCount,
         greaterThan(300),
-        reason: 'pinned Jellyfin spec parsed to too few ops (have 368) — '
+        reason:
+            'pinned Jellyfin spec parsed to too few ops (have 346) — '
             'likely corrupted or schema changed',
       );
 

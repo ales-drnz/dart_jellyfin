@@ -294,35 +294,31 @@ void main() {
   });
 
   group('JellyfinArtistsApi', () {
-    test('genreIds is repeated, not pipe-joined', () async {
-      // Regression: /Artists binds genreIds with the *comma* binder, so
-      // a pipe-joined value parsed as one malformed guid, was dropped,
-      // and the genre filter silently did nothing.
-      await client.artists.list(genreIds: const ['g1', 'g2']);
+    test('list asks /Persons for the Artist kind', () async {
+      await client.artists.list(parentId: 'lib', nameStartsWith: 'A');
 
-      expect(adapter.path, '/Artists');
-      expect(adapter.query['genreIds'], ['g1', 'g2']);
-      expect(adapter.rawQuery, isNot(contains('%7C')));
+      expect(adapter.path, '/Persons');
+      expect(adapter.query['personTypes'], ['Artist']);
+      expect(adapter.query['parentId'], ['lib']);
+      expect(adapter.query['nameStartsWith'], ['A']);
+      expect(adapter.query['startIndex'], ['0']);
     });
 
-    test('genres, tags and officialRatings are repeated too', () async {
+    test('albumArtists asks /Persons for the AlbumArtist kind', () async {
       await client.artists.albumArtists(
-        genres: const ['Rock', 'Jazz'],
-        tags: const ['live'],
-        officialRatings: const ['PG'],
-        years: const [1977, 1980],
-        sortBy: const [
-          JellyfinSortField.sortName,
-          JellyfinSortField.dateCreated,
-        ],
+        fields: const [JellyfinItemField.overview],
+        filters: const [JellyfinItemFilter.isFavorite],
       );
 
-      expect(adapter.path, '/Artists/AlbumArtists');
-      expect(adapter.query['genres'], ['Rock', 'Jazz']);
-      expect(adapter.query['tags'], ['live']);
-      expect(adapter.query['officialRatings'], ['PG']);
-      expect(adapter.query['years'], ['1977', '1980']);
-      expect(adapter.query['sortBy'], ['SortName', 'DateCreated']);
+      expect(adapter.path, '/Persons');
+      expect(adapter.query['personTypes'], ['AlbumArtist']);
+      expect(adapter.query['fields'], ['Overview']);
+      expect(adapter.query['filters'], ['IsFavorite']);
+    });
+
+    test('byName asks /Persons/{name}', () async {
+      await client.artists.byName(name: 'AC/DC');
+      expect(adapter.last!.uri.path, '/Persons/AC%2FDC');
     });
   });
 
@@ -405,16 +401,6 @@ void main() {
       expect(adapter.query['sortBy'], ['SortName']);
     });
 
-    test('musicGenres.list', () async {
-      await client.musicGenres.list(
-        includeItemTypes: const [
-          JellyfinItemKind.musicAlbum,
-          JellyfinItemKind.audio,
-        ],
-      );
-      expect(adapter.query['includeItemTypes'], ['MusicAlbum', 'Audio']);
-    });
-
     test('studios.list', () async {
       await client.studios.list(
         includeItemTypes: const [
@@ -474,11 +460,6 @@ void main() {
       );
       expect(adapter.query['mediaTypes'], ['Video', 'Audio']);
       expect(adapter.query['sortBy'], ['ProductionYear']);
-    });
-
-    test('trailers.list', () async {
-      await client.trailers.list(genreIds: const ['g1', 'g2']);
-      expect(adapter.query['genreIds'], ['g1', 'g2']);
     });
 
     test('search.hints', () async {

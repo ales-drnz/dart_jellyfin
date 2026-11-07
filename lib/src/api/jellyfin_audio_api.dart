@@ -7,8 +7,6 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
-import '../transport/jellyfin_response.dart';
-import 'jellyfin_text_body.dart';
 
 /// Audio streaming, lyrics, instant mix.
 ///
@@ -98,13 +96,14 @@ class JellyfinAudioApi {
   }) {
     final base = _requireBaseUrl();
     final ext = container ?? '';
-    final path =
-        ext.isEmpty ? '/Audio/$itemId/stream' : '/Audio/$itemId/stream.$ext';
+    final path = ext.isEmpty
+        ? '/Audio/$itemId/stream'
+        : '/Audio/$itemId/stream.$ext';
     final qp = <String, String>{
       'ApiKey': _requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
-      if (playSessionId != null) 'PlaySessionId': playSessionId,
+      'PlaySessionId': ?playSessionId,
     };
     return ('$base$path?${_encode(qp)}', ext);
   }
@@ -145,7 +144,7 @@ class JellyfinAudioApi {
       if (audioBitRate != null) 'AudioBitRate': '$audioBitRate',
       if (audioChannels != null) 'AudioChannels': '$audioChannels',
       if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
-      if (mediaSourceId != null) 'MediaSourceId': mediaSourceId,
+      'MediaSourceId': ?mediaSourceId,
     };
     return (
       '$base/Audio/$itemId/stream.$container?${_encode(qp)}',
@@ -172,35 +171,6 @@ class JellyfinAudioApi {
       final data = res.data;
       if (data == null) return null;
       return JellyfinLyrics.fromJson(data);
-    } on JellyfinException catch (e) {
-      if (e.type == JellyfinErrorType.notFound) return null;
-      rethrow;
-    }
-  }
-
-  /// The body of `GET /Audio/{itemId}/Lyrics` as text, decoded as UTF-8
-  /// (see [lyrics] for when it is null).
-  ///
-  /// Despite the name this is not the lyric file: the route answers the
-  /// server's parsed `LyricDto` as JSON, whatever the `Accept` header, and
-  /// no route in the 12.x API serves the original `.lrc` / `.txt`
-  /// (checked on 12.2). Use [lyrics] and [JellyfinLyrics.toLrc] or
-  /// [JellyfinLyrics.toPlainText] instead.
-  @Deprecated(
-    'Answers the parsed LyricDto JSON, not the lyric file; use lyrics() '
-    'and JellyfinLyrics.toLrc() / toPlainText() instead.',
-  )
-  Future<String?> lyricsRaw({
-    required String itemId,
-  }) async {
-    try {
-      final res = await _http.request<List<int>>(
-        '/Audio/$itemId/Lyrics',
-        responseType: JellyfinResponseType.bytes,
-      );
-      final body = res.data;
-      if (body == null || body.isEmpty) return null;
-      return decodeTextBody(body, contentType: res.contentType);
     } on JellyfinException catch (e) {
       if (e.type == JellyfinErrorType.notFound) return null;
       rethrow;

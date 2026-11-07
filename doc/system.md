@@ -86,12 +86,12 @@ final options = await jellyfin.localization.options();
 
 final ratings = await jellyfin.localization.parentalRatings();
 for (final r in ratings) {
-  print('${r['Value']}: ${r['Name']}');
+  print('${r.value}: ${r.name}');
 }
 ```
 
-Each entry is a map. Countries carry `Name`, `DisplayName` and
-`TwoLetterISORegionName`; cultures the two- and three-letter ISO codes
-and display names. A rating's `Value` is what the server stores, its
-`Name` the label, such as `PG-13`. `options()` lists the metadata
-languages the server offers.
+Each entry is a typed model with its `raw` map. A `JellyfinCountry` has
+`name`, `displayName` and the ISO region codes; a `JellyfinCulture` the
+two- and three-letter ISO codes and display names. A rating's `value` is
+what the server stores, its `name` the label, such as `PG-13`.
+`options()` lists the metadata languages the server offers.

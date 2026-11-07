@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../jellyfin_admin_models.dart';
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
@@ -33,14 +34,10 @@ class JellyfinLiveTvApi {
   /// param so the server applies its native channel ordering.
   ///
   /// There is no server-side search: `/LiveTv/Channels` has no
-  /// `searchTerm` (in 10.11 or 12.x), so the parameter of that name, which
-  /// earlier versions sent and the server ignored, is deprecated and no
-  /// longer sent. Filter the answer by name instead.
+  /// `searchTerm`. Filter the answer by name instead.
   Future<JellyfinQueryResult<JellyfinItem>> channels({
     int startIndex = 0,
     int? limit,
-    @Deprecated('Ignored by the server; filter the answer by name')
-    String? searchTerm,
     bool? isFavorite,
     String? type, // TV | Radio
     bool enableUserData = true,
@@ -163,9 +160,9 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Recordings` — list DVR recordings.
   ///
-  /// To filter recordings by group, use [recordingsSeries] (the
-  /// `GET /LiveTv/Recordings/Series` operation), which accepts a
-  /// `groupId`; `GET /LiveTv/Recordings` itself has no group filter.
+  /// `GET /LiveTv/Recordings` has no group filter. Jellyfin 12 made
+  /// `GET /LiveTv/Recordings/Series` and `/LiveTv/Recordings/Groups`
+  /// obsolete, and 0.4.0 removed them.
   Future<JellyfinQueryResult<JellyfinItem>> recordings({
     String? channelId,
     String? seriesTimerId,
@@ -216,7 +213,7 @@ class JellyfinLiveTvApi {
   // ─── Timers (single recordings) ────────────────────────────────────
 
   /// `GET /LiveTv/Timers` — scheduled (pending) recordings.
-  Future<JellyfinQueryResult<Map<String, Object?>>> timers({
+  Future<JellyfinQueryResult<JellyfinTimer>> timers({
     String? channelId,
     String? seriesTimerId,
     bool? isActive,
@@ -230,7 +227,7 @@ class JellyfinLiveTvApi {
     return _http.requestJson(
       '/LiveTv/Timers',
       queryParameters: qp.isEmpty ? null : qp,
-      queryResultOf((e) => e),
+      queryResultOf(JellyfinTimer.fromJson),
     );
   }
 
@@ -256,7 +253,7 @@ class JellyfinLiveTvApi {
   // ─── Series timers (recurring) ─────────────────────────────────────
 
   /// `GET /LiveTv/SeriesTimers` — recurring recording rules.
-  Future<JellyfinQueryResult<Map<String, Object?>>> seriesTimers({
+  Future<JellyfinQueryResult<JellyfinSeriesTimer>> seriesTimers({
     String? sortBy,
     bool descending = false,
   }) async {
@@ -267,7 +264,7 @@ class JellyfinLiveTvApi {
     return _http.requestJson(
       '/LiveTv/SeriesTimers',
       queryParameters: qp,
-      queryResultOf((e) => e),
+      queryResultOf(JellyfinSeriesTimer.fromJson),
     );
   }
 
@@ -295,56 +292,65 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Info` — overall live-TV configuration on the
   /// server. Admin only.
-  Future<Map<String, Object?>> info() async {
-    final res = await _http.request<Map<String, Object?>>('/LiveTv/Info');
-    return res.data ?? const {};
-  }
+  Future<JellyfinLiveTvInfo> info() => _http.requestJson(
+    '/LiveTv/Info',
+    (json) =>
+        objectOf(JellyfinLiveTvInfo.fromJson)(json) ??
+        JellyfinLiveTvInfo.fromJson(const {}),
+  );
 
   /// `GET /LiveTv/GuideInfo` — EPG metadata (start / end of the
   /// guide window, supported channels).
-  Future<Map<String, Object?>> guideInfo() async {
-    final res = await _http.request<Map<String, Object?>>('/LiveTv/GuideInfo');
-    return res.data ?? const {};
-  }
+  Future<JellyfinGuideInfo> guideInfo() => _http.requestJson(
+    '/LiveTv/GuideInfo',
+    (json) =>
+        objectOf(JellyfinGuideInfo.fromJson)(json) ??
+        JellyfinGuideInfo.fromJson(const {}),
+  );
 
   /// `GET /LiveTv/ChannelMappingOptions` — options for mapping
   /// channels to listings provider entries. Admin only.
-  Future<Map<String, Object?>> channelMappingOptions({
+  Future<JellyfinChannelMappingOptions> channelMappingOptions({
     String? providerId,
-  }) async {
+  }) {
     final qp = <String, Object?>{};
     if (providerId != null) qp['providerId'] = providerId;
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/LiveTv/ChannelMappingOptions',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) =>
+          objectOf(JellyfinChannelMappingOptions.fromJson)(json) ??
+          JellyfinChannelMappingOptions.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
-  /// `POST /LiveTv/ChannelMappings` — set a channel-to-EPG mapping.
-  Future<Map<String, Object?>> setChannelMapping(
+  /// `POST /LiveTv/ChannelMappings` — set a channel-to-EPG mapping
+  /// ([body] is a `SetChannelMappingDto`). Answers the mapping as saved.
+  Future<JellyfinTunerChannelMapping> setChannelMapping(
     Map<String, Object?> body,
-  ) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/ChannelMappings',
-      method: 'POST',
-      data: body,
-    );
-    return res.data ?? const {};
-  }
+  ) => _http.requestJson(
+    '/LiveTv/ChannelMappings',
+    method: 'POST',
+    data: body,
+    (json) =>
+        objectOf(JellyfinTunerChannelMapping.fromJson)(json) ??
+        JellyfinTunerChannelMapping.fromJson(const {}),
+  );
 
   // ─── Admin: tuner hosts ───────────────────────────────────────────
 
   /// `POST /LiveTv/TunerHosts` — register a tuner host (HDHomeRun,
-  /// IPTV provider, …). [body] is the tuner-host descriptor.
-  Future<Map<String, Object?>> addTunerHost(Map<String, Object?> body) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/TunerHosts',
-      method: 'POST',
-      data: body,
-    );
-    return res.data ?? const {};
-  }
+  /// IPTV provider, …). [body] is the tuner-host descriptor
+  /// (`TunerHostInfo`). Answers the tuner as saved, with its `Id`.
+  Future<JellyfinTunerHost> addTunerHost(Map<String, Object?> body) =>
+      _http.requestJson(
+        '/LiveTv/TunerHosts',
+        method: 'POST',
+        data: body,
+        (json) =>
+            objectOf(JellyfinTunerHost.fromJson)(json) ??
+            JellyfinTunerHost.fromJson(const {}),
+      );
 
   /// `DELETE /LiveTv/TunerHosts?id={id}` — drop a tuner host.
   Future<void> deleteTunerHost({
@@ -359,14 +365,10 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/TunerHosts/Types` — tuner-host types the server
   /// supports.
-  Future<List<Map<String, Object?>>> tunerHostTypes() async {
-    final res = await _http.request<List<Object?>>('/LiveTv/TunerHosts/Types');
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  Future<List<JellyfinNameIdPair>> tunerHostTypes() => _http.requestJson(
+    '/LiveTv/TunerHosts/Types',
+    listOf(JellyfinNameIdPair.fromJson),
+  );
 
   /// `POST /LiveTv/Tuners/{tunerId}/Reset` — reset a tuner.
   Future<void> resetTuner({
@@ -379,55 +381,46 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Tuners/Discover` — discover tuners on the LAN.
-  Future<List<Map<String, Object?>>> discoverTuners({
+  Future<List<JellyfinTunerHost>> discoverTuners({
     bool newDevicesOnly = false,
-  }) async {
-    final res = await _http.request<List<Object?>>(
-      '/LiveTv/Tuners/Discover',
-      queryParameters: {'newDevicesOnly': newDevicesOnly},
-    );
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/LiveTv/Tuners/Discover',
+    queryParameters: {'newDevicesOnly': newDevicesOnly},
+    listOf(JellyfinTunerHost.fromJson),
+  );
 
   /// `GET /LiveTv/Tuners/Discvover` — typo-variant of [discoverTuners]
   /// preserved upstream. Behaves identically.
-  Future<List<Map<String, Object?>>> discoverTunersAlt({
+  Future<List<JellyfinTunerHost>> discoverTunersAlt({
     bool newDevicesOnly = false,
-  }) async {
-    final res = await _http.request<List<Object?>>(
-      '/LiveTv/Tuners/Discvover',
-      queryParameters: {'newDevicesOnly': newDevicesOnly},
-    );
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
-  }
+  }) => _http.requestJson(
+    '/LiveTv/Tuners/Discvover',
+    queryParameters: {'newDevicesOnly': newDevicesOnly},
+    listOf(JellyfinTunerHost.fromJson),
+  );
 
   // ─── Admin: listings providers ────────────────────────────────────
 
   /// `POST /LiveTv/ListingProviders` — add an EPG listings provider.
-  Future<Map<String, Object?>> addListingProvider({
+  ///
+  /// [body] is a `ListingsProviderInfo`; the answer is the provider as
+  /// saved, with its `Id`.
+  Future<JellyfinListingsProvider> addListingProvider({
     required Map<String, Object?> body,
     bool validateListings = false,
     bool validateLogin = false,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/ListingProviders',
-      method: 'POST',
-      queryParameters: {
-        'validateListings': validateListings,
-        'validateLogin': validateLogin,
-      },
-      data: body,
-    );
-    return res.data ?? const {};
-  }
+  }) => _http.requestJson(
+    '/LiveTv/ListingProviders',
+    method: 'POST',
+    queryParameters: {
+      'validateListings': validateListings,
+      'validateLogin': validateLogin,
+    },
+    data: body,
+    (json) =>
+        objectOf(JellyfinListingsProvider.fromJson)(json) ??
+        JellyfinListingsProvider.fromJson(const {}),
+  );
 
   /// `DELETE /LiveTv/ListingProviders?id={id}` — remove a listings
   /// provider.
@@ -443,39 +436,40 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/ListingProviders/Default` — fields the UI should
   /// pre-populate when adding a new listings provider.
-  Future<Map<String, Object?>> defaultListingProvider() async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/ListingProviders/Default',
-    );
-    return res.data ?? const {};
-  }
+  Future<JellyfinListingsProvider> defaultListingProvider() =>
+      _http.requestJson(
+        '/LiveTv/ListingProviders/Default',
+        (json) =>
+            objectOf(JellyfinListingsProvider.fromJson)(json) ??
+            JellyfinListingsProvider.fromJson(const {}),
+      );
 
   /// `GET /LiveTv/ListingProviders/Lineups` — channel lineups
   /// available from a provider.
-  Future<List<Map<String, Object?>>> lineups({
+  Future<List<JellyfinNameIdPair>> lineups({
     String? id,
     String? type,
     String? location,
     String? country,
-  }) async {
+  }) {
     final qp = <String, Object?>{};
     if (id != null) qp['id'] = id;
     if (type != null) qp['type'] = type;
     if (location != null) qp['location'] = location;
     if (country != null) qp['country'] = country;
-    final res = await _http.request<List<Object?>>(
+    return _http.requestJson(
       '/LiveTv/ListingProviders/Lineups',
       queryParameters: qp.isEmpty ? null : qp,
+      listOf(JellyfinNameIdPair.fromJson),
     );
-    final l = res.data ?? const [];
-    return [
-      for (final e in l)
-        if (e is Map<String, Object?>) e,
-    ];
   }
 
   /// `GET /LiveTv/ListingProviders/SchedulesDirect/Countries` —
   /// countries supported by the Schedules Direct provider.
+  ///
+  /// Stays a map: the route relays Schedules Direct's own document
+  /// (regions to lists of countries), which the API document declares as
+  /// an untyped body.
   Future<Map<String, Object?>> schedulesDirectCountries() async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/ListingProviders/SchedulesDirect/Countries',
@@ -506,30 +500,6 @@ class JellyfinLiveTvApi {
     return '$base/LiveTv/LiveStreamFiles/$streamId/stream.$container?ApiKey=$token';
   }
 
-  /// `GET /LiveTv/Recordings/Groups` — list every recording group
-  /// (categories the server uses to organise recordings).
-  ///
-  /// Hidden from the Jellyfin 12 OpenAPI document and marked obsolete
-  /// upstream, with no replacement. It still answers on 12.0 but may
-  /// be removed in any major release without notice. Use
-  /// [recordingFolders] or [recordings] where they fit.
-  @Deprecated(
-    'Hidden from the Jellyfin 12 API and may be removed without notice; '
-    'use recordingFolders() or recordings() instead.',
-  )
-  Future<JellyfinQueryResult<JellyfinItem>> recordingGroups({
-    String? userId,
-  }) async {
-    final qp = <String, Object?>{};
-    final u = userId ?? _http.userId;
-    if (u != null) qp['userId'] = u;
-    return _http.requestJson(
-      '/LiveTv/Recordings/Groups',
-      queryParameters: qp.isEmpty ? null : qp,
-      queryResultOf(JellyfinItem.fromJson),
-    );
-  }
-
   /// `GET /LiveTv/Recordings/Folders` — folder roots used for
   /// recording storage.
   Future<JellyfinQueryResult<JellyfinItem>> recordingFolders({
@@ -541,54 +511,6 @@ class JellyfinLiveTvApi {
     return _http.requestJson(
       '/LiveTv/Recordings/Folders',
       queryParameters: qp.isEmpty ? null : qp,
-      queryResultOf(JellyfinItem.fromJson),
-    );
-  }
-
-  /// `GET /LiveTv/Recordings/Series` — recordings grouped by series.
-  ///
-  /// [status] is a `RecordingStatus` enum member: `New`, `InProgress`,
-  /// `Completed`, `Cancelled`, `ConflictedOk`, `ConflictedNotOk` or
-  /// `Error`.
-  ///
-  /// Hidden from the Jellyfin 12 OpenAPI document and marked obsolete
-  /// upstream, with no replacement. It still answers on 12.0 but may
-  /// be removed in any major release without notice. [recordings]
-  /// with `isSeries: true` covers the common case.
-  @Deprecated(
-    'Hidden from the Jellyfin 12 API and may be removed without notice; '
-    'use recordings() instead.',
-  )
-  Future<JellyfinQueryResult<JellyfinItem>> recordingsSeries({
-    String? userId,
-    String? channelId,
-    String? groupId,
-    int? startIndex,
-    int? limit,
-    String? status,
-    bool? isInProgress,
-    String? seriesTimerId,
-    List<JellyfinItemField> fields = const [],
-    bool enableImages = true,
-    bool enableUserData = true,
-  }) async {
-    final qp = <String, Object?>{
-      'enableImages': enableImages,
-      'enableUserData': enableUserData,
-    };
-    final u = userId ?? _http.userId;
-    if (u != null) qp['userId'] = u;
-    if (channelId != null) qp['channelId'] = channelId;
-    if (groupId != null) qp['groupId'] = groupId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (status != null) qp['status'] = status;
-    if (isInProgress != null) qp['isInProgress'] = isInProgress;
-    if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    return _http.requestJson(
-      '/LiveTv/Recordings/Series',
-      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -607,15 +529,19 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Timers/Defaults` — default values to pre-populate
-  /// a new recording timer form.
-  Future<Map<String, Object?>> defaultTimer({String? programId}) async {
+  /// a new recording timer form, as a series timer
+  /// (`SeriesTimerInfoDto`). Edit a copy of its `raw` and send it to
+  /// [createTimer] or [createSeriesTimer].
+  Future<JellyfinSeriesTimer> defaultTimer({String? programId}) {
     final qp = <String, Object?>{};
     if (programId != null) qp['programId'] = programId;
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/LiveTv/Timers/Defaults',
       queryParameters: qp.isEmpty ? null : qp,
+      (json) =>
+          objectOf(JellyfinSeriesTimer.fromJson)(json) ??
+          JellyfinSeriesTimer.fromJson(const {}),
     );
-    return res.data ?? const {};
   }
 
   String _requireBaseUrl() {

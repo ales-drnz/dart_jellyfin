@@ -96,11 +96,10 @@ class JellyfinLyricsApi {
   /// [downloadRemote].
   Future<List<JellyfinRemoteLyric>> searchRemote({
     required String itemId,
-  }) =>
-      _http.requestJson(
-        '/Audio/$itemId/RemoteSearch/Lyrics',
-        listOf(JellyfinRemoteLyric.fromJson),
-      );
+  }) => _http.requestJson(
+    '/Audio/$itemId/RemoteSearch/Lyrics',
+    listOf(JellyfinRemoteLyric.fromJson),
+  );
 
   /// `POST /Audio/{itemId}/RemoteSearch/Lyrics/{lyricId}` — download
   /// a remote lyric result (id from [searchRemote]) and attach it to

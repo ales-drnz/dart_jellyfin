@@ -72,50 +72,54 @@ void main() {
         return page.items.map((i) => i.id).toSet();
       }
 
-      test('items.list(genreIds:) with two genres returns their union',
-          () async {
-        final ids = genreIds;
-        if (ids == null) {
-          markTestSkipped('Seed library has fewer than 2 audio genres.');
-          return;
-        }
+      test(
+        'items.list(genreIds:) with two genres returns their union',
+        () async {
+          final ids = genreIds;
+          if (ids == null) {
+            markTestSkipped('Seed library has fewer than 2 audio genres.');
+            return;
+          }
 
-        final first = await audioIdsForGenres([ids[0]]);
-        final second = await audioIdsForGenres([ids[1]]);
-        final both = await audioIdsForGenres(ids);
+          final first = await audioIdsForGenres([ids[0]]);
+          final second = await audioIdsForGenres([ids[1]]);
+          final both = await audioIdsForGenres(ids);
 
-        // The union identity comes first, and is never guarded: it is
-        // the assertion that actually falsifies a dropped filter, and
-        // it holds at any library size. A single-id filter binds even
-        // under a wrong separator (one value has no separator in it),
-        // so `first` and `second` stay correct while `both` degrades to
-        // the whole library — which is exactly what this catches.
-        expect(
-          both,
-          equals({...first, ...second}),
-          reason: 'two-genre filter should be the union of the '
-              'single-genre filters; a superset means the filter was '
-              'dropped and the query returned everything',
-        );
-
-        // Strictly stronger, but only meaningful when some item sits
-        // outside both genres. Never let this degrade into a skip —
-        // the union assertion above has already run.
-        if (both.length < unfilteredTotal) {
+          // The union identity comes first, and is never guarded: it is
+          // the assertion that actually falsifies a dropped filter, and
+          // it holds at any library size. A single-id filter binds even
+          // under a wrong separator (one value has no separator in it),
+          // so `first` and `second` stay correct while `both` degrades to
+          // the whole library — which is exactly what this catches.
           expect(
-            both.length,
-            lessThan(unfilteredTotal),
-            reason: 'a bound genre filter must return fewer items than '
-                'no filter at all',
+            both,
+            equals({...first, ...second}),
+            reason:
+                'two-genre filter should be the union of the '
+                'single-genre filters; a superset means the filter was '
+                'dropped and the query returned everything',
           );
-        } else {
-          printOnFailure(
-            'Every audio item is in one of the two sampled genres '
-            '(${both.length} of $unfilteredTotal); only the union '
-            'identity was load-bearing here.',
-          );
-        }
-      });
+
+          // Strictly stronger, but only meaningful when some item sits
+          // outside both genres. Never let this degrade into a skip —
+          // the union assertion above has already run.
+          if (both.length < unfilteredTotal) {
+            expect(
+              both.length,
+              lessThan(unfilteredTotal),
+              reason:
+                  'a bound genre filter must return fewer items than '
+                  'no filter at all',
+            );
+          } else {
+            printOnFailure(
+              'Every audio item is in one of the two sampled genres '
+              '(${both.length} of $unfilteredTotal); only the union '
+              'identity was load-bearing here.',
+            );
+          }
+        },
+      );
 
       test('items.count(genreIds:) agrees with items.list', () async {
         final ids = genreIds;
@@ -141,50 +145,6 @@ void main() {
           counted,
           lessThan(unfilteredTotal),
           reason: 'genre-scoped count must be narrower than the total',
-        );
-      });
-
-      test('artists.list(genreIds:) with two genres narrows too', () async {
-        // The 0.1.0 regression lived here: /Artists binds genreIds with
-        // the comma binder, but the wrapper joined with '|', so the
-        // value failed to parse, was dropped, and every artist came
-        // back. It only ever looked correct with a single genre, where
-        // the separator never appears.
-        final ids = genreIds;
-        if (ids == null) {
-          markTestSkipped('Seed library has fewer than 2 audio genres.');
-          return;
-        }
-
-        final all = await jf.artists.list(limit: 500);
-        if (all.items.isEmpty) {
-          markTestSkipped('Seed library has no artists.');
-          return;
-        }
-
-        final first = await jf.artists.list(genreIds: [ids[0]], limit: 500);
-        final second = await jf.artists.list(genreIds: [ids[1]], limit: 500);
-        final filtered = await jf.artists.list(genreIds: ids, limit: 500);
-
-        // Unguarded, for the same reason as the items test: under the
-        // 0.1.0 encoding `filtered` came back equal to `all` while the
-        // single-genre queries stayed correct, so the union identity is
-        // what turns that regression into a failure instead of a skip.
-        expect(
-          filtered.items.map((i) => i.id).toSet(),
-          equals({
-            ...first.items.map((i) => i.id),
-            ...second.items.map((i) => i.id),
-          }),
-          reason: 'two-genre artist filter should be the union of the '
-              'single-genre filters; a superset means the filter was '
-              'dropped',
-        );
-        expect(
-          filtered.items.length,
-          lessThanOrEqualTo(all.items.length),
-          reason: 'a filtered artist list can never exceed the '
-              'unfiltered one',
         );
       });
 

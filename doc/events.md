@@ -49,6 +49,13 @@ connecting again.
 | `JellyfinRefreshProgressEvent` | `RefreshProgress` | A library refresh's item id and progress |
 | `JellyfinScheduledTasksInfoEvent`, `JellyfinScheduledTaskEndedEvent` | `ScheduledTasksInfo`, `ScheduledTaskEnded` | The `JellyfinScheduledTask` list after `startScheduledTasks()`, and a finished run |
 | `JellyfinKeepAliveEvent` | `KeepAlive`, `ForceKeepAlive` | Keep-alive; `ForceKeepAlive` carries the server's timeout |
+| `JellyfinSyncPlayCommandEvent` | `SyncPlayCommand` | The group's `Unpause`, `Pause`, `Stop` or `Seek`, with when to act and the position |
+| `JellyfinSyncPlayGroupUpdateEvent` | `SyncPlayGroupUpdate` | The group update's type and data: the joined group, a user who joined or left, the new state |
+| `JellyfinUserUpdatedEvent`, `JellyfinUserDeletedEvent` | `UserUpdated`, `UserDeleted` | The `JellyfinUser` after the change, or the deleted user's id |
+| `JellyfinRestartRequiredEvent`, `JellyfinServerRestartingEvent`, `JellyfinServerShuttingDownEvent` | `RestartRequired`, `ServerRestarting`, `ServerShuttingDown` | Nothing: the server's state |
+| `JellyfinTimerEvent` | `TimerCreated`, `TimerCancelled`, `SeriesTimerCreated`, `SeriesTimerCancelled` | The live TV timer's id and program id |
+| `JellyfinPluginInstallationEvent`, `JellyfinPluginUninstalledEvent` | `PackageInstalling`, `PackageInstallationCompleted`, `PackageInstallationFailed`, `PackageInstallationCancelled`, `PackageUninstalled` | The plugin's id, name and version, or the removed `JellyfinPluginInfo` |
+| `JellyfinActivityLogEvent` | `ActivityLogEntry` | New `JellyfinActivityLogEntry` items, after `startActivityLog()` |
 | `JellyfinUnknownEvent` | Anything else | `messageType` and the whole frame in `raw` |
 
 Decoding never throws: a frame whose `Data` has an unexpected shape
@@ -57,11 +64,12 @@ socket of the session that owns the token, the device that signed in.
 
 ### Subscriptions
 
-Sessions and scheduled tasks are sent only on request:
+Sessions, scheduled tasks and the activity log are sent only on request:
 
 ```dart
 jellyfin.notifications.startSessions(); // every 2 seconds by default
 jellyfin.notifications.startScheduledTasks(interval: const Duration(seconds: 5)); // admin
+jellyfin.notifications.startActivityLog(); // admin
 
 socket.events().listen((event) {
   if (event case JellyfinSessionsEvent(:final sessions)) {
@@ -71,6 +79,7 @@ socket.events().listen((event) {
 
 jellyfin.notifications.stopSessions();
 jellyfin.notifications.stopScheduledTasks();
+jellyfin.notifications.stopActivityLog();
 ```
 
 `send(messageType:, data:)` sends any other message the server accepts.

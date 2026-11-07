@@ -39,21 +39,23 @@ void main() {
         expect(ok, isA<bool>());
       });
 
-      test('quickConnect.initiate produces a Code + Secret (if enabled)',
-          () async {
-        // Many fresh servers ship with Quick Connect disabled — the
-        // initiate call then returns 401. We treat that as expected.
-        try {
-          final state = await jf.quickConnect.initiate();
-          expect(state.code, isNotEmpty);
-          expect(state.secret, isNotEmpty);
-        } on JellyfinException catch (e) {
-          expect(
-            e.type,
-            anyOf(JellyfinErrorType.auth, JellyfinErrorType.badRequest),
-          );
-        }
-      });
+      test(
+        'quickConnect.initiate produces a Code + Secret (if enabled)',
+        () async {
+          // Many fresh servers ship with Quick Connect disabled — the
+          // initiate call then returns 401. We treat that as expected.
+          try {
+            final state = await jf.quickConnect.initiate();
+            expect(state.code, isNotEmpty);
+            expect(state.secret, isNotEmpty);
+          } on JellyfinException catch (e) {
+            expect(
+              e.type,
+              anyOf(JellyfinErrorType.auth, JellyfinErrorType.badRequest),
+            );
+          }
+        },
+      );
 
       test('hls.audioMasterUrl builds a signed playlist URL', () {
         final url = jf.hls.audioMasterUrl(itemId: trackId);
@@ -95,38 +97,46 @@ void main() {
         expect(url, contains('ApiKey='));
       });
 
-      test('subtitles.fallbackFonts returns a (typically empty) list',
-          () async {
-        final fonts = await jf.subtitles.fallbackFonts();
-        expect(fonts, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'subtitles.fallbackFonts returns a (typically empty) list',
+        () async {
+          final fonts = await jf.subtitles.fallbackFonts();
+          expect(fonts, isA<List<JellyfinServerFile>>());
+        },
+      );
 
-      test('localization.cultures returns the supported audio language list',
-          () async {
-        final cs = await jf.localization.cultures();
-        expect(cs, isNotEmpty);
-      });
+      test(
+        'localization.cultures returns the supported audio language list',
+        () async {
+          final cs = await jf.localization.cultures();
+          expect(cs, isNotEmpty);
+        },
+      );
 
       test('localization.countries returns the country list', () async {
         final cs = await jf.localization.countries();
         expect(cs, isNotEmpty);
       });
 
-      test('localization.options + parentalRatings return server tables',
-          () async {
-        final opts = await jf.localization.options();
-        expect(opts, isNotEmpty);
-        final pr = await jf.localization.parentalRatings();
-        expect(pr, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'localization.options + parentalRatings return server tables',
+        () async {
+          final opts = await jf.localization.options();
+          expect(opts, isNotEmpty);
+          final pr = await jf.localization.parentalRatings();
+          expect(pr.map((r) => r.name), contains('PG-13'));
+        },
+      );
 
-      test('clientLog.upload accepts a small text log without throwing',
-          () async {
-        final body = Uint8List.fromList(
-          utf8.encode('dart_jellyfin integration smoke client log\n'),
-        );
-        await jf.clientLog.upload(body: body);
-      });
+      test(
+        'clientLog.upload accepts a small text log without throwing',
+        () async {
+          final body = Uint8List.fromList(
+            utf8.encode('dart_jellyfin integration smoke client log\n'),
+          );
+          await jf.clientLog.upload(body: body);
+        },
+      );
     },
     skip: bootstrapSkipReason,
   );

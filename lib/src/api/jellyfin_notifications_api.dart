@@ -96,8 +96,10 @@ class JellyfinNotificationsApi {
         type: JellyfinErrorType.state,
       );
     }
-    final wsUrl = _toWs('$base/socket?ApiKey=$token'
-        '&deviceId=${Uri.encodeQueryComponent(_http.credentials.deviceId)}');
+    final wsUrl = _toWs(
+      '$base/socket?ApiKey=$token'
+      '&deviceId=${Uri.encodeQueryComponent(_http.credentials.deviceId)}',
+    );
 
     final WebSocketChannel channel;
     try {
@@ -171,7 +173,7 @@ class JellyfinNotificationsApi {
     ch.sink.add(
       jsonEncode({
         'MessageType': messageType,
-        if (data != null) 'Data': data,
+        'Data': ?data,
       }),
     );
   }
@@ -198,6 +200,20 @@ class JellyfinNotificationsApi {
   /// Stop the scheduled-task subscription.
   void stopScheduledTasks() {
     send(messageType: 'ScheduledTasksInfoStop');
+  }
+
+  /// Subscribe to new activity-log entries, which arrive as
+  /// `JellyfinActivityLogEvent`. Admin only.
+  void startActivityLog({Duration interval = const Duration(seconds: 1)}) {
+    send(
+      messageType: 'ActivityLogEntryStart',
+      data: '0,${interval.inMilliseconds}',
+    );
+  }
+
+  /// Stop the activity-log subscription.
+  void stopActivityLog() {
+    send(messageType: 'ActivityLogEntryStop');
   }
 
   /// Disconnect the socket and release resources.

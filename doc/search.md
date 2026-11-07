@@ -56,13 +56,16 @@ final fromArtist = await jellyfin.instantMix.fromArtist(artistId: artist.id);
 final fromList = await jellyfin.instantMix.fromPlaylist(playlistId: playlist.id);
 
 // A genre seeds a mix by its music-genre id.
-final rock = await jellyfin.musicGenres.byName(name: 'Rock');
+final rock = await jellyfin.genres.musicGenre(
+  name: 'Rock',
+  parentId: musicLibraryId,
+);
 final fromGenre = await jellyfin.instantMix.fromItem(itemId: rock!.id);
 ```
 
 Each call returns a `JellyfinQueryResult<JellyfinItem>`. Take a genre's
 id from a track's `genreItems`, from `genres.list(parentId:
-musicLibraryId)` or from `musicGenres.byName()` (see
+musicLibraryId)` or from `genres.musicGenre()` (see
 the [Library](https://pub.dev/documentation/dart_jellyfin/latest/topics/Library-topic.html) topic): a generic genre id answers an empty mix.
 
 ## Lyrics

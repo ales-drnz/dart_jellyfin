@@ -46,17 +46,20 @@ void main() {
         final ep = await jf.system.endpointInfo();
         expect(ep.raw, isNotEmpty);
         final st = await jf.system.storage();
-        expect(st, isA<Map<String, dynamic>>());
+        expect(st.programDataFolder?.path, isNotEmpty);
+        expect(st.libraries.map((l) => l.name), contains('Music'));
       });
 
       test('configuration.get returns the server config map', () async {
         final cfg = await jf.configuration.get();
-        expect(cfg, isNotEmpty);
+        expect(cfg.raw, isNotEmpty);
+        expect(cfg.isStartupWizardCompleted, isTrue);
       });
 
       test('environment.drives returns a list (possibly empty)', () async {
         final drives = await jf.environment.drives();
-        expect(drives, isA<List<Map<String, dynamic>>>());
+        expect(drives, isA<List<JellyfinFileSystemEntry>>());
+        expect(drives.every((d) => d.path.isNotEmpty), isTrue);
       });
 
       test('scheduledTasks.list returns the server task list', () async {
@@ -66,20 +69,25 @@ void main() {
 
       test('plugins.list returns a (possibly empty) list', () async {
         final ps = await jf.plugins.list();
-        expect(ps, isA<List<Map<String, dynamic>>>());
+        expect(ps, isA<List<JellyfinPluginInfo>>());
+        expect(ps.every((p) => p.id.isNotEmpty), isTrue);
       });
 
-      test('packages.repositories returns the configured repositories',
-          () async {
-        final repos = await jf.packages.repositories();
-        expect(repos, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'packages.repositories returns the configured repositories',
+        () async {
+          final repos = await jf.packages.repositories();
+          expect(repos, isA<List<JellyfinRepository>>());
+        },
+      );
 
-      test('activityLog.entries returns a paginated log (possibly empty)',
-          () async {
-        final entries = await jf.activityLog.entries(limit: 10);
-        expect(entries.items.length, lessThanOrEqualTo(10));
-      });
+      test(
+        'activityLog.entries returns a paginated log (possibly empty)',
+        () async {
+          final entries = await jf.activityLog.entries(limit: 10);
+          expect(entries.items.length, lessThanOrEqualTo(10));
+        },
+      );
 
       test('devices.list includes the current test client', () async {
         final devices = await jf.devices.list();
@@ -90,18 +98,20 @@ void main() {
 
       test('branding.configuration returns the branding map', () async {
         final b = await jf.branding.configuration();
-        expect(b, isA<Map<String, dynamic>>());
+        expect(b, isA<JellyfinBrandingOptions>());
       });
 
-      test('dashboard.configurationPages lists available admin pages',
-          () async {
-        final pages = await jf.dashboard.configurationPages();
-        expect(pages, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'dashboard.configurationPages lists available admin pages',
+        () async {
+          final pages = await jf.dashboard.configurationPages();
+          expect(pages, isA<List<JellyfinConfigurationPage>>());
+        },
+      );
 
       test('apiKey.list returns the active API keys', () async {
         final keys = await jf.apiKey.list();
-        expect(keys, isA<List<Map<String, dynamic>>>());
+        expect(keys, isA<List<JellyfinApiKey>>());
       });
 
       test('notifications WebSocket: connect -> close round trip', () async {

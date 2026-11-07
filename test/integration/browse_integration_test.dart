@@ -13,7 +13,7 @@ import '_fixture.dart';
 /// Smoke tests for the browse / playback-adjacent surface
 /// ([JellyfinAudioApi], [JellyfinVideosApi], [JellyfinMediaInfoApi],
 /// [JellyfinUserDataApi], [JellyfinDisplayPreferencesApi],
-/// [JellyfinUserViewsApi], [JellyfinMusicGenresApi],
+/// [JellyfinUserViewsApi],
 /// [JellyfinGenresApi], [JellyfinSuggestionsApi],
 /// [JellyfinLyricsApi]).
 void main() {
@@ -118,11 +118,6 @@ void main() {
         expect(views.items.any((v) => v.name == 'Music'), isTrue);
       });
 
-      test('musicGenres.list returns a (possibly empty) page', () async {
-        final genres = await jf.musicGenres.list(limit: 20);
-        expect(genres.items, isA<List<JellyfinItem>>());
-      });
-
       test('genres.list returns a (possibly empty) page', () async {
         final genres = await jf.genres.list(limit: 20);
         expect(genres.items, isA<List<JellyfinItem>>());
@@ -133,13 +128,15 @@ void main() {
         expect(s.items, isA<List<JellyfinItem>>());
       });
 
-      test('lyrics.forItem accepts a missing-lyrics response gracefully',
-          () async {
-        // Our seed uses ffmpeg-generated silence with no lyrics; the API
-        // should return null (or an empty payload) rather than throw.
-        final ly = await jf.lyrics.forItem(itemId: trackId);
-        expect(ly, anyOf(isNull, isA<JellyfinLyrics>()));
-      });
+      test(
+        'lyrics.forItem accepts a missing-lyrics response gracefully',
+        () async {
+          // Our seed uses ffmpeg-generated silence with no lyrics; the API
+          // should return null (or an empty payload) rather than throw.
+          final ly = await jf.lyrics.forItem(itemId: trackId);
+          expect(ly, anyOf(isNull, isA<JellyfinLyrics>()));
+        },
+      );
     },
     skip: bootstrapSkipReason,
   );

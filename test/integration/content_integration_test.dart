@@ -13,7 +13,7 @@ import '_fixture.dart';
 /// Smoke tests for the content / browse APIs that aren't yet covered
 /// elsewhere: [JellyfinCollectionApi], [JellyfinMediaSegmentsApi],
 /// [JellyfinStudiosApi], [JellyfinYearsApi], [JellyfinPersonsApi],
-/// [JellyfinFilterApi], [JellyfinTrailersApi], [JellyfinChannelsApi],
+/// [JellyfinFilterApi], [JellyfinChannelsApi],
 /// [JellyfinTvShowsApi], [JellyfinMoviesApi], [JellyfinArtistsApi]
 /// (album-artists variant), [JellyfinItemLookupApi].
 void main() {
@@ -38,26 +38,28 @@ void main() {
           name: 'dart_jellyfin smoke collection',
           ids: trackIds.take(2).toList(),
         );
-        final collectionId = created['Id'] as String?;
-        expect(collectionId, isNotNull);
+        final collectionId = created.id;
+        expect(collectionId, isNotEmpty);
 
         if (trackIds.length > 2) {
           await jf.collection.addItems(
-            collectionId: collectionId!,
+            collectionId: collectionId,
             ids: [trackIds[2]],
           );
         }
         await jf.collection.removeItems(
-          collectionId: collectionId!,
+          collectionId: collectionId,
           ids: trackIds.take(1).toList(),
         );
       });
 
-      test('mediaSegments.forItem returns a (typically empty) query result',
-          () async {
-        final segs = await jf.mediaSegments.forItem(itemId: trackIds.first);
-        expect(segs.items, isA<List<JellyfinMediaSegment>>());
-      });
+      test(
+        'mediaSegments.forItem returns a (typically empty) query result',
+        () async {
+          final segs = await jf.mediaSegments.forItem(itemId: trackIds.first);
+          expect(segs.items, isA<List<JellyfinMediaSegment>>());
+        },
+      );
 
       test('studios.list returns a page (typically empty for music)', () async {
         final s = await jf.studios.list(limit: 10);
@@ -88,18 +90,12 @@ void main() {
         expect(f, isA<JellyfinQueryFiltersLegacy>());
       });
 
-      test('trailers.list is callable (500 on music-only libraries is OK)',
-          () async {
-        // Jellyfin returns 500 from /Trailers on libraries that don't
-        // have a Trailers collection type configured. We just want to
-        // confirm the call shape works; both success and serverError
-        // mean the endpoint is reachable.
-        try {
-          final t = await jf.trailers.list(limit: 10);
-          expect(t.items, isA<List<JellyfinItem>>());
-        } on JellyfinException catch (e) {
-          expect(e.type, JellyfinErrorType.serverError);
-        }
+      test('items.list finds trailers (none in a music library)', () async {
+        final t = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.trailer],
+          limit: 10,
+        );
+        expect(t.items, isEmpty);
       });
 
       test('channels.list returns a (typically empty) page', () async {
@@ -127,12 +123,16 @@ void main() {
         );
       });
 
-      test('itemLookup.externalIdInfos returns the configured external sources',
-          () async {
-        final infos =
-            await jf.itemLookup.externalIdInfos(itemId: trackIds.first);
-        expect(infos, isA<List<Map<String, dynamic>>>());
-      });
+      test(
+        'itemLookup.externalIdInfos returns the configured external sources',
+        () async {
+          final infos = await jf.itemLookup.externalIdInfos(
+            itemId: trackIds.first,
+          );
+          expect(infos, isNotEmpty);
+          expect(infos.every((i) => i.key.isNotEmpty), isTrue);
+        },
+      );
     },
     skip: bootstrapSkipReason,
   );

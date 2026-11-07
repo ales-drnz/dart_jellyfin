@@ -8,7 +8,7 @@
 /// with stand-in arguments — every optional parameter filled, so every
 /// query parameter the wrapper can send is sent — and each request that
 /// leaves the client is checked against `docs/jellyfin-openapi-stable.json`
-/// (Jellyfin 12.2.0; source and checksum in `_helpers/spec_watchdog.dart`):
+/// (Jellyfin 12.4.0; source and checksum in `_helpers/spec_watchdog.dart`):
 ///
 /// * its path matches a documented route,
 /// * that route documents its HTTP method,
@@ -46,6 +46,17 @@ const _allowedExtras = <String, Map<String, String>>{
   // /universal copies its whole query into the HLS variant URL it answers
   // with (verified on 12.2: a PlaySessionId sent here comes back in
   // main.m3u8?…&PlaySessionId=…), and that route reads both.
+  // Jellyfin 13.0 declares vttTimestampMapMpegts on the three subtitle
+  // routes (the MPEG-TS value of the WebVTT X-TIMESTAMP-MAP header); the
+  // 12.x routes ignore a parameter they do not know. Sent only when the
+  // caller passes it.
+  'GET /Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/Stream.{routeFormat}':
+      {'vtttimestampmapmpegts': 'declared by Jellyfin 13.0, ignored by 12.x'},
+  'GET /Videos/{routeItemId}/{routeMediaSourceId}/Subtitles/{routeIndex}/{routeStartPositionTicks}/Stream.{routeFormat}':
+      {'vtttimestampmapmpegts': 'declared by Jellyfin 13.0, ignored by 12.x'},
+  'GET /Videos/{itemId}/{mediaSourceId}/Subtitles/{index}/subtitles.m3u8': {
+    'vtttimestampmapmpegts': 'declared by Jellyfin 13.0, ignored by 12.x',
+  },
   'GET /Audio/{itemId}/universal': {
     'playsessionid': 'forwarded to main.m3u8, which reads it (verified)',
     'breakonnonkeyframes': 'forwarded to main.m3u8 (verified)',
@@ -68,6 +79,8 @@ const _skipped = <String, String>{
   'JellyfinNotificationsApi.stopSessions': 'WebSocket',
   'JellyfinNotificationsApi.startScheduledTasks': 'WebSocket',
   'JellyfinNotificationsApi.stopScheduledTasks': 'WebSocket',
+  'JellyfinNotificationsApi.startActivityLog': 'WebSocket',
+  'JellyfinNotificationsApi.stopActivityLog': 'WebSocket',
   'JellyfinNotificationsApi.close': 'WebSocket',
 };
 
@@ -88,9 +101,11 @@ final class _Route {
 /// route answers with an empty 404 and a POST- or DELETE-only route with
 /// 405 — so it cannot hide a call to a route 12.x removed.
 List<_Route> _loadSpec() {
-  final spec = jsonDecode(
-    File('docs/jellyfin-openapi-stable.json').readAsStringSync(),
-  ) as Map<String, Object?>;
+  final spec =
+      jsonDecode(
+            File('docs/jellyfin-openapi-stable.json').readAsStringSync(),
+          )
+          as Map<String, Object?>;
   final routes = <_Route>[];
   (spec['paths']! as Map<String, Object?>).forEach((path, ops) {
     final byMethod = <String, Set<String>>{};
@@ -104,9 +119,13 @@ List<_Route> _loadSpec() {
     });
     routes.add(_route(path, byMethod));
   });
-  final hidden = jsonDecode(
-    File('test/fixtures/spec/jellyfin-hidden-routes.json').readAsStringSync(),
-  ) as Map<String, Object?>;
+  final hidden =
+      jsonDecode(
+            File(
+              'test/fixtures/spec/jellyfin-hidden-routes.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, Object?>;
   (hidden['routes']! as Map<String, Object?>).forEach((path, ops) {
     routes.add(
       _route(path, {
@@ -242,15 +261,16 @@ void main() {
 
     for (final api in apis) {
       final apiName = MirrorSystem.getName(api.type.simpleName);
-      final methods =
-          api.type.declarations.values.whereType<MethodMirror>().where(
-                (m) =>
-                    m.isRegularMethod &&
-                    !m.isPrivate &&
-                    !m.isStatic &&
-                    !m.isOperator &&
-                    !_deprecated(m),
-              );
+      final methods = api.type.declarations.values
+          .whereType<MethodMirror>()
+          .where(
+            (m) =>
+                m.isRegularMethod &&
+                !m.isPrivate &&
+                !m.isStatic &&
+                !m.isOperator &&
+                !_deprecated(m),
+          );
       for (final m in methods) {
         final name = '$apiName.${MirrorSystem.getName(m.simpleName)}';
         if (_skipped.containsKey(name)) continue;
@@ -328,8 +348,10 @@ void main() {
     }
 
     // ignore: avoid_print
-    print('spec contract: $calls requests checked; not called: '
-        '${uncalled.length}\n  ${uncalled.join('\n  ')}');
+    print(
+      'spec contract: $calls requests checked; not called: '
+      '${uncalled.length}\n  ${uncalled.join('\n  ')}',
+    );
     expect(violations, isEmpty, reason: violations.join('\n'));
     expect(uncalled, isEmpty, reason: 'every method must be exercised');
     expect(calls, greaterThan(250));

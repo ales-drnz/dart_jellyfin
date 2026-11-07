@@ -192,30 +192,51 @@ final path = await jellyfin.library.ancestors(itemId: track.id);
 
 ### Artists
 
-`artists` lists each artist once, however many tracks credit it, and
-honors `parentId`. Use it for an Artists tab:
+Jellyfin 12 stores music artists as people, and marks the `/Artists`
+routes obsolete. `artists` asks `/Persons`, as Jellyfin Web does for its
+Artists and Album Artists tabs. Each artist comes once, by name, and
+`parentId` scopes the list to a library:
 
 ```dart
-// Artists credited on at least one album.
+// Artists credited on at least one album: the Artists tab.
 final albumArtists = await jellyfin.artists.albumArtists(
   parentId: musicLibraryId,
-  sortBy: const [JellyfinSortField.sortName],
+  nameStartsWith: 'A',
   limit: 100,
 );
 
-// Every artist, track artists included.
-final all = await jellyfin.artists.list(
+// Artists credited on a track.
+final trackArtists = await jellyfin.artists.list(
   parentId: musicLibraryId,
   searchTerm: 'beat',
   limit: 50,
 );
 
 final aphex = await jellyfin.artists.byName(name: 'Aphex Twin'); // null on 404
+
+// The artist's albums: a person id filters like an artist id.
+final albums = await jellyfin.items.list(
+  includeItemTypes: const [JellyfinItemKind.musicAlbum],
+  albumArtistIds: [aphex!.id],
+);
 ```
 
-Artists are also people on Jellyfin 12: `persons.list(personTypes:
-['Artist'])` answers them, without the sort and genre filters of
-`artists`.
+The answers are `Person` items. Their ids filter `items.list()`, but seed
+an empty instant mix, and carry no MusicBrainz id. For those, use the
+`MusicArtist` item: a track's `artistItems` and `albumArtistItems`, or
+`items.list(includeItemTypes: [JellyfinItemKind.musicArtist])`, which
+also sorts:
+
+```dart
+final musicArtists = await jellyfin.items.list(
+  includeItemTypes: const [JellyfinItemKind.musicArtist],
+  sortBy: const [JellyfinSortField.sortName],
+  limit: 100,
+);
+final mix = await jellyfin.instantMix.fromArtist(
+  artistId: musicArtists.items.first.id,
+);
+```
 
 ### Genres
 
@@ -235,13 +256,17 @@ final musicGenres = await jellyfin.genres.list(
 );
 
 // Exact name lookups: the music genre, and the generic one.
-final ambient = await jellyfin.musicGenres.byName(name: 'Ambient');
+final ambient = await jellyfin.genres.musicGenre(
+  name: 'Ambient',
+  parentId: musicLibraryId,
+);
 final action = await jellyfin.genres.byName(name: 'Action');
 ```
 
-`musicGenres.byName()` is the one route that finds a music genre by its
-exact name. `genres.byName()` takes no `parentId` and answers the
-generic genre.
+`genres.musicGenre()` finds a music genre by its exact name, ignoring
+case, in a music library; it replaces `/MusicGenres/{name}`, which
+Jellyfin 12 marks obsolete. `genres.byName()` takes no `parentId` and
+answers the generic genre.
 
 ### People, studios and years
 
@@ -308,7 +333,7 @@ final created = await jellyfin.collection.create(
   name: 'Best of 2024',
   ids: [albumA, albumB],
 );
-final collectionId = created['Id'] as String;
+final collectionId = created.id;
 
 await jellyfin.collection.addItems(collectionId: collectionId, ids: [albumC]);
 await jellyfin.collection.removeItems(collectionId: collectionId, ids: [albumA]);
@@ -344,7 +369,7 @@ final episodes = await jellyfin.channels.items(
 final latest = await jellyfin.channels.latest(channelIds: [channelA, channelB], limit: 20);
 
 final features = await jellyfin.channels.features(channelId: channelId);
-print(features['SupportsContentDownloading']);
+print(features.supportsContentDownloading);
 final allFeatures = await jellyfin.channels.allFeatures();
 ```
 

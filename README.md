@@ -3,7 +3,7 @@
 #### Jellyfin client for Flutter and Dart.
 
 [![](https://img.shields.io/pub/v/dart_jellyfin.svg?style=for-the-badge&logo=dart&logoColor=white)](https://pub.dev/packages/dart_jellyfin)
-[![](https://img.shields.io/badge/jellyfin-v12.2-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
+[![](https://img.shields.io/badge/jellyfin-v12.4-orange.svg?style=for-the-badge)](https://api.jellyfin.org)
 [![](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/github/stars/ales-drnz/dart_jellyfin?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ales-drnz/dart_jellyfin)
 [![](https://img.shields.io/discord/1485588004029333516?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/g2Qf4Mq9MP)
@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/dart_jellyfin/main/imgs/dart_jellyfin.png" width="70" alt="logo"></td>
-<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin 12.2. It covers libraries, playlists, streaming, lyrics, playback reporting, remote control and search through typed Dart objects, and keeps the session for you.</td>
+<td valign="middle"><code>dart_jellyfin</code> is a Dart client for Jellyfin 12.4, for servers from 12.0 on. It covers libraries, playlists, streaming, lyrics, playback reporting, remote control and search through typed Dart objects, and keeps the session for you.</td>
 </tr>
 </table>
 
@@ -21,11 +21,13 @@
 
 ## Installation
 
+It needs Dart 3.10 or later, and a Jellyfin server from 12.0 on.
+
 Add `dart_jellyfin` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dart_jellyfin: ^0.3.2
+  dart_jellyfin: ^0.4.0
 ```
 
 ---

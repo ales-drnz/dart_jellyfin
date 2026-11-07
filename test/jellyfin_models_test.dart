@@ -220,4 +220,81 @@ void main() {
       expect(movies.isMovies, isTrue);
     });
   });
+
+  group('0.4.0 additions', () {
+    test('Trickplay is typed by media source and width', () {
+      final item = JellyfinItem.fromJson(const {
+        'Id': 'v1',
+        'Name': 'Film',
+        'Trickplay': {
+          'src1': {
+            '320': {
+              'Width': 320,
+              'Height': 180,
+              'TileWidth': 10,
+              'TileHeight': 10,
+              'ThumbnailCount': 250,
+              'Interval': 10000,
+              'Bandwidth': 12345,
+            },
+            'bad': {'Width': 1},
+            '160': 'not an object',
+          },
+          'src2': 'not an object',
+        },
+      });
+      expect(item.trickplay.keys, ['src1']);
+      final info = item.trickplay['src1']![320]!;
+      expect(item.trickplay['src1']!.keys, [320]);
+      expect(info.width, 320);
+      expect(info.height, 180);
+      expect(info.thumbnailsPerTile, 100);
+      expect(info.interval, const Duration(seconds: 10));
+      expect(info.bandwidth, 12345);
+      expect(info.thumbnailAt(const Duration(seconds: 25)), 2);
+      expect(info.tileIndexAt(const Duration(minutes: 20)), 1);
+      expect(info.thumbnailAt(const Duration(hours: 9)), 249);
+      expect(info.tileIndexAt(const Duration(hours: 9)), 2);
+      expect(JellyfinItem.fromJson(const {'Id': 'a'}).trickplay, isEmpty);
+    });
+
+    test('trickplay info with no interval points at the first tile', () {
+      final info = JellyfinTrickplayInfo.fromJson(const {'Width': 320});
+      expect(info.thumbnailAt(const Duration(minutes: 5)), 0);
+      expect(info.tileIndexAt(const Duration(minutes: 5)), 0);
+    });
+
+    test('a session lists its queue by id', () {
+      final s = JellyfinSession.fromJson(const {
+        'Id': 's1',
+        'NowPlayingQueue': [
+          {'Id': 'i1', 'PlaylistItemId': 'p1'},
+          {'Id': 'i1', 'PlaylistItemId': 'p2'},
+          'skipped',
+        ],
+        'PlaylistItemId': 'p2',
+      });
+      expect(s.nowPlayingQueue.map((q) => q.playlistItemId), ['p1', 'p2']);
+      expect(s.nowPlayingQueue.first.itemId, 'i1');
+      expect(s.playlistItemId, 'p2');
+      expect(
+        JellyfinSession.fromJson(const {'Id': 's'}).nowPlayingQueue,
+        isEmpty,
+      );
+    });
+
+    test('item counts read AudioBookCount when 13.0 sends it', () {
+      final v12 = JellyfinItemCounts.fromJson(const {
+        'SongCount': 3,
+        'TrailerCount': 1,
+        'ProgramCount': 2,
+      });
+      expect(v12.audioBookCount, isNull);
+      expect(v12.trailerCount, 1);
+      expect(v12.programCount, 2);
+      final v13 = JellyfinItemCounts.fromJson(const {'AudioBookCount': 4});
+      expect(v13.audioBookCount, 4);
+      expect(v13.trailerCount, 0);
+    });
+  });
 }

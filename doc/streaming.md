@@ -147,6 +147,4 @@ final liveUrl = jellyfin.hls.videoLiveUrl(
 );
 ```
 
-`stopEncoding(playSessionId:)` stops a transcode at once. The API
-document hides that route; `playback.stopped()` (see the [Playback negotiation and reporting](https://pub.dev/documentation/dart_jellyfin/latest/topics/Playback%20negotiation%20and%20reporting-topic.html) topic) is the
-supported way to end a transcode.
+`playback.stopped()` (see the [Playback negotiation and reporting](https://pub.dev/documentation/dart_jellyfin/latest/topics/Playback%20negotiation%20and%20reporting-topic.html) topic) ends a transcode.
