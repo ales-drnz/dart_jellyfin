@@ -2,9 +2,9 @@ Create a client, give it your app's identity and a server, choose the HTTP stack
 
 ## Server versions
 
-The package follows the Jellyfin 12.4 API document, which is the 12.2
-one, and runs against any server from 12.0 on. Use 12.0 or later, for
-three reasons:
+The package follows the Jellyfin 12.4 API document (its routes,
+parameters and schemas are the same as 12.2's) and runs against any
+server from 12.0 on. Use 12.0 or later, for three reasons:
 
 - 12.0 fixed security advisories, among them an FFmpeg argument
   injection through a subtitle path (GHSA-wwwm-px48-fpvq) and path
