@@ -352,7 +352,8 @@ await jellyfin.collection.removeItems(collectionId: collectionId, ids: [albumA])
 final includedIn = await jellyfin.library.collections(itemId: album.id);
 ```
 
-Removing an item from a collection leaves the item in the library.
+`create()` throws a `parse` error when the answer holds no id. Removing
+an item from a collection leaves the item in the library.
 
 ## Channels
 
