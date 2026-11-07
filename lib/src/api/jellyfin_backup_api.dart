@@ -17,10 +17,8 @@ class JellyfinBackupApi {
   JellyfinBackupApi(this._http);
 
   /// `GET /Backup` — list backup files known to the server.
-  Future<List<JellyfinBackupManifest>> list() => _http.requestJson(
-    '/Backup',
-    listOf(JellyfinBackupManifest.fromJson),
-  );
+  Future<List<JellyfinBackupManifest>> list() =>
+      _http.requestJson('/Backup', listOf(JellyfinBackupManifest.fromJson));
 
   /// `POST /Backup/Create` — create a new backup. [body] carries
   /// the inclusion options (`BackupOptionsDto`: `Metadata`, `Trickplay`,
@@ -37,23 +35,18 @@ class JellyfinBackupApi {
 
   /// `GET /Backup/Manifest?path={path}` — read the manifest of a
   /// specific backup file.
-  Future<JellyfinBackupManifest> manifest({
-    required String path,
-  }) => _http.requestJson(
-    '/Backup/Manifest',
-    queryParameters: {'path': path},
-    (json) =>
-        objectOf(JellyfinBackupManifest.fromJson)(json) ??
-        JellyfinBackupManifest.fromJson(const {}),
-  );
+  Future<JellyfinBackupManifest> manifest({required String path}) =>
+      _http.requestJson(
+        '/Backup/Manifest',
+        queryParameters: {'path': path},
+        (json) =>
+            objectOf(JellyfinBackupManifest.fromJson)(json) ??
+            JellyfinBackupManifest.fromJson(const {}),
+      );
 
   /// `POST /Backup/Restore` — restore from a backup file. [body]
   /// describes which file and which sections to restore.
   Future<void> restore(Map<String, Object?> body) async {
-    await _http.request<void>(
-      '/Backup/Restore',
-      method: 'POST',
-      data: body,
-    );
+    await _http.request<void>('/Backup/Restore', method: 'POST', data: body);
   }
 }

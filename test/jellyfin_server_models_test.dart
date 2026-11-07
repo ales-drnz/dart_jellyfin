@@ -182,11 +182,8 @@ void main() {
   test('text endpoints answer an empty body as an empty string', () async {
     // 12.2 answers /Branding/Css with 200, text/css and no body when no
     // custom CSS is set; 0.2 returned '' there.
-    adapter.respond = (_) => CannedResponse(
-      200,
-      const [],
-      contentType: 'text/css; charset=utf-8',
-    );
+    adapter.respond = (_) =>
+        CannedResponse(200, const [], contentType: 'text/css; charset=utf-8');
     expect(await client.branding.css(), '');
     expect(adapter.path, '/Branding/Css');
     expect(await client.branding.cssFile(), '');

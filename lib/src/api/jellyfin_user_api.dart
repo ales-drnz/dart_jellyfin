@@ -90,23 +90,16 @@ class JellyfinUserApi {
   Future<List<JellyfinUser>> list({bool? isHidden, bool? isDisabled}) async {
     return _http.requestJson(
       '/Users',
-      queryParameters: {
-        'isHidden': ?isHidden,
-        'isDisabled': ?isDisabled,
-      },
+      queryParameters: {'isHidden': ?isHidden, 'isDisabled': ?isDisabled},
       listOf(JellyfinUser.fromJson),
     );
   }
 
   /// `GET /Users/{userId}` — fetch a single user by id (admin only).
   /// Returns null on 404.
-  Future<JellyfinUser?> byId({
-    required String userId,
-  }) async {
+  Future<JellyfinUser?> byId({required String userId}) async {
     try {
-      final res = await _http.request<Map<String, Object?>>(
-        '/Users/$userId',
-      );
+      final res = await _http.request<Map<String, Object?>>('/Users/$userId');
       final data = res.data;
       if (data == null) return null;
       return JellyfinUser.fromJson(data);
@@ -118,17 +111,11 @@ class JellyfinUserApi {
 
   /// `POST /Users/New?name={name}` — create a new user (admin only).
   /// The server picks the user id.
-  Future<JellyfinUser> create({
-    required String name,
-    String? password,
-  }) async {
+  Future<JellyfinUser> create({required String name, String? password}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Users/New',
       method: 'POST',
-      data: {
-        'Name': name,
-        'Password': ?password,
-      },
+      data: {'Name': name, 'Password': ?password},
     );
     return JellyfinUser.fromJson(res.data ?? const {});
   }
@@ -204,9 +191,7 @@ class JellyfinUserApi {
   }
 
   /// `DELETE /Users/{userId}` — delete a user (admin only).
-  Future<void> delete({
-    required String userId,
-  }) async {
+  Future<void> delete({required String userId}) async {
     await _http.request<void>('/Users/$userId', method: 'DELETE');
   }
 
@@ -228,23 +213,20 @@ class JellyfinUserApi {
   /// `POST /Users/ForgotPassword/Pin?pin={code}` — submit the PIN
   /// returned by [forgotPassword] (server places it in a known file
   /// on disk for the admin to read).
-  Future<JellyfinPinRedeemResult> forgotPasswordPin({
-    required String pin,
-  }) => _http.requestJson(
-    '/Users/ForgotPassword/Pin',
-    method: 'POST',
-    data: {'Pin': pin},
-    (json) =>
-        objectOf(JellyfinPinRedeemResult.fromJson)(json) ??
-        JellyfinPinRedeemResult.fromJson(const {}),
-  );
+  Future<JellyfinPinRedeemResult> forgotPasswordPin({required String pin}) =>
+      _http.requestJson(
+        '/Users/ForgotPassword/Pin',
+        method: 'POST',
+        data: {'Pin': pin},
+        (json) =>
+            objectOf(JellyfinPinRedeemResult.fromJson)(json) ??
+            JellyfinPinRedeemResult.fromJson(const {}),
+      );
 
   /// `GET /Auth/Providers` — authentication providers configured on the
   /// server.
-  Future<List<JellyfinNameIdPair>> authProviders() => _http.requestJson(
-    '/Auth/Providers',
-    listOf(JellyfinNameIdPair.fromJson),
-  );
+  Future<List<JellyfinNameIdPair>> authProviders() =>
+      _http.requestJson('/Auth/Providers', listOf(JellyfinNameIdPair.fromJson));
 
   /// `GET /Auth/PasswordResetProviders` — password-reset providers
   /// configured on the server.

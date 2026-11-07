@@ -122,11 +122,7 @@ void main() {
         'ImageBlurHashes': {
           'Primary': {'abc123': 'LjF...'},
         },
-        'UserData': {
-          'IsFavorite': true,
-          'PlayCount': 5,
-          'Played': true,
-        },
+        'UserData': {'IsFavorite': true, 'PlayCount': 5, 'Played': true},
         'MediaSources': [
           {
             'Id': 'src1',

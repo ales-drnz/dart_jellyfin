@@ -143,10 +143,7 @@ class JellyfinPlaylistsApi {
     await _http.request<void>(
       '/Playlists/$playlistId/Items',
       method: 'POST',
-      queryParameters: {
-        'ids': itemIds,
-        'userId': userId,
-      },
+      queryParameters: {'ids': itemIds, 'userId': userId},
     );
     _wroteEntries(playlistId);
   }
@@ -176,9 +173,7 @@ class JellyfinPlaylistsApi {
   /// Jellyfin 12.2 deletes the playlist but then saves the pending entry
   /// change, which writes its `playlist.xml` back to disk, an orphan a
   /// later library scan may bring back.
-  Future<void> delete({
-    required String playlistId,
-  }) async {
+  Future<void> delete({required String playlistId}) async {
     await _settle(playlistId);
     await _http.request<void>('/Items/$playlistId', method: 'DELETE');
     _entryWrites.remove(playlistId);
@@ -220,12 +215,8 @@ class JellyfinPlaylistsApi {
   /// served from `/Items/{id}` (a `BaseItemDto`). The `/Playlists/{id}`
   /// endpoint returns a `PlaylistDto` (only `OpenAccess`, `Shares`,
   /// `ItemIds`) and carries none of these fields, so it is not used here.
-  Future<JellyfinItem?> byId({
-    required String playlistId,
-  }) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Items/$playlistId',
-    );
+  Future<JellyfinItem?> byId({required String playlistId}) async {
+    final res = await _http.request<Map<String, Object?>>('/Items/$playlistId');
     final data = res.data;
     if (data == null) return null;
     return JellyfinItem.fromJson(data);

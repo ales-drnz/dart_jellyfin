@@ -22,10 +22,8 @@ class JellyfinPackagesApi {
   JellyfinPackagesApi(this._http);
 
   /// `GET /Packages` — list every package the server can install.
-  Future<List<JellyfinPackageInfo>> list() => _http.requestJson(
-    '/Packages',
-    listOf(JellyfinPackageInfo.fromJson),
-  );
+  Future<List<JellyfinPackageInfo>> list() =>
+      _http.requestJson('/Packages', listOf(JellyfinPackageInfo.fromJson));
 
   /// `GET /Packages/{name}` — info for one package (releases,
   /// download urls, dependencies).
@@ -64,9 +62,7 @@ class JellyfinPackagesApi {
 
   /// `DELETE /Packages/Installing/{packageId}` — cancel an in-flight
   /// install.
-  Future<void> cancelInstall({
-    required String packageId,
-  }) async {
+  Future<void> cancelInstall({required String packageId}) async {
     await _http.request<void>(
       '/Packages/Installing/$packageId',
       method: 'DELETE',
@@ -74,18 +70,12 @@ class JellyfinPackagesApi {
   }
 
   /// `GET /Repositories` — list configured plugin repositories.
-  Future<List<JellyfinRepository>> repositories() => _http.requestJson(
-    '/Repositories',
-    listOf(JellyfinRepository.fromJson),
-  );
+  Future<List<JellyfinRepository>> repositories() =>
+      _http.requestJson('/Repositories', listOf(JellyfinRepository.fromJson));
 
   /// `POST /Repositories` — replace the list of configured plugin
   /// repositories. Pass the full new list as [body].
   Future<void> setRepositories(List<Map<String, Object?>> body) async {
-    await _http.request<void>(
-      '/Repositories',
-      method: 'POST',
-      data: body,
-    );
+    await _http.request<void>('/Repositories', method: 'POST', data: body);
   }
 }

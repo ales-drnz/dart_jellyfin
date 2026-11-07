@@ -221,11 +221,7 @@ class JellyfinSessionsApi {
     await _http.request<void>(
       '/Sessions/$sessionId/Message',
       method: 'POST',
-      data: {
-        'Text': text,
-        'Header': ?header,
-        'TimeoutMs': ?timeoutMs,
-      },
+      data: {'Text': text, 'Header': ?header, 'TimeoutMs': ?timeoutMs},
     );
   }
 

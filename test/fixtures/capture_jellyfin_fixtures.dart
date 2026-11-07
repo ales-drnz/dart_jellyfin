@@ -50,14 +50,10 @@ Future<void> main() async {
 
   Directory(_outDir).createSync(recursive: true);
 
-  Future<void> get(
-    String name,
-    String path, [
-    Map<String, dynamic>? qp,
-  ]) async {
-    final uri = Uri.parse('$baseUrl$path').replace(
-      queryParameters: qp?.map((k, v) => MapEntry(k, '$v')),
-    );
+  Future<void> get(String name, String path, [Map<String, dynamic>? qp]) async {
+    final uri = Uri.parse(
+      '$baseUrl$path',
+    ).replace(queryParameters: qp?.map((k, v) => MapEntry(k, '$v')));
     final res = await http.get(uri, headers: headers);
     if (res.statusCode != 200) {
       stderr.writeln('  ✗ $name ($path) — ${res.statusCode}');
@@ -66,33 +62,27 @@ Future<void> main() async {
     _save(name, jsonDecode(res.body));
   }
 
-  await get(
-    'items_list_audio.json',
-    '/Items',
-    {
-      'userId': userId,
-      'IncludeItemTypes': 'Audio',
-      'Recursive': 'true',
-      'Limit': 3,
-      'Fields': 'MediaSources,MediaStreams,Genres,Tags,ProviderIds',
-    },
-  );
+  await get('items_list_audio.json', '/Items', {
+    'userId': userId,
+    'IncludeItemTypes': 'Audio',
+    'Recursive': 'true',
+    'Limit': 3,
+    'Fields': 'MediaSources,MediaStreams,Genres,Tags,ProviderIds',
+  });
   await get('user_views.json', '/UserViews', {'userId': userId});
-  await get(
-    'search_hints.json',
-    '/Search/Hints',
-    {'userId': userId, 'searchTerm': 'Track', 'Limit': 5},
-  );
-  await get(
-    'filters2.json',
-    '/Items/Filters2',
-    {'userId': userId, 'IncludeItemTypes': 'Audio'},
-  );
-  await get(
-    'display_preferences.json',
-    '/DisplayPreferences/usersettings',
-    {'userId': userId, 'client': 'dart_jellyfin_capture'},
-  );
+  await get('search_hints.json', '/Search/Hints', {
+    'userId': userId,
+    'searchTerm': 'Track',
+    'Limit': 5,
+  });
+  await get('filters2.json', '/Items/Filters2', {
+    'userId': userId,
+    'IncludeItemTypes': 'Audio',
+  });
+  await get('display_preferences.json', '/DisplayPreferences/usersettings', {
+    'userId': userId,
+    'client': 'dart_jellyfin_capture',
+  });
   await get('system_info.json', '/System/Info');
   await get('system_public_info.json', '/System/Info/Public');
   await get('sessions.json', '/Sessions');
@@ -153,8 +143,8 @@ Future<void> main() async {
 }
 
 void _save(String name, dynamic data) {
-  File('$_outDir/$name').writeAsStringSync(
-    const JsonEncoder.withIndent('  ').convert(data),
-  );
+  File(
+    '$_outDir/$name',
+  ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(data));
   stdout.writeln('  ✓ $name');
 }

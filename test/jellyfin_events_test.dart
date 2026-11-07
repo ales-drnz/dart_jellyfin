@@ -19,9 +19,7 @@ const _track = 'b5455b2dcaf64392527a5ae01dd1523f';
 const _album = '72839210ba8018a1bf1039f340953486';
 
 JellyfinNotification _frame(String name) => JellyfinNotification.fromJson(
-  jsonDecode(
-        File('test/fixtures/notifications/$name.json').readAsStringSync(),
-      )
+  jsonDecode(File('test/fixtures/notifications/$name.json').readAsStringSync())
       as Map<String, Object?>,
 );
 
@@ -318,10 +316,7 @@ void main() {
     test('server state frames carry no data', () {
       expect(ev('RestartRequired'), isA<JellyfinRestartRequiredEvent>());
       expect(ev('ServerRestarting'), isA<JellyfinServerRestartingEvent>());
-      expect(
-        ev('ServerShuttingDown'),
-        isA<JellyfinServerShuttingDownEvent>(),
-      );
+      expect(ev('ServerShuttingDown'), isA<JellyfinServerShuttingDownEvent>());
     });
 
     test('timer frames', () {

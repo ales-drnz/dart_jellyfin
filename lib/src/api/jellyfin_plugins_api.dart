@@ -19,16 +19,12 @@ class JellyfinPluginsApi {
   JellyfinPluginsApi(this._http);
 
   /// `GET /Plugins` — every installed plugin.
-  Future<List<JellyfinPluginInfo>> list() => _http.requestJson(
-    '/Plugins',
-    listOf(JellyfinPluginInfo.fromJson),
-  );
+  Future<List<JellyfinPluginInfo>> list() =>
+      _http.requestJson('/Plugins', listOf(JellyfinPluginInfo.fromJson));
 
   /// `DELETE /Plugins/{pluginId}` — uninstall every version of a
   /// plugin.
-  Future<void> uninstall({
-    required String pluginId,
-  }) async {
+  Future<void> uninstall({required String pluginId}) async {
     await _http.request<void>('/Plugins/$pluginId', method: 'DELETE');
   }
 
@@ -76,9 +72,7 @@ class JellyfinPluginsApi {
   ///
   /// Stays a map: each plugin defines its own settings, and the API
   /// document types it only as the empty `BasePluginConfiguration`.
-  Future<Map<String, Object?>> configuration({
-    required String pluginId,
-  }) async {
+  Future<Map<String, Object?>> configuration({required String pluginId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Plugins/$pluginId/Configuration',
     );
@@ -99,13 +93,12 @@ class JellyfinPluginsApi {
   }
 
   /// `POST /Plugins/{pluginId}/Manifest` — get the plugin's manifest.
-  Future<JellyfinPluginManifest> manifest({
-    required String pluginId,
-  }) => _http.requestJson(
-    '/Plugins/$pluginId/Manifest',
-    method: 'POST',
-    (json) =>
-        objectOf(JellyfinPluginManifest.fromJson)(json) ??
-        JellyfinPluginManifest.fromJson(const {}),
-  );
+  Future<JellyfinPluginManifest> manifest({required String pluginId}) =>
+      _http.requestJson(
+        '/Plugins/$pluginId/Manifest',
+        method: 'POST',
+        (json) =>
+            objectOf(JellyfinPluginManifest.fromJson)(json) ??
+            JellyfinPluginManifest.fromJson(const {}),
+      );
 }

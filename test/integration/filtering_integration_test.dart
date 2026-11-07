@@ -31,138 +31,131 @@ import '_fixture.dart';
 /// outside both genres. Each test asserts that precondition, and skips
 /// rather than passing vacuously when the seed library is too small.
 void main() {
-  group(
-    'multi-value filters narrow the result set',
-    () {
-      late JellyfinClient jf;
+  group('multi-value filters narrow the result set', () {
+    late JellyfinClient jf;
 
-      /// Two genre ids present on audio items, or `null` when the seed
-      /// library doesn't have enough genres to tell narrowing apart
-      /// from no-op.
-      List<String>? genreIds;
+    /// Two genre ids present on audio items, or `null` when the seed
+    /// library doesn't have enough genres to tell narrowing apart
+    /// from no-op.
+    List<String>? genreIds;
 
-      /// Total audio items with no genre filter at all.
-      late int unfilteredTotal;
+    /// Total audio items with no genre filter at all.
+    late int unfilteredTotal;
 
-      setUpAll(() async {
-        jf = jellyfinFromCache();
-        if (bootstrapSkipReason != null) return;
+    setUpAll(() async {
+      jf = jellyfinFromCache();
+      if (bootstrapSkipReason != null) return;
 
-        unfilteredTotal = await jf.items.count(
-          includeItemTypes: const [JellyfinItemKind.audio],
-        );
-
-        final facets = await jf.filter.facets(
-          includeItemTypes: const [JellyfinItemKind.audio],
-        );
-        final ids = facets.genres
-            .map((g) => g.id)
-            .whereType<String>()
-            .where((id) => id.isNotEmpty)
-            .toList();
-        if (ids.length >= 2) genreIds = ids.take(2).toList();
-      });
-
-      Future<Set<String>> audioIdsForGenres(List<String> ids) async {
-        final page = await jf.items.list(
-          includeItemTypes: const [JellyfinItemKind.audio],
-          genreIds: ids,
-          limit: 500,
-        );
-        return page.items.map((i) => i.id).toSet();
-      }
-
-      test(
-        'items.list(genreIds:) with two genres returns their union',
-        () async {
-          final ids = genreIds;
-          if (ids == null) {
-            markTestSkipped('Seed library has fewer than 2 audio genres.');
-            return;
-          }
-
-          final first = await audioIdsForGenres([ids[0]]);
-          final second = await audioIdsForGenres([ids[1]]);
-          final both = await audioIdsForGenres(ids);
-
-          // The union identity comes first, and is never guarded: it is
-          // the assertion that actually falsifies a dropped filter, and
-          // it holds at any library size. A single-id filter binds even
-          // under a wrong separator (one value has no separator in it),
-          // so `first` and `second` stay correct while `both` degrades to
-          // the whole library — which is exactly what this catches.
-          expect(
-            both,
-            equals({...first, ...second}),
-            reason:
-                'two-genre filter should be the union of the '
-                'single-genre filters; a superset means the filter was '
-                'dropped and the query returned everything',
-          );
-
-          // Strictly stronger, but only meaningful when some item sits
-          // outside both genres. Never let this degrade into a skip —
-          // the union assertion above has already run.
-          if (both.length < unfilteredTotal) {
-            expect(
-              both.length,
-              lessThan(unfilteredTotal),
-              reason:
-                  'a bound genre filter must return fewer items than '
-                  'no filter at all',
-            );
-          } else {
-            printOnFailure(
-              'Every audio item is in one of the two sampled genres '
-              '(${both.length} of $unfilteredTotal); only the union '
-              'identity was load-bearing here.',
-            );
-          }
-        },
+      unfilteredTotal = await jf.items.count(
+        includeItemTypes: const [JellyfinItemKind.audio],
       );
 
-      test('items.count(genreIds:) agrees with items.list', () async {
-        final ids = genreIds;
-        if (ids == null) {
-          markTestSkipped('Seed library has fewer than 2 audio genres.');
-          return;
-        }
+      final facets = await jf.filter.facets(
+        includeItemTypes: const [JellyfinItemKind.audio],
+      );
+      final ids = facets.genres
+          .map((g) => g.id)
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toList();
+      if (ids.length >= 2) genreIds = ids.take(2).toList();
+    });
 
-        // count() gained the full narrowing surface in 0.1.1; before,
-        // a genre-scoped count was simply not expressible.
-        final counted = await jf.items.count(
-          includeItemTypes: const [JellyfinItemKind.audio],
-          genreIds: ids,
-        );
-        final listed = await jf.items.list(
-          includeItemTypes: const [JellyfinItemKind.audio],
-          genreIds: ids,
-          limit: 0,
-        );
+    Future<Set<String>> audioIdsForGenres(List<String> ids) async {
+      final page = await jf.items.list(
+        includeItemTypes: const [JellyfinItemKind.audio],
+        genreIds: ids,
+        limit: 500,
+      );
+      return page.items.map((i) => i.id).toSet();
+    }
 
-        expect(counted, listed.totalRecordCount);
+    test('items.list(genreIds:) with two genres returns their union', () async {
+      final ids = genreIds;
+      if (ids == null) {
+        markTestSkipped('Seed library has fewer than 2 audio genres.');
+        return;
+      }
+
+      final first = await audioIdsForGenres([ids[0]]);
+      final second = await audioIdsForGenres([ids[1]]);
+      final both = await audioIdsForGenres(ids);
+
+      // The union identity comes first, and is never guarded: it is
+      // the assertion that actually falsifies a dropped filter, and
+      // it holds at any library size. A single-id filter binds even
+      // under a wrong separator (one value has no separator in it),
+      // so `first` and `second` stay correct while `both` degrades to
+      // the whole library — which is exactly what this catches.
+      expect(
+        both,
+        equals({...first, ...second}),
+        reason:
+            'two-genre filter should be the union of the '
+            'single-genre filters; a superset means the filter was '
+            'dropped and the query returned everything',
+      );
+
+      // Strictly stronger, but only meaningful when some item sits
+      // outside both genres. Never let this degrade into a skip —
+      // the union assertion above has already run.
+      if (both.length < unfilteredTotal) {
         expect(
-          counted,
+          both.length,
           lessThan(unfilteredTotal),
-          reason: 'genre-scoped count must be narrower than the total',
+          reason:
+              'a bound genre filter must return fewer items than '
+              'no filter at all',
         );
-      });
+      } else {
+        printOnFailure(
+          'Every audio item is in one of the two sampled genres '
+          '(${both.length} of $unfilteredTotal); only the union '
+          'identity was load-bearing here.',
+        );
+      }
+    });
 
-      test('an unknown genre id returns nothing, not everything', () async {
-        // The sharpest expression of the failure mode: a filter the
-        // server cannot satisfy must empty the result, never widen it.
-        final none = await jf.items.count(
-          includeItemTypes: const [JellyfinItemKind.audio],
-          genreIds: const ['00000000-0000-0000-0000-000000000000'],
-        );
-        expect(
-          none,
-          isNot(unfilteredTotal),
-          reason: 'an unmatched genre id must not degrade to "no filter"',
-        );
-        expect(none, 0);
-      });
-    },
-    skip: bootstrapSkipReason,
-  );
+    test('items.count(genreIds:) agrees with items.list', () async {
+      final ids = genreIds;
+      if (ids == null) {
+        markTestSkipped('Seed library has fewer than 2 audio genres.');
+        return;
+      }
+
+      // count() gained the full narrowing surface in 0.1.1; before,
+      // a genre-scoped count was simply not expressible.
+      final counted = await jf.items.count(
+        includeItemTypes: const [JellyfinItemKind.audio],
+        genreIds: ids,
+      );
+      final listed = await jf.items.list(
+        includeItemTypes: const [JellyfinItemKind.audio],
+        genreIds: ids,
+        limit: 0,
+      );
+
+      expect(counted, listed.totalRecordCount);
+      expect(
+        counted,
+        lessThan(unfilteredTotal),
+        reason: 'genre-scoped count must be narrower than the total',
+      );
+    });
+
+    test('an unknown genre id returns nothing, not everything', () async {
+      // The sharpest expression of the failure mode: a filter the
+      // server cannot satisfy must empty the result, never widen it.
+      final none = await jf.items.count(
+        includeItemTypes: const [JellyfinItemKind.audio],
+        genreIds: const ['00000000-0000-0000-0000-000000000000'],
+      );
+      expect(
+        none,
+        isNot(unfilteredTotal),
+        reason: 'an unmatched genre id must not degrade to "no filter"',
+      );
+      expect(none, 0);
+    });
+  }, skip: bootstrapSkipReason);
 }

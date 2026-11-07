@@ -146,10 +146,7 @@ class JellyfinAudioApi {
       if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
       'MediaSourceId': ?mediaSourceId,
     };
-    return (
-      '$base/Audio/$itemId/stream.$container?${_encode(qp)}',
-      container,
-    );
+    return ('$base/Audio/$itemId/stream.$container?${_encode(qp)}', container);
   }
 
   /// Lyrics for a track, parsed into [JellyfinLyrics].
@@ -161,9 +158,7 @@ class JellyfinAudioApi {
   /// Jellyfin answers 404 both for a track without lyrics and for an id
   /// that names no item (12.2), so `null` does not tell the two apart.
   /// Other errors (a malformed id is a 400) are thrown.
-  Future<JellyfinLyrics?> lyrics({
-    required String itemId,
-  }) async {
+  Future<JellyfinLyrics?> lyrics({required String itemId}) async {
     try {
       final res = await _http.request<Map<String, Object?>>(
         '/Audio/$itemId/Lyrics',

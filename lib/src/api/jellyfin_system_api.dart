@@ -59,16 +59,12 @@ class JellyfinSystemApi {
   );
 
   /// `GET /System/Logs` — list available log files, for [logFile].
-  Future<List<JellyfinServerFile>> logs() => _http.requestJson(
-    '/System/Logs',
-    listOf(JellyfinServerFile.fromJson),
-  );
+  Future<List<JellyfinServerFile>> logs() =>
+      _http.requestJson('/System/Logs', listOf(JellyfinServerFile.fromJson));
 
   /// `GET /System/Logs/Log?name={name}` — fetch one log file as
   /// plain text; `''` for an empty file.
-  Future<String?> logFile({
-    required String name,
-  }) async {
+  Future<String?> logFile({required String name}) async {
     final res = await _http.request<String>(
       '/System/Logs/Log',
       queryParameters: {'name': name},

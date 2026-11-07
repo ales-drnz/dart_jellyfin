@@ -130,11 +130,7 @@ final class JellyfinAuthResult {
     return JellyfinAuthResult(
       user: userJson is Map<String, Object?>
           ? JellyfinUser.fromJson(userJson)
-          : const JellyfinUser(
-              id: '',
-              name: '',
-              raw: <String, Object?>{},
-            ),
+          : const JellyfinUser(id: '', name: '', raw: <String, Object?>{}),
       accessToken: asString(json['AccessToken']) ?? '',
       serverId: asString(json['ServerId']) ?? '',
       raw: json,

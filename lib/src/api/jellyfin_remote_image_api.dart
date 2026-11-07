@@ -30,9 +30,7 @@ class JellyfinRemoteImageApi {
     String? providerName,
     bool includeAllLanguages = false,
   }) {
-    final qp = <String, Object?>{
-      'includeAllLanguages': includeAllLanguages,
-    };
+    final qp = <String, Object?>{'includeAllLanguages': includeAllLanguages};
     if (type != null) qp['type'] = type;
     if (startIndex != null) qp['startIndex'] = startIndex;
     if (limit != null) qp['limit'] = limit;
@@ -62,10 +60,9 @@ class JellyfinRemoteImageApi {
 
   /// `GET /Items/{itemId}/RemoteImages/Providers` — list providers
   /// that can supply remote images for this item.
-  Future<List<JellyfinImageProviderInfo>> providers({
-    required String itemId,
-  }) => _http.requestJson(
-    '/Items/$itemId/RemoteImages/Providers',
-    listOf(JellyfinImageProviderInfo.fromJson),
-  );
+  Future<List<JellyfinImageProviderInfo>> providers({required String itemId}) =>
+      _http.requestJson(
+        '/Items/$itemId/RemoteImages/Providers',
+        listOf(JellyfinImageProviderInfo.fromJson),
+      );
 }

@@ -19,9 +19,10 @@ const Map<String, Object?> _empty = {};
 void main() {
   group('shared pairs', () {
     test('JellyfinNameIdPair', () {
-      final p = JellyfinNameIdPair.fromJson(
-        const {'Name': 'HD Homerun', 'Id': 'hdhomerun'},
-      );
+      final p = JellyfinNameIdPair.fromJson(const {
+        'Name': 'HD Homerun',
+        'Id': 'hdhomerun',
+      });
       expect(p.name, 'HD Homerun');
       expect(p.id, 'hdhomerun');
       final e = JellyfinNameIdPair.fromJson(_empty);
@@ -30,9 +31,10 @@ void main() {
     });
 
     test('JellyfinNameValuePair', () {
-      final p = JellyfinNameValuePair.fromJson(
-        const {'Name': 'Afrikaans', 'Value': 'af'},
-      );
+      final p = JellyfinNameValuePair.fromJson(const {
+        'Name': 'Afrikaans',
+        'Value': 'af',
+      });
       expect(p.value, 'af');
       expect(JellyfinNameValuePair.fromJson(_empty).value, isNull);
     });
@@ -128,9 +130,9 @@ void main() {
     });
 
     test('JellyfinBrandingOptions', () {
-      final b = JellyfinBrandingOptions.fromJson(
-        const {'SplashscreenEnabled': false},
-      );
+      final b = JellyfinBrandingOptions.fromJson(const {
+        'SplashscreenEnabled': false,
+      });
       expect(b.splashscreenEnabled, isFalse);
       expect(b.loginDisclaimer, isNull);
       expect(
@@ -170,26 +172,27 @@ void main() {
     });
 
     test('JellyfinDeviceOptions', () {
-      final o = JellyfinDeviceOptions.fromJson(
-        const {'Id': 1, 'DeviceId': 'd1', 'CustomName': 'Living room'},
-      );
+      final o = JellyfinDeviceOptions.fromJson(const {
+        'Id': 1,
+        'DeviceId': 'd1',
+        'CustomName': 'Living room',
+      });
       expect(o.deviceId, 'd1');
       expect(o.customName, 'Living room');
       expect(JellyfinDeviceOptions.fromJson(_empty).customName, isNull);
     });
 
     test('JellyfinFileSystemEntry and default directory', () {
-      final d = JellyfinFileSystemEntry.fromJson(
-        const {'Name': 'Music', 'Path': '/media/Music', 'Type': 'Directory'},
-      );
+      final d = JellyfinFileSystemEntry.fromJson(const {
+        'Name': 'Music',
+        'Path': '/media/Music',
+        'Type': 'Directory',
+      });
       expect(d.isDirectory, isTrue);
       expect(d.path, '/media/Music');
       final e = JellyfinFileSystemEntry.fromJson(_empty);
       expect(e.isDirectory, isFalse);
-      expect(
-        JellyfinDefaultDirectoryBrowser.fromJson(_empty).path,
-        isNull,
-      );
+      expect(JellyfinDefaultDirectoryBrowser.fromJson(_empty).path, isNull);
       expect(
         JellyfinDefaultDirectoryBrowser.fromJson(const {'Path': '/media'}).path,
         '/media',
@@ -261,9 +264,10 @@ void main() {
       expect(i.key, 'MusicBrainzAlbum');
       expect(i.type, 'Album');
       expect(
-        JellyfinExternalIdInfo.fromJson(
-          const {'Name': 'TheAudioDb', 'Key': 'AudioDbAlbum'},
-        ).type,
+        JellyfinExternalIdInfo.fromJson(const {
+          'Name': 'TheAudioDb',
+          'Key': 'AudioDbAlbum',
+        }).type,
         isNull,
       );
     });
@@ -828,10 +832,8 @@ void main() {
         contains('Perché sì'),
       );
       expect(adapter.path, '/Providers/Subtitles/Subtitles/os-1');
-      adapter.respond = (_) => CannedResponse.json(
-        {'title': 'Not Found'},
-        status: 404,
-      );
+      adapter.respond = (_) =>
+          CannedResponse.json({'title': 'Not Found'}, status: 404);
       expect(await client.subtitles.getRemote(id: 'none'), isNull);
     });
 

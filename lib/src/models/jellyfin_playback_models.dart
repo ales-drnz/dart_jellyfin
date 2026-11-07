@@ -84,11 +84,9 @@ final class JellyfinDirectPlayProfile {
 
   /// Convenience constructor for an audio direct-play profile
   /// (`type: 'Audio'`).
-  const JellyfinDirectPlayProfile.audio({
-    this.container,
-    this.audioCodec,
-  }) : type = 'Audio',
-       videoCodec = null;
+  const JellyfinDirectPlayProfile.audio({this.container, this.audioCodec})
+    : type = 'Audio',
+      videoCodec = null;
 
   /// Convenience constructor for a video direct-play profile
   /// (`type: 'Video'`).

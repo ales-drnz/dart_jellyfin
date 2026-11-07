@@ -85,9 +85,8 @@ class JellyfinGenresApi {
   /// takes no `parentId`. Its id filters `items.list(genreIds:)`, but an
   /// instant mix seeded by it is empty (verified on 12.4). For a music
   /// genre use [musicGenre].
-  Future<JellyfinItem?> byName({
-    required String name,
-  }) => lookupItemByName('/Genres', name, _http);
+  Future<JellyfinItem?> byName({required String name}) =>
+      lookupItemByName('/Genres', name, _http);
 
   /// The `MusicGenre` item named [name] in the music library
   /// [parentId], or `null` when there is none.

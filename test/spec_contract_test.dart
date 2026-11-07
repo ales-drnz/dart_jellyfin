@@ -40,9 +40,7 @@ const _allowedExtras = <String, Map<String, String>>{
   // reads the token from `ApiKey` on any route, case-insensitively: 12.2
   // answered /Users/Me?ApiKey= and ?apikey= with 200, and ?api_key= (the
   // 10.x spelling) with 401.
-  '*': {
-    'apikey': 'query-string token for URLs opened by a player (verified)',
-  },
+  '*': {'apikey': 'query-string token for URLs opened by a player (verified)'},
   // /universal copies its whole query into the HLS variant URL it answers
   // with (verified on 12.2: a PlaySessionId sent here comes back in
   // main.m3u8?…&PlaySessionId=…), and that route reads both.
@@ -102,9 +100,7 @@ final class _Route {
 /// 405 — so it cannot hide a call to a route 12.x removed.
 List<_Route> _loadSpec() {
   final spec =
-      jsonDecode(
-            File('docs/jellyfin-openapi-stable.json').readAsStringSync(),
-          )
+      jsonDecode(File('docs/jellyfin-openapi-stable.json').readAsStringSync())
           as Map<String, Object?>;
   final routes = <_Route>[];
   (spec['paths']! as Map<String, Object?>).forEach((path, ops) {

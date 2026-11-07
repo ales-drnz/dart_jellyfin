@@ -170,12 +170,7 @@ class JellyfinNotificationsApi {
         type: JellyfinErrorType.state,
       );
     }
-    ch.sink.add(
-      jsonEncode({
-        'MessageType': messageType,
-        'Data': ?data,
-      }),
-    );
+    ch.sink.add(jsonEncode({'MessageType': messageType, 'Data': ?data}));
   }
 
   /// Subscribe to the sessions channel. Convenience for

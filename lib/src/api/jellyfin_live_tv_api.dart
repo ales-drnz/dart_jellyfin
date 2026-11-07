@@ -66,9 +66,7 @@ class JellyfinLiveTvApi {
   /// Unlike [channels], this endpoint does not populate the
   /// `CurrentProgram` field, so the currently airing program may be
   /// absent from the returned item.
-  Future<JellyfinItem?> channel({
-    required String channelId,
-  }) async {
+  Future<JellyfinItem?> channel({required String channelId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Channels/$channelId',
       queryParameters: {'userId': _http.userId},
@@ -138,10 +136,7 @@ class JellyfinLiveTvApi {
     bool? isNews,
     bool? isKids,
   }) async {
-    final qp = <String, Object?>{
-      'userId': _http.userId,
-      'isAiring': isAiring,
-    };
+    final qp = <String, Object?>{'userId': _http.userId, 'isAiring': isAiring};
     if (limit != null) qp['limit'] = limit;
     if (hasAired != null) qp['hasAired'] = hasAired;
     if (isSeries != null) qp['isSeries'] = isSeries;
@@ -188,9 +183,7 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Recordings/{recordingId}`.
-  Future<JellyfinItem?> recording({
-    required String recordingId,
-  }) async {
+  Future<JellyfinItem?> recording({required String recordingId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Recordings/$recordingId',
       queryParameters: {'userId': _http.userId},
@@ -201,9 +194,7 @@ class JellyfinLiveTvApi {
   }
 
   /// `DELETE /LiveTv/Recordings/{recordingId}` — delete a recording.
-  Future<void> deleteRecording({
-    required String recordingId,
-  }) async {
+  Future<void> deleteRecording({required String recordingId}) async {
     await _http.request<void>(
       '/LiveTv/Recordings/$recordingId',
       method: 'DELETE',
@@ -233,21 +224,12 @@ class JellyfinLiveTvApi {
 
   /// `POST /LiveTv/Timers` — create a one-shot timer.
   Future<void> createTimer({required Map<String, Object?> body}) async {
-    await _http.request<void>(
-      '/LiveTv/Timers',
-      method: 'POST',
-      data: body,
-    );
+    await _http.request<void>('/LiveTv/Timers', method: 'POST', data: body);
   }
 
   /// `DELETE /LiveTv/Timers/{id}` — cancel a timer.
-  Future<void> deleteTimer({
-    required String timerId,
-  }) async {
-    await _http.request<void>(
-      '/LiveTv/Timers/$timerId',
-      method: 'DELETE',
-    );
+  Future<void> deleteTimer({required String timerId}) async {
+    await _http.request<void>('/LiveTv/Timers/$timerId', method: 'DELETE');
   }
 
   // ─── Series timers (recurring) ─────────────────────────────────────
@@ -279,9 +261,7 @@ class JellyfinLiveTvApi {
   }
 
   /// `DELETE /LiveTv/SeriesTimers/{id}`.
-  Future<void> deleteSeriesTimer({
-    required String timerId,
-  }) async {
+  Future<void> deleteSeriesTimer({required String timerId}) async {
     await _http.request<void>(
       '/LiveTv/SeriesTimers/$timerId',
       method: 'DELETE',
@@ -353,9 +333,7 @@ class JellyfinLiveTvApi {
       );
 
   /// `DELETE /LiveTv/TunerHosts?id={id}` — drop a tuner host.
-  Future<void> deleteTunerHost({
-    required String id,
-  }) async {
+  Future<void> deleteTunerHost({required String id}) async {
     await _http.request<void>(
       '/LiveTv/TunerHosts',
       method: 'DELETE',
@@ -371,13 +349,8 @@ class JellyfinLiveTvApi {
   );
 
   /// `POST /LiveTv/Tuners/{tunerId}/Reset` — reset a tuner.
-  Future<void> resetTuner({
-    required String tunerId,
-  }) async {
-    await _http.request<void>(
-      '/LiveTv/Tuners/$tunerId/Reset',
-      method: 'POST',
-    );
+  Future<void> resetTuner({required String tunerId}) async {
+    await _http.request<void>('/LiveTv/Tuners/$tunerId/Reset', method: 'POST');
   }
 
   /// `GET /LiveTv/Tuners/Discover` — discover tuners on the LAN.
@@ -424,9 +397,7 @@ class JellyfinLiveTvApi {
 
   /// `DELETE /LiveTv/ListingProviders?id={id}` — remove a listings
   /// provider.
-  Future<void> deleteListingProvider({
-    required String id,
-  }) async {
+  Future<void> deleteListingProvider({required String id}) async {
     await _http.request<void>(
       '/LiveTv/ListingProviders',
       method: 'DELETE',
@@ -481,9 +452,7 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/LiveRecordings/{recordingId}/stream` — URL for an
   /// in-progress live recording stream.
-  String liveRecordingStreamUrl({
-    required String recordingId,
-  }) {
+  String liveRecordingStreamUrl({required String recordingId}) {
     final base = _requireBaseUrl();
     final token = _requireToken();
     return '$base/LiveTv/LiveRecordings/$recordingId/stream?ApiKey=$token';
@@ -517,9 +486,7 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Programs/{programId}` — fetch a single program
   /// (EPG entry) by id.
-  Future<JellyfinItem?> program({
-    required String programId,
-  }) async {
+  Future<JellyfinItem?> program({required String programId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Programs/$programId',
     );

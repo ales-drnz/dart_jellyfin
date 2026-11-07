@@ -95,10 +95,7 @@ void main() {
 
     test('multi-column sortBy is repeated, never delimiter-joined', () async {
       await client.liveTv.channels(
-        sortBy: const [
-          JellyfinSortField.sortName,
-          JellyfinSortField.playCount,
-        ],
+        sortBy: const [JellyfinSortField.sortName, JellyfinSortField.playCount],
       );
       final query = adapter.last!.uri.queryParametersAll;
       expect(query['sortBy'], ['SortName', 'PlayCount']);

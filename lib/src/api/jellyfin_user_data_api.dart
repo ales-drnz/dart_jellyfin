@@ -113,10 +113,7 @@ class JellyfinUserDataApi {
   ///
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
-  Future<JellyfinUserData> get({
-    required String itemId,
-    String? userId,
-  }) async {
+  Future<JellyfinUserData> get({required String itemId, String? userId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/UserData',
       queryParameters: _userQuery(userId),
@@ -202,10 +199,7 @@ class JellyfinUserDataApi {
     Map<String, Object?>? extra,
   }) {
     final uid = userId ?? _http.userId;
-    final qp = <String, Object?>{
-      'userId': ?uid,
-      ...?extra,
-    };
+    final qp = <String, Object?>{'userId': ?uid, ...?extra};
     return qp.isEmpty ? null : qp;
   }
 }

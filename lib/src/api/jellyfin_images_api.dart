@@ -443,10 +443,7 @@ class JellyfinImagesApi {
   /// and `format` — one of the
   /// [formatBmp]/[formatGif]/[formatJpg]/[formatPng]/[formatWebp]/[formatSvg]
   /// constants.
-  String userImageUrl({
-    String? tag,
-    String? format,
-  }) {
+  String userImageUrl({String? tag, String? format}) {
     final base = _requireBase();
     final qp = <String, String>{};
     if (tag != null) qp['tag'] = tag;
@@ -483,12 +480,11 @@ class JellyfinImagesApi {
   /// `GET /Items/{itemId}/Images` — list every image the item has,
   /// each entry returned as a raw map (ImageType, ImageTag, Path,
   /// Width, Height, …).
-  Future<List<JellyfinImageInfo>> listItemImages({
-    required String itemId,
-  }) => _http.requestJson(
-    '/Items/$itemId/Images',
-    listOf(JellyfinImageInfo.fromJson),
-  );
+  Future<List<JellyfinImageInfo>> listItemImages({required String itemId}) =>
+      _http.requestJson(
+        '/Items/$itemId/Images',
+        listOf(JellyfinImageInfo.fromJson),
+      );
 
   /// `POST /Items/{itemId}/Images/{imageType}[/{imageIndex}]` —
   /// upload a new image for the item. [body] is the raw image bytes,
@@ -551,10 +547,7 @@ class JellyfinImagesApi {
   /// `tag` (cache-busting hash) and `format` — one of the
   /// [formatBmp]/[formatGif]/[formatJpg]/[formatPng]/[formatWebp]/[formatSvg]
   /// constants.
-  String splashscreenUrl({
-    String? tag,
-    String? format,
-  }) {
+  String splashscreenUrl({String? tag, String? format}) {
     final base = _requireBase();
     final qp = <String, String>{};
     if (tag != null) qp['tag'] = tag;

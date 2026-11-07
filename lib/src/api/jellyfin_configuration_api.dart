@@ -43,9 +43,7 @@ class JellyfinConfigurationApi {
   ///
   /// Stays a map: each key has its own shape, and the API document
   /// declares the answer as an untyped body.
-  Future<Map<String, Object?>> getNamed({
-    required String key,
-  }) async {
+  Future<Map<String, Object?>> getNamed({required String key}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/System/Configuration/${Uri.encodeComponent(key)}',
     );

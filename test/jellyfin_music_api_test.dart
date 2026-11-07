@@ -75,14 +75,11 @@ void main() {
 
     test('toLrc(enhanced: true) writes word timing and keeps the spaces', () {
       final lyrics = JellyfinLyrics.fromJson(payload);
-      expect(
-        lyrics.toLrc(enhanced: true).split('\n'),
-        [
-          '[00:12.00]<00:12.00>Hello <00:12.40>world<00:13.10>',
-          '[00:15.45]plain synced',
-          'unsynced',
-        ],
-      );
+      expect(lyrics.toLrc(enhanced: true).split('\n'), [
+        '[00:12.00]<00:12.00>Hello <00:12.40>world<00:13.10>',
+        '[00:15.45]plain synced',
+        'unsynced',
+      ]);
     });
 
     test('plain toLrc ignores the cues', () {
@@ -217,11 +214,7 @@ void main() {
     Future<String?> fetch(List<int> body, {String contentType = 'text/vtt'}) {
       adapter.respond = (_) =>
           CannedResponse(200, body, contentType: contentType);
-      return client.subtitles.fetch(
-        itemId: 'i',
-        mediaSourceId: 'm',
-        index: 2,
-      );
+      return client.subtitles.fetch(itemId: 'i', mediaSourceId: 'm', index: 2);
     }
 
     test('UTF-8 keeps its accented characters', () async {
@@ -391,11 +384,8 @@ void main() {
     test('any other backgroundColor throws instead of losing the sizing', () {
       for (final c in ['', 'red', '00000', '1234567', '0x000000', '##000']) {
         expect(
-          () => client.images.url(
-            itemId: 'al',
-            maxWidth: 64,
-            backgroundColor: c,
-          ),
+          () =>
+              client.images.url(itemId: 'al', maxWidth: 64, backgroundColor: c),
           throwsArgumentError,
           reason: c,
         );

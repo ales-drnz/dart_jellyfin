@@ -661,12 +661,8 @@ final class JellyfinDefaultDirectoryBrowser {
   const JellyfinDefaultDirectoryBrowser({required this.raw, this.path});
 
   /// Decodes `{Path}`.
-  factory JellyfinDefaultDirectoryBrowser.fromJson(
-    Map<String, Object?> json,
-  ) => JellyfinDefaultDirectoryBrowser(
-    path: asString(json['Path']),
-    raw: json,
-  );
+  factory JellyfinDefaultDirectoryBrowser.fromJson(Map<String, Object?> json) =>
+      JellyfinDefaultDirectoryBrowser(path: asString(json['Path']), raw: json);
 }
 
 /// The answer to `collection.create` (`CollectionCreationResult`).
@@ -678,10 +674,7 @@ final class JellyfinCollectionCreationResult {
   final Map<String, Object?> raw;
 
   /// Builds the result from already-parsed components.
-  const JellyfinCollectionCreationResult({
-    required this.id,
-    required this.raw,
-  });
+  const JellyfinCollectionCreationResult({required this.id, required this.raw});
 
   /// Decodes `{Id}`.
   factory JellyfinCollectionCreationResult.fromJson(

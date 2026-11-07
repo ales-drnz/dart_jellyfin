@@ -104,9 +104,7 @@ class JellyfinVideosApi {
   /// alternate-source versions linked to this video. Keeps the
   /// primary file; only the links to the alternates are dropped.
   /// Admin / library editor.
-  Future<void> deleteAlternateSources({
-    required String itemId,
-  }) async {
+  Future<void> deleteAlternateSources({required String itemId}) async {
     await _http.request<void>(
       '/Videos/$itemId/AlternateSources',
       method: 'DELETE',

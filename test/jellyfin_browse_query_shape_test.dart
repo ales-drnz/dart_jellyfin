@@ -95,9 +95,7 @@ void main() {
     });
 
     test('a name containing a delimiter survives intact', () async {
-      await client.items.list(
-        genres: const ['Rock, Pop', 'Jazz|Funk'],
-      );
+      await client.items.list(genres: const ['Rock, Pop', 'Jazz|Funk']);
 
       // Exactly two values, each still whole. A joined encoding would
       // make the server split these into four bogus genres.
@@ -160,10 +158,7 @@ void main() {
 
   group('JellyfinItemsApi.count', () {
     setUp(() {
-      adapter.body = jsonEncode({
-        'Items': <dynamic>[],
-        'TotalRecordCount': 42,
-      });
+      adapter.body = jsonEncode({'Items': <dynamic>[], 'TotalRecordCount': 42});
     });
 
     test('counts a genre- and search-scoped set without fetching it', () async {
@@ -279,11 +274,7 @@ void main() {
       final fromCount = adapter.query;
 
       for (final key in narrowing) {
-        expect(
-          fromList[key],
-          isNotNull,
-          reason: 'list() did not send $key',
-        );
+        expect(fromList[key], isNotNull, reason: 'list() did not send $key');
         expect(
           fromCount[key],
           fromList[key],

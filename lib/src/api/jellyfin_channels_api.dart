@@ -110,14 +110,13 @@ class JellyfinChannelsApi {
 
   /// `GET /Channels/{channelId}/Features` — feature flags for one
   /// channel (supports search, item sort, deletion, etc.).
-  Future<JellyfinChannelFeatures> features({
-    required String channelId,
-  }) => _http.requestJson(
-    '/Channels/$channelId/Features',
-    (json) =>
-        objectOf(JellyfinChannelFeatures.fromJson)(json) ??
-        JellyfinChannelFeatures.fromJson(const {}),
-  );
+  Future<JellyfinChannelFeatures> features({required String channelId}) =>
+      _http.requestJson(
+        '/Channels/$channelId/Features',
+        (json) =>
+            objectOf(JellyfinChannelFeatures.fromJson)(json) ??
+            JellyfinChannelFeatures.fromJson(const {}),
+      );
 
   /// `GET /Channels/Features` — feature flags for every channel.
   Future<List<JellyfinChannelFeatures>> allFeatures() => _http.requestJson(

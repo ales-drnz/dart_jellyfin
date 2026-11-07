@@ -87,7 +87,6 @@ class JellyfinPersonsApi {
 
   /// `GET /Persons/{name}` — lookup a person by exact name. Returns
   /// null on 404.
-  Future<JellyfinItem?> byName({
-    required String name,
-  }) => lookupItemByName('/Persons', name, _http);
+  Future<JellyfinItem?> byName({required String name}) =>
+      lookupItemByName('/Persons', name, _http);
 }

@@ -100,10 +100,7 @@ class JellyfinSyncPlayApi {
     await _http.request<void>(
       '/SyncPlay/Queue',
       method: 'POST',
-      data: {
-        'ItemIds': itemIds,
-        'Mode': mode,
-      },
+      data: {'ItemIds': itemIds, 'Mode': mode},
     );
   }
 
@@ -142,10 +139,7 @@ class JellyfinSyncPlayApi {
     await _http.request<void>(
       '/SyncPlay/MovePlaylistItem',
       method: 'POST',
-      data: {
-        'PlaylistItemId': playlistItemId,
-        'NewIndex': newIndex,
-      },
+      data: {'PlaylistItemId': playlistItemId, 'NewIndex': newIndex},
     );
   }
 
@@ -242,12 +236,8 @@ class JellyfinSyncPlayApi {
   }
 
   /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id.
-  Future<JellyfinSyncPlayGroup?> group({
-    required String id,
-  }) => _http.requestJson(
-    '/SyncPlay/$id',
-    objectOf(JellyfinSyncPlayGroup.fromJson),
-  );
+  Future<JellyfinSyncPlayGroup?> group({required String id}) => _http
+      .requestJson('/SyncPlay/$id', objectOf(JellyfinSyncPlayGroup.fromJson));
 
   /// `POST /SyncPlay/SetNewQueue` — replace the group's playback
   /// queue with a new set of items.
@@ -256,9 +246,7 @@ class JellyfinSyncPlayApi {
     int? playingItemPosition,
     int? startPositionTicks,
   }) async {
-    final body = <String, Object?>{
-      'PlayingQueue': playingQueue,
-    };
+    final body = <String, Object?>{'PlayingQueue': playingQueue};
     if (playingItemPosition != null) {
       body['PlayingItemPosition'] = playingItemPosition;
     }

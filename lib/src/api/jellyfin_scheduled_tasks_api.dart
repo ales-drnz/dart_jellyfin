@@ -21,10 +21,7 @@ class JellyfinScheduledTasksApi {
 
   /// `GET /ScheduledTasks` — list every task, with current state
   /// (last run, current progress, triggers).
-  Future<List<JellyfinScheduledTask>> list({
-    bool? isHidden,
-    bool? isEnabled,
-  }) {
+  Future<List<JellyfinScheduledTask>> list({bool? isHidden, bool? isEnabled}) {
     final qp = <String, Object?>{};
     if (isHidden != null) qp['isHidden'] = isHidden;
     if (isEnabled != null) qp['isEnabled'] = isEnabled;
@@ -36,12 +33,11 @@ class JellyfinScheduledTasksApi {
   }
 
   /// `GET /ScheduledTasks/{taskId}` — one task's full status.
-  Future<JellyfinScheduledTask?> byId({
-    required String taskId,
-  }) => _http.requestJson(
-    '/ScheduledTasks/$taskId',
-    objectOf(JellyfinScheduledTask.fromJson),
-  );
+  Future<JellyfinScheduledTask?> byId({required String taskId}) =>
+      _http.requestJson(
+        '/ScheduledTasks/$taskId',
+        objectOf(JellyfinScheduledTask.fromJson),
+      );
 
   /// `POST /ScheduledTasks/{taskId}/Triggers` — replace the task's
   /// triggers (cron-like schedule definitions).
@@ -57,9 +53,7 @@ class JellyfinScheduledTasksApi {
   }
 
   /// `POST /ScheduledTasks/Running/{taskId}` — start the task now.
-  Future<void> start({
-    required String taskId,
-  }) async {
+  Future<void> start({required String taskId}) async {
     await _http.request<void>(
       '/ScheduledTasks/Running/$taskId',
       method: 'POST',
@@ -68,9 +62,7 @@ class JellyfinScheduledTasksApi {
 
   /// `DELETE /ScheduledTasks/Running/{taskId}` — stop a currently
   /// running task.
-  Future<void> stop({
-    required String taskId,
-  }) async {
+  Future<void> stop({required String taskId}) async {
     await _http.request<void>(
       '/ScheduledTasks/Running/$taskId',
       method: 'DELETE',

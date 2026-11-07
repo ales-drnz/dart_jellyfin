@@ -38,17 +38,11 @@ class JellyfinStartupApi {
   );
 
   /// `POST /Startup/User` — write the first user's name and password.
-  Future<void> updateStartupUser({
-    String? name,
-    String? password,
-  }) async {
+  Future<void> updateStartupUser({String? name, String? password}) async {
     await _http.request<void>(
       '/Startup/User',
       method: 'POST',
-      data: {
-        'Name': ?name,
-        'Password': ?password,
-      },
+      data: {'Name': ?name, 'Password': ?password},
     );
   }
 

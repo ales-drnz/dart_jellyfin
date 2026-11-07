@@ -169,10 +169,7 @@ class JellyfinLibraryApi {
   // ---------------------------------------------------------------------------
 
   /// `GET /Items/Counts` — quick tally of items across all libraries.
-  Future<JellyfinItemCounts> counts({
-    String? userId,
-    bool? isFavorite,
-  }) {
+  Future<JellyfinItemCounts> counts({String? userId, bool? isFavorite}) {
     final qp = <String, Object?>{};
     final u = userId ?? _http.userId;
     if (u != null) qp['userId'] = u;
@@ -247,11 +244,7 @@ class JellyfinLibraryApi {
   /// added, identified by its optional `tmdbId`/`imdbId`. The endpoint
   /// takes only query parameters and no body. Admin-only.
   Future<void> notifyMoviesAdded({String? tmdbId, String? imdbId}) =>
-      _notifyExternal(
-        '/Library/Movies/Added',
-        tmdbId: tmdbId,
-        imdbId: imdbId,
-      );
+      _notifyExternal('/Library/Movies/Added', tmdbId: tmdbId, imdbId: imdbId);
 
   /// `POST /Library/Movies/Updated` — counterpart of [notifyMoviesAdded].
   Future<void> notifyMoviesUpdated({String? tmdbId, String? imdbId}) =>
@@ -277,19 +270,12 @@ class JellyfinLibraryApi {
 
   /// `DELETE /Items/{itemId}` — remove an item (and any files on
   /// disk if the user's policy allows). Admin or owner.
-  Future<void> deleteItem({
-    required String itemId,
-  }) async {
-    await _http.request<void>(
-      '/Items/$itemId',
-      method: 'DELETE',
-    );
+  Future<void> deleteItem({required String itemId}) async {
+    await _http.request<void>('/Items/$itemId', method: 'DELETE');
   }
 
   /// `DELETE /Items?ids=...` — bulk delete.
-  Future<void> deleteItems({
-    required List<String> ids,
-  }) async {
+  Future<void> deleteItems({required List<String> ids}) async {
     await _http.request<void>(
       '/Items',
       method: 'DELETE',

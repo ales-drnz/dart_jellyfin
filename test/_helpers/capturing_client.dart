@@ -59,10 +59,7 @@ class CapturingAdapter extends http.BaseClient {
   /// JSON body returned for every request without a [respond] override.
   /// The default satisfies both the `QueryResult` envelope and the
   /// bare-list endpoints.
-  String body = jsonEncode({
-    'Items': <dynamic>[],
-    'TotalRecordCount': 0,
-  });
+  String body = jsonEncode({'Items': <dynamic>[], 'TotalRecordCount': 0});
 
   /// Picks the answer per request; `null` falls back to [body].
   CannedResponse? Function(CapturedRequest request)? respond;

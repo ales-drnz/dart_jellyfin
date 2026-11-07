@@ -123,7 +123,6 @@ class JellyfinArtistsApi {
 
   /// `GET /Persons/{name}` — the person named [name], or `null` when
   /// there is none.
-  Future<JellyfinItem?> byName({
-    required String name,
-  }) => _persons.byName(name: name);
+  Future<JellyfinItem?> byName({required String name}) =>
+      _persons.byName(name: name);
 }

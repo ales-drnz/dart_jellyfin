@@ -130,9 +130,7 @@ Future<JellyfinSpecDriftReport> runJellyfinSpecWatchdog({
         latestRaw = res.body;
         await Directory(_cacheDir).create(recursive: true);
         await cacheFile.writeAsString(latestRaw);
-        await stampFile.writeAsString(
-          DateTime.now().toUtc().toIso8601String(),
-        );
+        await stampFile.writeAsString(DateTime.now().toUtc().toIso8601String());
       } else if (cacheFile.existsSync()) {
         latestRaw = await cacheFile.readAsString();
         fromCache = true;

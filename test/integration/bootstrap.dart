@@ -274,20 +274,16 @@ Future<void> _ensureSeedMedia(String dir, {required bool force}) async {
 Future<void> _composeUp() async {
   // `--wait` blocks until every service's healthcheck reports
   // healthy, or the start_period timeout elapses.
-  final r = await Process.run(
-    'docker',
-    [
-      'compose',
-      '--env-file',
-      _envFile,
-      '-f',
-      _composeFile,
-      'up',
-      '-d',
-      '--wait',
-    ],
-    workingDirectory: Directory.current.path,
-  );
+  final r = await Process.run('docker', [
+    'compose',
+    '--env-file',
+    _envFile,
+    '-f',
+    _composeFile,
+    'up',
+    '-d',
+    '--wait',
+  ], workingDirectory: Directory.current.path);
   if (r.exitCode != 0) {
     stderr.writeln('docker compose up failed:');
     stderr.writeln(r.stdout);
@@ -302,9 +298,7 @@ Future<void> _waitForHttp(String url, {int maxSeconds = 120}) async {
     try {
       final res = await http
           .get(Uri.parse(url))
-          .timeout(
-            const Duration(seconds: 3),
-          );
+          .timeout(const Duration(seconds: 3));
       if (res.statusCode == 200) {
         print('   ✓ Server reachable');
         return;
@@ -343,28 +337,19 @@ Future<void> _runFirstRunWizard(
   // POST is accepted; without the GET it returns 404.
   await client.startup.firstUser();
   print('   ▶ /Startup/User');
-  await client.startup.updateStartupUser(
-    name: username,
-    password: password,
-  );
+  await client.startup.updateStartupUser(name: username, password: password);
   print('   ▶ /Startup/RemoteAccess');
   await client.request<void>(
     '/Startup/RemoteAccess',
     method: 'POST',
-    data: {
-      'EnableRemoteAccess': false,
-      'EnableAutomaticPortMapping': false,
-    },
+    data: {'EnableRemoteAccess': false, 'EnableAutomaticPortMapping': false},
   );
   print('   ▶ /Startup/Complete');
   await client.startup.completeWizard();
   print('   ✓ Wizard complete');
 }
 
-Future<void> _waitForScan(
-  JellyfinClient client, {
-  int maxSeconds = 60,
-}) async {
+Future<void> _waitForScan(JellyfinClient client, {int maxSeconds = 60}) async {
   final deadline = DateTime.now().add(Duration(seconds: maxSeconds));
   var lastCount = -1;
   var stableTicks = 0;

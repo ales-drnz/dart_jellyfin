@@ -20,9 +20,7 @@ class JellyfinDashboardApi {
 
   /// `GET /web/ConfigurationPage?name={name}` — fetch the HTML body
   /// of one configuration page.
-  Future<String?> configurationPage({
-    required String name,
-  }) async {
+  Future<String?> configurationPage({required String name}) async {
     final res = await _http.request<String>(
       '/web/ConfigurationPage',
       queryParameters: {'name': name},

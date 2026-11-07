@@ -300,9 +300,7 @@ class JellyfinHlsApi {
     required String itemId,
     required int segmentId,
   }) {
-    final qp = <String, String>{
-      'ApiKey': _requireToken(),
-    };
+    final qp = <String, String>{'ApiKey': _requireToken()};
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.aac?${_encode(qp)}';
   }
 
@@ -312,9 +310,7 @@ class JellyfinHlsApi {
     required String itemId,
     required int segmentId,
   }) {
-    final qp = <String, String>{
-      'ApiKey': _requireToken(),
-    };
+    final qp = <String, String>{'ApiKey': _requireToken()};
     return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.mp3?${_encode(qp)}';
   }
 
@@ -327,9 +323,7 @@ class JellyfinHlsApi {
     required int segmentId,
     required String segmentContainer,
   }) {
-    final qp = <String, String>{
-      'ApiKey': _requireToken(),
-    };
+    final qp = <String, String>{'ApiKey': _requireToken()};
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/$segmentId.$segmentContainer?${_encode(qp)}';
   }
 
@@ -339,9 +333,7 @@ class JellyfinHlsApi {
     required String itemId,
     required String playlistId,
   }) {
-    final qp = <String, String>{
-      'ApiKey': _requireToken(),
-    };
+    final qp = <String, String>{'ApiKey': _requireToken()};
     return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${_encode(qp)}';
   }
 

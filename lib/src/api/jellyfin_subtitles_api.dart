@@ -179,9 +179,7 @@ class JellyfinSubtitlesApi {
   ///
   /// The route answers the subtitle file (`text/*`), not JSON; it is
   /// decoded like [fetch].
-  Future<String?> getRemote({
-    required String id,
-  }) async {
+  Future<String?> getRemote({required String id}) async {
     try {
       final res = await _http.request<List<int>>(
         '/Providers/Subtitles/Subtitles/$id',

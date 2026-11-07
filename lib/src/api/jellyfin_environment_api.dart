@@ -57,9 +57,7 @@ class JellyfinEnvironmentApi {
   /// `GET /Environment/ParentPath?path={path}` — the parent
   /// directory of [path] (or the platform root if [path] is the
   /// root).
-  Future<String?> parentPath({
-    required String path,
-  }) async {
+  Future<String?> parentPath({required String path}) async {
     final res = await _http.request<String>(
       '/Environment/ParentPath',
       queryParameters: {'path': path},
