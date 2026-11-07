@@ -5,6 +5,8 @@
 import '../jellyfin_client.dart';
 
 /// How [JellyfinClient.request] decodes a response body.
+///
+/// {@category Raw requests}
 enum JellyfinResponseType {
   /// JSON when the server says so (`Content-Type: application/json`),
   /// otherwise the body as UTF-8 text. An empty body is `null`.
