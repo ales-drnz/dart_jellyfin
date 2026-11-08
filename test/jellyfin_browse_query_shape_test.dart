@@ -327,6 +327,36 @@ void main() {
       expect(adapter.last!.uri.path, '/Persons/ac%2Fdc');
     });
 
+    test('musicArtists asks /Artists, sorted and narrowed', () async {
+      await client.artists.musicArtists(
+        parentId: 'lib',
+        sortBy: const [JellyfinSortField.sortName],
+        descending: true,
+        genreIds: const ['g1', 'g2'],
+        isFavorite: true,
+        filters: const [JellyfinItemFilter.isPlayed],
+        limit: 0,
+      );
+
+      expect(adapter.path, '/Artists');
+      expect(adapter.query['parentId'], ['lib']);
+      expect(adapter.query['sortBy'], ['SortName']);
+      expect(adapter.query['sortOrder'], ['Descending']);
+      expect(adapter.query['genreIds'], ['g1', 'g2']);
+      expect(adapter.query['isFavorite'], ['true']);
+      expect(adapter.query['filters'], ['IsPlayed']);
+      expect(adapter.query['limit'], ['0']);
+      expect(adapter.query.containsKey('personTypes'), isFalse);
+    });
+
+    test('musicAlbumArtists asks /Artists/AlbumArtists', () async {
+      await client.artists.musicAlbumArtists(parentId: 'lib');
+
+      expect(adapter.path, '/Artists/AlbumArtists');
+      expect(adapter.query['parentId'], ['lib']);
+      expect(adapter.query.containsKey('sortOrder'), isFalse);
+    });
+
     test('byName is null for a person who is no artist', () async {
       adapter.respond = (_) =>
           CannedResponse.json({'Items': <Object?>[], 'TotalRecordCount': 0});

@@ -9,11 +9,10 @@ import 'dart:io';
 /// reference. Enforced by `spec_drift_watchdog_test.dart`: a drop below
 /// it fails the suite, flagging that typed wrappers may have been removed.
 ///
-/// Measured on 12.4 with 0.4.0: 329 of 346 operations (0.951). The 17
+/// Measured on 12.4 with 0.4.1: 331 of 346 operations (0.957). The 15
 /// left, as [jellyfinUncoveredOperations] lists them:
 ///
-/// * the obsolete routes the package dropped: `GET /Artists`,
-///   `/Artists/{name}`, `/Artists/AlbumArtists`,
+/// * the obsolete routes the package dropped: `GET /Artists/{name}`,
 ///   `/MusicGenres/{genreName}`, the two `/MusicGenres` instant mixes,
 ///   `/Trailers`, `GET` and `POST /Startup/Configuration`,
 ///   `POST /Startup/RemoteAccess`, and `GET /Startup/FirstUser`, the

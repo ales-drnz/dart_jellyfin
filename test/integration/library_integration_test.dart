@@ -170,6 +170,86 @@ void main() {
           await obsolete('/Artists/AlbumArtists'),
         );
       });
+
+      test('musicArtists lists the MusicArtist items of the library', () async {
+        final artists = await jf.artists.musicArtists(parentId: musicId);
+        expect(artists.items, isNotEmpty);
+        expect(artists.items.map((a) => a.type).toSet(), {'MusicArtist'});
+
+        // The same ids as /Items answers for MusicArtist, not person ids.
+        final items = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.musicArtist],
+        );
+        final itemIds = {for (final i in items.items) i.id};
+        expect(artists.items.map((a) => a.id), everyElement(isIn(itemIds)));
+        final persons = await jf.artists.list(parentId: musicId);
+        expect(
+          {
+            for (final a in artists.items) a.id,
+          }.intersection({for (final p in persons.items) p.id}),
+          isEmpty,
+        );
+
+        final albumArtists = await jf.artists.musicAlbumArtists(
+          parentId: musicId,
+        );
+        expect(albumArtists.items, isNotEmpty);
+        expect(albumArtists.items.map((a) => a.type).toSet(), {'MusicArtist'});
+      });
+
+      test('musicArtists is scoped by parentId, /Items is not', () async {
+        final views = await jf.library.userViews();
+        final other = views.where((v) => !v.isMusic).toList();
+        if (other.isEmpty) {
+          markTestSkipped('the stack has no library besides Music');
+          return;
+        }
+        final elsewhere = await jf.artists.musicArtists(
+          parentId: other.first.id,
+        );
+        expect(elsewhere.items, isEmpty);
+        final unscoped = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.musicArtist],
+          parentId: other.first.id,
+        );
+        expect(unscoped.items, isNotEmpty);
+      });
+
+      test('musicArtists sorts and reads the artist\'s favourite', () async {
+        final up = await jf.artists.musicArtists(
+          parentId: musicId,
+          sortBy: const [JellyfinSortField.sortName],
+        );
+        final down = await jf.artists.musicArtists(
+          parentId: musicId,
+          sortBy: const [JellyfinSortField.sortName],
+          descending: true,
+        );
+        expect(
+          down.items.map((a) => a.id).toList(),
+          up.items.map((a) => a.id).toList().reversed.toList(),
+        );
+
+        final artist = up.items.first;
+        await jf.userData.markFavorite(itemId: artist.id);
+        try {
+          final favourites = await jf.artists.musicArtists(
+            parentId: musicId,
+            isFavorite: true,
+          );
+          expect(favourites.items.map((a) => a.id), [artist.id]);
+        } finally {
+          await jf.userData.unmarkFavorite(itemId: artist.id);
+        }
+      });
+
+      test('a musicArtists id seeds an instant mix', () async {
+        final artists = await jf.artists.musicArtists(parentId: musicId);
+        final mix = await jf.instantMix.fromArtist(
+          artistId: artists.items.first.id,
+        );
+        expect(mix.items, isNotEmpty);
+      });
     });
   }, skip: bootstrapSkipReason);
 }

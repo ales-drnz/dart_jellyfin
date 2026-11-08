@@ -1,3 +1,14 @@
+## [0.4.1] - 8-11-2026
+
+### All platforms
+**Added**
+- `artists.musicArtists()` and `musicAlbumArtists()` list the `MusicArtist` items of one library, through `GET /Artists` and `/Artists/AlbumArtists`, obsolete in Jellyfin 12 and answered by 12.4.
+- Their ids are those of `/Items`: they keep the artist's favourite and played state, seed an instant mix and carry the MusicBrainz id, which a `Person` from `artists.list()` does not.
+- They take `parentId`, which `/Items` ignores for `MusicArtist`, `sortBy` and `descending`, `genreIds`, `genres`, `years`, `isFavorite` and `filters`.
+
+### Docs
+- The Library topic shows how to list one library's `MusicArtist` items.
+
 ## [0.4.0] - 8-11-2026
 
 ### All platforms

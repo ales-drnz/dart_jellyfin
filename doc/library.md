@@ -69,7 +69,8 @@ A few rules of the route:
 - `parentId` scopes albums and tracks to a library, but not artists:
   with `JellyfinItemKind.musicArtist` and a library's id, `/Items`
   answers the artists of every library. List one library's artists with
-  `artists` (see Artists below).
+  `artists`, or its `MusicArtist` items with `artists.musicArtists()`
+  (see Artists below).
 - `enableTotalRecordCount` (on by default) makes the server count the
   whole result. Pass `false` when you page until a short page and never
   show a total; `totalRecordCount` then counts only the page.
@@ -234,19 +235,28 @@ favourite and played state, and an artist marked favourite through its
 The answers are `Person` items. Their ids filter `items.list()`, but seed
 an empty instant mix, and carry no MusicBrainz id. For those, use the
 `MusicArtist` item: a track's `artistItems` and `albumArtistItems`, or
-`items.list(includeItemTypes: [JellyfinItemKind.musicArtist])`, which
-also sorts:
+`artists.musicArtists()` and `artists.musicAlbumArtists()`. They ask the
+obsolete `GET /Artists` and `/Artists/AlbumArtists`, which Jellyfin 12.4
+still answers and which are the only routes that list one library's
+`MusicArtist` items: `items.list(includeItemTypes:
+[JellyfinItemKind.musicArtist])` ignores `parentId`. They sort with
+`sortBy`, narrow by `genreIds`, `genres` and `years`, and `isFavorite:`
+and `filters:` read the artist's own user data:
 
 ```dart
-final musicArtists = await jellyfin.items.list(
-  includeItemTypes: const [JellyfinItemKind.musicArtist],
+final musicArtists = await jellyfin.artists.musicArtists(
+  parentId: musicLibraryId,
   sortBy: const [JellyfinSortField.sortName],
+  isFavorite: true,
   limit: 100,
 );
 final mix = await jellyfin.instantMix.fromArtist(
   artistId: musicArtists.items.first.id,
 );
 ```
+
+A later Jellyfin may drop `/Artists`; the call then fails with a
+`notFound` error.
 
 ### Genres
 

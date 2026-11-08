@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_instant_mix_api.dart';
 import 'jellyfin_items_api.dart';
@@ -37,16 +38,20 @@ import 'jellyfin_persons_api.dart';
 ///   [JellyfinInstantMixApi.fromArtist].
 ///
 /// `/Persons` has no sort, genre or year filter: it answers by name.
+/// [musicArtists] and [musicAlbumArtists] list the `MusicArtist` items of
+/// one library instead, sorted and filtered by the server, through the
+/// obsolete `/Artists` routes, which 12.4 still answers.
 /// [JellyfinItemsApi.list] with `includeItemTypes:
-/// [JellyfinItemKind.musicArtist]` sorts and pages `MusicArtist` items.
+/// [JellyfinItemKind.musicArtist]` sorts and pages `MusicArtist` items
+/// too, but ignores `parentId`.
 ///
 /// {@category Library}
 class JellyfinArtistsApi {
+  final JellyfinConnection _http;
   final JellyfinPersonsApi _persons;
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
-  JellyfinArtistsApi(JellyfinConnection http)
-    : _persons = JellyfinPersonsApi(http);
+  JellyfinArtistsApi(this._http) : _persons = JellyfinPersonsApi(_http);
 
   /// `GET /Persons?personTypes=Artist` — the people credited as artist
   /// on a track.
@@ -124,6 +129,144 @@ class JellyfinArtistsApi {
     enableImageTypes: enableImageTypes,
     enableImages: enableImages,
   );
+
+  /// `GET /Artists` — the `MusicArtist` items credited as artist on a
+  /// track, as Jellyfin Web 10 listed them.
+  ///
+  /// The ids are those of the `MusicArtist` items, the ones
+  /// `items.list(includeItemTypes: [JellyfinItemKind.musicArtist])`,
+  /// a track's `artistItems` and [JellyfinInstantMixApi.fromArtist] use:
+  /// [isFavorite] and [filters] read the artist's own user data, and the
+  /// item carries its MusicBrainz id. [parentId] scopes the list to one
+  /// library, which `/Items` ignores for `MusicArtist` (measured on 12.0
+  /// and 12.4 with two music libraries). [sortBy] and [descending] order
+  /// it; [genreIds], [genres] and [years] narrow it to the artists with a
+  /// track that matches.
+  ///
+  /// Jellyfin 12 marks `/Artists` obsolete in favour of `/Persons` ([list])
+  /// and still answers it (12.4); a later Jellyfin may answer 404, a
+  /// `notFound` error.
+  Future<JellyfinQueryResult<JellyfinItem>> musicArtists({
+    String? parentId,
+    String? searchTerm,
+    int startIndex = 0,
+    int? limit,
+    List<JellyfinSortField> sortBy = const [],
+    bool descending = false,
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemFilter> filters = const [],
+    bool? isFavorite,
+    List<String> genreIds = const [],
+    List<String> genres = const [],
+    List<int> years = const [],
+    String? nameStartsWith,
+    bool enableUserData = true,
+    bool enableImages = true,
+  }) => _artistsRoute(
+    '/Artists',
+    parentId: parentId,
+    searchTerm: searchTerm,
+    startIndex: startIndex,
+    limit: limit,
+    sortBy: sortBy,
+    descending: descending,
+    fields: fields,
+    filters: filters,
+    isFavorite: isFavorite,
+    genreIds: genreIds,
+    genres: genres,
+    years: years,
+    nameStartsWith: nameStartsWith,
+    enableUserData: enableUserData,
+    enableImages: enableImages,
+  );
+
+  /// `GET /Artists/AlbumArtists` — the `MusicArtist` items credited as
+  /// album artist, the ones with an album of their own.
+  ///
+  /// Takes the same parameters as [musicArtists], and is as obsolete.
+  Future<JellyfinQueryResult<JellyfinItem>> musicAlbumArtists({
+    String? parentId,
+    String? searchTerm,
+    int startIndex = 0,
+    int? limit,
+    List<JellyfinSortField> sortBy = const [],
+    bool descending = false,
+    List<JellyfinItemField> fields = const [],
+    List<JellyfinItemFilter> filters = const [],
+    bool? isFavorite,
+    List<String> genreIds = const [],
+    List<String> genres = const [],
+    List<int> years = const [],
+    String? nameStartsWith,
+    bool enableUserData = true,
+    bool enableImages = true,
+  }) => _artistsRoute(
+    '/Artists/AlbumArtists',
+    parentId: parentId,
+    searchTerm: searchTerm,
+    startIndex: startIndex,
+    limit: limit,
+    sortBy: sortBy,
+    descending: descending,
+    fields: fields,
+    filters: filters,
+    isFavorite: isFavorite,
+    genreIds: genreIds,
+    genres: genres,
+    years: years,
+    nameStartsWith: nameStartsWith,
+    enableUserData: enableUserData,
+    enableImages: enableImages,
+  );
+
+  Future<JellyfinQueryResult<JellyfinItem>> _artistsRoute(
+    String path, {
+    required String? parentId,
+    required String? searchTerm,
+    required int startIndex,
+    required int? limit,
+    required List<JellyfinSortField> sortBy,
+    required bool descending,
+    required List<JellyfinItemField> fields,
+    required List<JellyfinItemFilter> filters,
+    required bool? isFavorite,
+    required List<String> genreIds,
+    required List<String> genres,
+    required List<int> years,
+    required String? nameStartsWith,
+    required bool enableUserData,
+    required bool enableImages,
+  }) {
+    final qp = <String, Object?>{
+      'startIndex': startIndex,
+      'enableUserData': enableUserData,
+      'enableImages': enableImages,
+    };
+    final userId = _http.userId;
+    if (userId != null) qp['userId'] = userId;
+    if (parentId != null) qp['parentId'] = parentId;
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      qp['searchTerm'] = searchTerm;
+    }
+    if (limit != null) qp['limit'] = limit;
+    if (sortBy.isNotEmpty) {
+      qp['sortBy'] = sortBy;
+      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
+    }
+    if (fields.isNotEmpty) qp['fields'] = fields;
+    if (filters.isNotEmpty) qp['filters'] = filters;
+    if (isFavorite != null) qp['isFavorite'] = isFavorite;
+    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds;
+    if (genres.isNotEmpty) qp['genres'] = genres;
+    if (years.isNotEmpty) qp['years'] = years;
+    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
+    return _http.requestJson(
+      path,
+      queryParameters: qp,
+      queryResultOf(JellyfinItem.fromJson),
+    );
+  }
 
   /// The artist or album artist named [name], or `null` when there is
   /// none.
