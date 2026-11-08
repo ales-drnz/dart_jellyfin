@@ -5,6 +5,8 @@
 @Tags(['integration'])
 library;
 
+import 'dart:io';
+
 import 'package:dart_jellyfin/dart_jellyfin.dart';
 import 'package:test/test.dart';
 
@@ -240,6 +242,90 @@ void main() {
           expect(favourites.items.map((a) => a.id), [artist.id]);
         } finally {
           await jf.userData.unmarkFavorite(itemId: artist.id);
+        }
+      });
+
+      test('musicArtists keeps two music libraries apart', () async {
+        // A second music library with an artist of its own, made here and
+        // removed afterwards. `/Items` lists both libraries' artists for
+        // either `parentId`; `/Artists` only that library's.
+        const name = 'Music 2';
+        const dir =
+            'test/integration/seed/jellyfin/Music2/Other Artist/'
+            'Other Album';
+        final ffmpeg = await Process.run('ffmpeg', [
+          '-version',
+        ]).then((r) => r.exitCode == 0, onError: (_) => false);
+        if (!ffmpeg) {
+          markTestSkipped('needs ffmpeg to seed the second library');
+          return;
+        }
+        await Directory(dir).create(recursive: true);
+        final made = await Process.run('ffmpeg', [
+          '-y',
+          '-loglevel',
+          'error',
+          '-f',
+          'lavfi',
+          '-i',
+          'anullsrc=channel_layout=stereo:sample_rate=44100',
+          '-t',
+          '3',
+          '-c:a',
+          'libmp3lame',
+          '-b:a',
+          '128k',
+          '-metadata',
+          'title=Other Track',
+          '-metadata',
+          'artist=Other Artist',
+          '-metadata',
+          'album_artist=Other Artist',
+          '-metadata',
+          'album=Other Album',
+          '$dir/01 - Other Track.mp3',
+        ]);
+        expect(made.exitCode, 0, reason: '${made.stderr}');
+        await jf.libraryStructure.add(
+          name: name,
+          collectionType: 'music',
+          paths: const ['/media/Music2'],
+          refreshLibrary: true,
+        );
+        try {
+          String? secondId;
+          JellyfinQueryResult<JellyfinItem>? second;
+          final deadline = DateTime.now().add(const Duration(seconds: 90));
+          while (DateTime.now().isBefore(deadline)) {
+            final views = await jf.library.userViews();
+            secondId = views.where((v) => v.name == name).firstOrNull?.id;
+            if (secondId != null) {
+              second = await jf.artists.musicArtists(parentId: secondId);
+              if (second.items.isNotEmpty) break;
+            }
+            await Future<void>.delayed(const Duration(seconds: 2));
+          }
+          expect(second?.items.map((a) => a.name), ['Other Artist']);
+
+          final first = await jf.artists.musicArtists(parentId: musicId);
+          final firstNames = first.items.map((a) => a.name).toList();
+          expect(firstNames, contains('Test Artist'));
+          expect(firstNames, isNot(contains('Other Artist')));
+
+          // The defect musicArtists is there for.
+          final items = await jf.items.list(
+            includeItemTypes: const [JellyfinItemKind.musicArtist],
+            parentId: musicId,
+          );
+          expect(
+            items.items.map((a) => a.name),
+            containsAll(['Test Artist', 'Other Artist']),
+          );
+        } finally {
+          await jf.libraryStructure.remove(name: name, refreshLibrary: true);
+          await Directory(
+            'test/integration/seed/jellyfin/Music2',
+          ).delete(recursive: true);
         }
       });
 
