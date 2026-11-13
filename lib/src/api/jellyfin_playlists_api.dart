@@ -29,6 +29,8 @@ class JellyfinPlaylistsApi {
   /// How long after an entry write [rename], [update] and [delete] wait
   /// before they are sent. Jellyfin 12.2 lost every rename sent at once
   /// after an add and none sent 0.5 s or more later; this keeps a margin.
+  /// 12.4 still does: six of six renames sent at once were lost, and none
+  /// sent 0.1 s or more later.
   static const Duration renameSettle = Duration(seconds: 1);
 
   final JellyfinConnection _http;
