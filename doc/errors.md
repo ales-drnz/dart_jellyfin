@@ -18,6 +18,9 @@ and `unknown`. The exception also carries `statusCode`, `path`, `cause`,
 `stackTrace`, the whole error `body` the server sent (`message` holds at
 most its first 512 bytes) and `retryAfter`, the server's `Retry-After`
 on a `429` or `503`.
+The value of an `ApiKey` or `api_key` in the `path` or the `message`
+reads `REDACTED`, so `toString()` can be logged as it is; `body` and
+`cause` are kept as they came.
 
 A typed answer of the wrong shape throws a `parse` error. A lookup
 (`items.byId()`, `devices.info()`, `scheduledTasks.byId()`,

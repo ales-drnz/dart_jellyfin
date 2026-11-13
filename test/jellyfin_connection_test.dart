@@ -1103,6 +1103,190 @@ void main() {
     });
   });
 
+  group('who gets the token', () {
+    late CapturingAdapter adapter;
+    late JellyfinConnection http;
+
+    setUp(() {
+      adapter = CapturingAdapter();
+      http = _connection(adapter)..token = 'secret';
+    });
+
+    Future<String> auth(
+      String url, {
+      bool absoluteUrl = true,
+      Map<String, String>? extraHeaders,
+    }) async {
+      await http.request<Object>(
+        url,
+        absoluteUrl: absoluteUrl,
+        extraHeaders: extraHeaders,
+      );
+      return adapter.last!.headers['Authorization']!;
+    }
+
+    test('the connected server, by path or by full URL', () async {
+      expect(
+        await auth('/System/Info', absoluteUrl: false),
+        contains('Token="secret"'),
+      );
+      expect(
+        await auth('https://jf.example.test/System/Info'),
+        contains('Token="secret"'),
+      );
+      expect(
+        await auth('https://JF.example.test:443/x'),
+        contains('Token="secret"'),
+      );
+    });
+
+    test('no other host: the identity goes, the token does not', () async {
+      for (final url in [
+        'https://image.tmdb.org/t/p/poster.jpg',
+        'https://jf.example.test.evil.test/x',
+        'https://jf.example.test:8443/x',
+      ]) {
+        final header = await auth(url);
+        expect(header, isNot(contains('Token=')), reason: url);
+        expect(header, contains('DeviceId="test-device"'));
+      }
+    });
+
+    test('a full URL in a relative request is judged by its host', () async {
+      final header = await auth(
+        'https://image.tmdb.org/t/p/poster.jpg',
+        absoluteUrl: false,
+      );
+      expect(header, isNot(contains('Token=')));
+    });
+
+    test('an explicit extra header still sends one anywhere', () async {
+      final header = await auth(
+        'https://other.example.test/x',
+        extraHeaders: {'Authorization': 'MediaBrowser Token="named"'},
+      );
+      expect(header, 'MediaBrowser Token="named"');
+    });
+
+    test('requestStream and requestBytes follow the same rule', () async {
+      final res = await http.requestStream('https://cdn.example.test/a.mp3');
+      await res.stream.drain<void>();
+      expect(adapter.last!.headers['Authorization'], isNot(contains('Token=')));
+      await http.requestBytes('https://cdn.example.test/a.jpg');
+      expect(adapter.last!.headers['Authorization'], isNot(contains('Token=')));
+    });
+
+    test('nothing gets it before a server is set', () async {
+      final bare = JellyfinConnection(
+        credentials: _credentials,
+        httpClient: adapter,
+      )..token = 'secret';
+      await bare.request<Object>(
+        'https://jf.example.test/x',
+        absoluteUrl: true,
+      );
+      expect(adapter.last!.headers['Authorization'], isNot(contains('Token=')));
+    });
+  });
+
+  group('secrets in errors', () {
+    test('ApiKey and api_key read REDACTED in path, message and toString', () {
+      const e = JellyfinException(
+        'ClientException: failed, uri=https://h/Audio/1/stream?ApiKey=tok123&static=true',
+        path: 'https://h/Items/1/Download?api_key=tok123',
+      );
+      expect(e.path, 'https://h/Items/1/Download?api_key=REDACTED');
+      expect(e.message, contains('ApiKey=REDACTED&static=true'));
+      expect('$e', isNot(contains('tok123')));
+    });
+
+    test('a failed signed URL does not carry the token', () async {
+      final adapter = CapturingAdapter()
+        ..respond = (_) => CannedResponse(404, const []);
+      final e = await _caught(
+        _connection(adapter).requestStream(
+          'https://jf.example.test/Audio/1/stream?static=true&ApiKey=tok123',
+        ),
+      );
+      expect(e.statusCode, 404);
+      expect('$e', isNot(contains('tok123')));
+      expect(e.path, contains('ApiKey=REDACTED'));
+    });
+  });
+
+  group('classification by type (dart:io)', () {
+    Future<JellyfinException> failing(Object error) => _caught(
+      _connection(_FnClient((_) => Future.error(error))).request<Object>('/x'),
+    );
+
+    test('a refused connection is a connection error', () async {
+      final e = await failing(
+        const SocketException(
+          'Connection refused',
+          osError: OSError('Connection refused', 111),
+        ),
+      );
+      expect(e.type, JellyfinErrorType.connection);
+    });
+
+    test('ETIMEDOUT is a timeout, whatever the wording', () async {
+      for (final code in [110, 60, 10060]) {
+        final e = await failing(
+          SocketException('Verbindung', osError: OSError('Zeit', code)),
+        );
+        expect(e.type, JellyfinErrorType.timeout, reason: '$code');
+      }
+    });
+
+    test("dart:io's connection timeout is a timeout", () async {
+      final e = await failing(
+        const SocketException('HTTP connection timed out after 0:00:15'),
+      );
+      expect(e.type, JellyfinErrorType.timeout);
+    });
+
+    test('a failed TLS handshake is a connection error', () async {
+      final e = await failing(const HandshakeException('bad certificate'));
+      expect(e.type, JellyfinErrorType.connection);
+      expect(e.isNetworkFailure, isTrue);
+    });
+
+    test('an unknown error stays unknown', () async {
+      final e = await failing(StateError('odd'));
+      expect(e.type, JellyfinErrorType.unknown);
+    });
+  });
+
+  group('base URL', () {
+    JellyfinConnection bare() => JellyfinConnection(
+      credentials: _credentials,
+      httpClient: _FnClient((_) => throw UnimplementedError()),
+    );
+
+    test('a trailing slash is dropped; null disconnects', () {
+      final http = bare()..baseUrl = 'http://192.168.1.10:8096/';
+      expect(http.baseUrl, 'http://192.168.1.10:8096');
+      http.baseUrl = null;
+      expect(http.baseUrl, isNull);
+    });
+
+    test('a URL without http(s) or without a host is a state error', () {
+      for (final url in ['192.168.1.10:8096', 'jf.local', 'ftp://h', '']) {
+        expect(
+          () => bare().baseUrl = url,
+          throwsA(
+            isA<JellyfinException>().having(
+              (e) => e.type,
+              'type',
+              JellyfinErrorType.state,
+            ),
+          ),
+          reason: url,
+        );
+      }
+    });
+  });
+
   group('client ownership', () {
     test('an injected client is not closed', () {
       final client = _FnClient((_) => throw UnimplementedError());

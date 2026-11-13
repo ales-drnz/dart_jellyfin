@@ -133,8 +133,29 @@ final class JellyfinConnection {
   String? get baseUrl => _shared.baseUrl;
 
   /// Sets the server root URL, stripping a trailing `/` if present.
+  ///
+  /// Throws a [JellyfinErrorType.state] [JellyfinException] for a URL that is
+  /// not `http://` or `https://` with a host: better now than at the first
+  /// request.
   set baseUrl(String? value) {
-    _shared.baseUrl = value != null && value.endsWith('/')
+    if (value == null) {
+      _shared.baseUrl = null;
+      return;
+    }
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.isScheme('http') && !uri.isScheme('https')) {
+      throw JellyfinException(
+        'The server URL must start with http:// or https://: $value',
+        type: JellyfinErrorType.state,
+      );
+    }
+    if (uri.host.isEmpty) {
+      throw JellyfinException(
+        'The server URL has no host: $value',
+        type: JellyfinErrorType.state,
+      );
+    }
+    _shared.baseUrl = value.endsWith('/')
         ? value.substring(0, value.length - 1)
         : value;
   }
@@ -179,16 +200,41 @@ final class JellyfinConnection {
     if (_shared.ownsClient) _shared.client.close();
   }
 
-  /// Headers sent on every request.
+  /// Hosts that get the token besides the connected server, each with its
+  /// subdomains.
+  static const List<String> _tokenHosts = [];
+
+  /// Headers sent to [uri].
   ///
   /// Only the `Authorization: MediaBrowser` header carries the session. It
   /// embeds `Token="…"`, the sole auth path Jellyfin 12 honours by default
   /// (`EnableLegacyAuthorization` is off, and the `X-Emby-Authorization` /
-  /// `X-MediaBrowser-Token` headers are rejected).
-  Map<String, String> get _baseHeaders => {
+  /// `X-MediaBrowser-Token` headers are rejected). The token is left out
+  /// unless [sendsTokenTo] says [uri] gets it.
+  Map<String, String> _headersFor(Uri uri) => {
     'Accept': 'application/json',
-    'Authorization': JellyfinAuthHeader.build(credentials, token: token),
+    'Authorization': JellyfinAuthHeader.build(
+      credentials,
+      token: sendsTokenTo(uri) ? token : null,
+    ),
   };
+
+  /// Whether a request to [uri] carries the token: only the connected
+  /// server (the host and port of [baseUrl], whatever the scheme) and
+  /// [_tokenHosts] do. A full URL to any other host — artwork on a CDN,
+  /// say — goes without, so the token never reaches a third party; a
+  /// request that must send it there names it in its `extraHeaders`.
+  @visibleForTesting
+  bool sendsTokenTo(Uri uri) {
+    final host = uri.host.toLowerCase();
+    for (final trusted in _tokenHosts) {
+      if (host == trusted || host.endsWith('.$trusted')) return true;
+    }
+    final base = baseUrl == null ? null : Uri.tryParse(baseUrl!);
+    return base != null &&
+        base.host.toLowerCase() == host &&
+        base.port == uri.port;
+  }
 
   /// Issues an HTTP request relative to [baseUrl] (or absolute when
   /// `absoluteUrl` is `true`) and decodes the body per [responseType].
@@ -337,14 +383,13 @@ final class JellyfinConnection {
     JellyfinCancelToken? cancelToken,
   }) async {
     const method = 'GET';
-    final opened = await _retrying(method, cancelToken, () async {
+    final uri = _target(url, queryParameters, absoluteUrl: absoluteUrl);
+    final opened = await _retrying(method, uri, cancelToken, () async {
       final opened = await _open(
-        url,
-        method: 'GET',
-        queryParameters: queryParameters,
+        uri,
+        method: method,
         data: null,
         extraHeaders: extraHeaders,
-        absoluteUrl: absoluteUrl,
         cancelToken: cancelToken,
       );
       if (!stallTimeout) opened.receiveTimeout = null;
@@ -392,23 +437,57 @@ final class JellyfinConnection {
     required Map<String, String>? extraHeaders,
     required bool absoluteUrl,
     required JellyfinCancelToken? cancelToken,
-  }) => _retrying(
-    method,
-    cancelToken,
-    () => _exchangeOnce(
-      path,
-      method: method,
-      queryParameters: queryParameters,
-      data: data,
-      extraHeaders: extraHeaders,
-      absoluteUrl: absoluteUrl,
-      cancelToken: cancelToken,
-    ),
-  );
+  }) async {
+    final uri = _target(path, queryParameters, absoluteUrl: absoluteUrl);
+    return _retrying(
+      method,
+      uri,
+      cancelToken,
+      () => _exchangeOnce(
+        uri,
+        method: method,
+        data: data,
+        extraHeaders: extraHeaders,
+        cancelToken: cancelToken,
+      ),
+    );
+  }
+
+  /// The URI of a request, or a [JellyfinErrorType.state] [JellyfinException]
+  /// when the client is closed, not connected (for a relative [path]) or
+  /// the URL is not one.
+  Uri _target(
+    String path,
+    Map<String, Object?>? queryParameters, {
+    required bool absoluteUrl,
+  }) {
+    _checkOpen();
+    try {
+      return buildUri(absoluteUrl ? path : _resolve(path), queryParameters);
+    } on FormatException catch (e, st) {
+      throw JellyfinException(
+        'Invalid request URL: ${e.message}',
+        type: JellyfinErrorType.state,
+        path: path,
+        cause: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  void _checkOpen() {
+    if (_shared.closed) {
+      throw const JellyfinException(
+        'JellyfinClient.close() has been called.',
+        type: JellyfinErrorType.state,
+      );
+    }
+  }
 
   /// Runs [attempt] under the client's [JellyfinRetryPolicy].
   Future<T> _retrying<T>(
     String method,
+    Uri uri,
     JellyfinCancelToken? cancelToken,
     Future<T> Function() attempt,
   ) async {
@@ -433,28 +512,24 @@ final class JellyfinConnection {
         await waited.future;
         unregister?.call();
         if (token != null && token.isCancelled) {
-          throw _cancelled(Uri.tryParse(e.path ?? '') ?? Uri());
+          throw _cancelled(uri);
         }
       }
     }
   }
 
   Future<_Exchange> _exchangeOnce(
-    String path, {
+    Uri uri, {
     required String method,
-    required Map<String, Object?>? queryParameters,
     required Object? data,
     required Map<String, String>? extraHeaders,
-    required bool absoluteUrl,
     required JellyfinCancelToken? cancelToken,
   }) async {
     final opened = await _open(
-      path,
+      uri,
       method: method,
-      queryParameters: queryParameters,
       data: data,
       extraHeaders: extraHeaders,
-      absoluteUrl: absoluteUrl,
       cancelToken: cancelToken,
     );
     final res = opened.response;
@@ -474,32 +549,13 @@ final class JellyfinConnection {
 
   /// Sends the request and waits for the response headers.
   Future<_Opened> _open(
-    String path, {
+    Uri uri, {
     required String method,
-    required Map<String, Object?>? queryParameters,
     required Object? data,
     required Map<String, String>? extraHeaders,
-    required bool absoluteUrl,
     required JellyfinCancelToken? cancelToken,
   }) async {
-    if (_shared.closed) {
-      throw const JellyfinException(
-        'JellyfinClient.close() has been called.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    final Uri uri;
-    try {
-      uri = buildUri(absoluteUrl ? path : _resolve(path), queryParameters);
-    } on FormatException catch (e, st) {
-      throw JellyfinException(
-        'Invalid request URL: ${e.message}',
-        type: JellyfinErrorType.state,
-        path: path,
-        cause: e,
-        stackTrace: st,
-      );
-    }
+    _checkOpen();
     final token = cancelToken ?? scopeToken;
     if (token != null && token.isCancelled) throw _cancelled(uri);
 
@@ -512,7 +568,7 @@ final class JellyfinConnection {
     // An empty extra header removes the header (`Authorization: ''`), whatever
     // the case of its name: HTTP header names are case-insensitive.
     final merged = <String, String>{
-      ..._baseHeaders,
+      ..._headersFor(uri),
       if (_shared.inflates) 'Accept-Encoding': 'gzip',
     };
     extraHeaders?.forEach((name, value) {
@@ -872,14 +928,19 @@ final class JellyfinConnection {
     }
     if (e is TimeoutException) return _timeout('$e', uri, e, st);
     final text = '$e';
-    // A redirect loop is an answer, not a lost connection: not retried.
-    final type = text.contains('timed out')
-        ? JellyfinErrorType.timeout
-        : e is http.ClientException && text.contains('Redirect')
-        ? JellyfinErrorType.unknown
-        : e is http.ClientException
-        ? JellyfinErrorType.connection
-        : JellyfinErrorType.unknown;
+    // By type where the platform can tell; by the wording otherwise
+    // (`package:http` wraps a `dart:io` `HttpException` into a bare
+    // `ClientException`, and a browser reports only text). A redirect
+    // loop is an answer, not a lost connection: not retried.
+    final type = switch (platform.timedOut(e)) {
+      true => JellyfinErrorType.timeout,
+      false => JellyfinErrorType.connection,
+      null when text.contains('timed out') => JellyfinErrorType.timeout,
+      null when e is http.ClientException && text.contains('Redirect') =>
+        JellyfinErrorType.unknown,
+      null when e is http.ClientException => JellyfinErrorType.connection,
+      null => JellyfinErrorType.unknown,
+    };
     return JellyfinException(
       text,
       type: type,
