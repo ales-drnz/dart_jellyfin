@@ -43,7 +43,7 @@ class JellyfinMediaInfoApi {
   }) async {
     final res = await _http.request<Map<String, Object?>>(
       '/Items/$itemId/PlaybackInfo',
-      queryParameters: {'userId': userId ?? _http.userId},
+      queryParameters: {'userId': ?(userId ?? _http.userId)},
     );
     return JellyfinPlaybackInfo.fromJson(res.data ?? const {});
   }
@@ -74,7 +74,7 @@ class JellyfinMediaInfoApi {
     bool allowAudioStreamCopy = true,
   }) async {
     final body = <String, Object?>{
-      'UserId': userId ?? _http.userId,
+      'UserId': ?(userId ?? _http.userId),
       'DeviceProfile': deviceProfile.toJson(),
       'AutoOpenLiveStream': autoOpenLiveStream,
       'EnableDirectPlay': enableDirectPlay,
@@ -116,8 +116,7 @@ class JellyfinMediaInfoApi {
   }) async {
     final body = <String, Object?>{
       'OpenToken': openToken,
-      if (userId != null || _http.userId != null)
-        'UserId': userId ?? _http.userId,
+      'UserId': ?(userId ?? _http.userId),
       'PlaySessionId': ?playSessionId,
       'MaxStreamingBitrate': ?maxStreamingBitrate,
       'StartTimeTicks': ?startTimeTicks,

@@ -58,4 +58,52 @@ void main() {
       expect(body['PlayCount'], 3);
     });
   });
+
+  group('a client without a session user sends no bare userId', () {
+    setUp(() => jf.clearSession());
+
+    Future<void> expectNoUserId(Future<Object?> Function() call) async {
+      await call();
+      expect(adapter.rawQuery, isNot(contains('userId')));
+    }
+
+    test('liveTv.channels', () => expectNoUserId(() => jf.liveTv.channels()));
+    test('liveTv.programs', () => expectNoUserId(() => jf.liveTv.programs()));
+    test(
+      'liveTv.recommendedPrograms',
+      () => expectNoUserId(() => jf.liveTv.recommendedPrograms()),
+    );
+    test(
+      'liveTv.recordings',
+      () => expectNoUserId(() => jf.liveTv.recordings()),
+    );
+    test(
+      'instantMix.fromItem',
+      () => expectNoUserId(() => jf.instantMix.fromItem(itemId: 'i')),
+    );
+    test(
+      'videos.additionalParts',
+      () => expectNoUserId(() => jf.videos.additionalParts(itemId: 'i')),
+    );
+    test('mediaInfo.info', () async {
+      adapter.body = '{}';
+      await expectNoUserId(() => jf.mediaInfo.info(itemId: 'i'));
+    });
+    test('mediaInfo.postedInfo leaves UserId out of the body', () async {
+      adapter.body = '{}';
+      await jf.mediaInfo.postedInfo(
+        itemId: 'i',
+        deviceProfile: const JellyfinDeviceProfile(),
+      );
+      final body = adapter.last!.json! as Map<String, Object?>;
+      expect(body.containsKey('UserId'), isFalse);
+    });
+  });
+
+  test('with a session user the same calls send it', () async {
+    await jf.liveTv.channels();
+    expect(adapter.query['userId'], ['user-1']);
+    await jf.videos.additionalParts(itemId: 'i');
+    expect(adapter.query['userId'], ['user-1']);
+  });
 }

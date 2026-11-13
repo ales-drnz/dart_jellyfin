@@ -44,7 +44,7 @@ class JellyfinLiveTvApi {
     bool descending = false,
   }) async {
     final qp = <String, Object?>{
-      'userId': _http.userId,
+      'userId': ?_http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
       if (sortBy.isNotEmpty) 'sortBy': sortBy,
@@ -68,7 +68,7 @@ class JellyfinLiveTvApi {
   Future<JellyfinItem?> channel({required String channelId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Channels/$channelId',
-      queryParameters: {'userId': _http.userId},
+      queryParameters: {'userId': ?_http.userId},
     );
     final data = res.data;
     if (data == null) return null;
@@ -100,7 +100,7 @@ class JellyfinLiveTvApi {
     bool descending = false,
   }) async {
     final qp = <String, Object?>{
-      'userId': _http.userId,
+      'userId': ?_http.userId,
       'startIndex': startIndex,
       'sortOrder': descending ? 'Descending' : 'Ascending',
       if (sortBy.isNotEmpty) 'sortBy': sortBy,
@@ -135,7 +135,7 @@ class JellyfinLiveTvApi {
     bool? isNews,
     bool? isKids,
   }) async {
-    final qp = <String, Object?>{'userId': _http.userId, 'isAiring': isAiring};
+    final qp = <String, Object?>{'userId': ?_http.userId, 'isAiring': isAiring};
     if (limit != null) qp['limit'] = limit;
     if (hasAired != null) qp['hasAired'] = hasAired;
     if (isSeries != null) qp['isSeries'] = isSeries;
@@ -166,7 +166,7 @@ class JellyfinLiveTvApi {
     bool enableUserData = true,
   }) async {
     final qp = <String, Object?>{
-      'userId': _http.userId,
+      'userId': ?_http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
     };
@@ -185,7 +185,7 @@ class JellyfinLiveTvApi {
   Future<JellyfinItem?> recording({required String recordingId}) async {
     final res = await _http.request<Map<String, Object?>>(
       '/LiveTv/Recordings/$recordingId',
-      queryParameters: {'userId': _http.userId},
+      queryParameters: {'userId': ?_http.userId},
     );
     final data = res.data;
     if (data == null) return null;

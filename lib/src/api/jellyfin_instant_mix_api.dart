@@ -136,7 +136,6 @@ class JellyfinInstantMixApi {
 
   Future<JellyfinQueryResult<JellyfinItem>> _request(
     String path, {
-    Map<String, Object?> extra = const {},
     int? limit,
     List<JellyfinItemField> fields = const [],
     bool enableImages = true,
@@ -144,10 +143,9 @@ class JellyfinInstantMixApi {
     int? imageTypeLimit,
   }) async {
     final qp = <String, Object?>{
-      'userId': _http.userId,
+      'userId': ?_http.userId,
       'enableImages': enableImages,
       'enableUserData': enableUserData,
-      ...extra,
     };
     if (limit != null) qp['limit'] = limit;
     if (fields.isNotEmpty) qp['fields'] = fields;

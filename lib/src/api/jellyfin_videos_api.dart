@@ -96,7 +96,7 @@ class JellyfinVideosApi {
     required String itemId,
   }) => _http.requestJson(
     '/Videos/$itemId/AdditionalParts',
-    queryParameters: {'userId': _http.userId},
+    queryParameters: {'userId': ?_http.userId},
     queryResultOf(JellyfinItem.fromJson),
   );
 
