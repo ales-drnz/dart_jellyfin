@@ -23,6 +23,9 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+// Dart 3.14 deprecates dart:mirrors. This test walks every sub-API method
+// by reflection and runs on the VM only; nothing in lib/ uses mirrors.
+// ignore: deprecated_member_use
 import 'dart:mirrors';
 import 'dart:typed_data';
 
