@@ -59,72 +59,6 @@ class JellyfinGenresApi {
     String? nameLessThan,
     List<JellyfinSortField> sortBy = const [],
     bool descending = false,
-  }) => _browse(
-    '/Genres',
-    parentId: parentId,
-    searchTerm: searchTerm,
-    startIndex: startIndex,
-    limit: limit,
-    fields: fields,
-    includeItemTypes: includeItemTypes,
-    excludeItemTypes: excludeItemTypes,
-    isFavorite: isFavorite,
-    imageTypeLimit: imageTypeLimit,
-    enableImageTypes: enableImageTypes,
-    nameStartsWith: nameStartsWith,
-    nameStartsWithOrGreater: nameStartsWithOrGreater,
-    nameLessThan: nameLessThan,
-    sortBy: sortBy,
-    descending: descending,
-  );
-
-  /// `GET /Genres/{genreName}` — lookup a genre by exact name.
-  /// Returns null on 404.
-  ///
-  /// Answers the `Genre` item, never the `MusicGenre` one: the route
-  /// takes no `parentId`. Its id filters `items.list(genreIds:)`, but an
-  /// instant mix seeded by it is empty (verified on 12.4). For a music
-  /// genre use [musicGenre].
-  Future<JellyfinItem?> byName({required String name}) =>
-      lookupItemByName('/Genres', name, _http);
-
-  /// The `MusicGenre` item named [name] in the music library
-  /// [parentId], or `null` when there is none.
-  ///
-  /// Replaces `GET /MusicGenres/{genreName}`, which Jellyfin 12 marks
-  /// obsolete. It asks `GET /Genres` with [parentId] and [name] as the
-  /// search term, and keeps the entry whose name equals [name], ignoring
-  /// case: the search also matches parts of names. The id seeds
-  /// `instantMix.fromItem` and filters `items.list(genreIds:)`.
-  Future<JellyfinItem?> musicGenre({
-    required String name,
-    required String parentId,
-  }) async {
-    final page = await list(parentId: parentId, searchTerm: name);
-    final wanted = name.toLowerCase();
-    for (final genre in page.items) {
-      if (genre.name.toLowerCase() == wanted) return genre;
-    }
-    return null;
-  }
-
-  Future<JellyfinQueryResult<JellyfinItem>> _browse(
-    String path, {
-    String? parentId,
-    String? searchTerm,
-    int startIndex = 0,
-    int? limit,
-    List<JellyfinItemField> fields = const [],
-    List<JellyfinItemKind> includeItemTypes = const [],
-    List<JellyfinItemKind> excludeItemTypes = const [],
-    bool? isFavorite,
-    int? imageTypeLimit,
-    List<String> enableImageTypes = const [],
-    String? nameStartsWith,
-    String? nameStartsWithOrGreater,
-    String? nameLessThan,
-    List<JellyfinSortField> sortBy = const [],
-    bool descending = false,
   }) async {
     final qp = <String, Object?>{'startIndex': startIndex};
     final userId = _http.userId;
@@ -157,9 +91,39 @@ class JellyfinGenresApi {
     }
 
     return _http.requestJson(
-      path,
+      '/Genres',
       queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
+  }
+
+  /// `GET /Genres/{genreName}` — lookup a genre by exact name.
+  /// Returns null on 404.
+  ///
+  /// Answers the `Genre` item, never the `MusicGenre` one: the route
+  /// takes no `parentId`. Its id filters `items.list(genreIds:)`, but an
+  /// instant mix seeded by it is empty (verified on 12.4). For a music
+  /// genre use [musicGenre].
+  Future<JellyfinItem?> byName({required String name}) =>
+      lookupItemByName('/Genres', name, _http);
+
+  /// The `MusicGenre` item named [name] in the music library
+  /// [parentId], or `null` when there is none.
+  ///
+  /// Replaces `GET /MusicGenres/{genreName}`, which Jellyfin 12 marks
+  /// obsolete. It asks `GET /Genres` with [parentId] and [name] as the
+  /// search term, and keeps the entry whose name equals [name], ignoring
+  /// case: the search also matches parts of names. The id seeds
+  /// `instantMix.fromItem` and filters `items.list(genreIds:)`.
+  Future<JellyfinItem?> musicGenre({
+    required String name,
+    required String parentId,
+  }) async {
+    final page = await list(parentId: parentId, searchTerm: name);
+    final wanted = name.toLowerCase();
+    for (final genre in page.items) {
+      if (genre.name.toLowerCase() == wanted) return genre;
+    }
+    return null;
   }
 }
