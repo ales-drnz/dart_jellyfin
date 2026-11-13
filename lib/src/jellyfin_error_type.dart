@@ -15,7 +15,9 @@ enum JellyfinErrorType {
   /// Connect/send/receive deadline exceeded.
   timeout,
 
-  /// HTTP `401`/`403` — missing or rejected credentials.
+  /// HTTP `401`/`403` — missing or rejected credentials. The exception's
+  /// `statusCode` tells them apart: `401` is a token the server no longer
+  /// accepts, `403` a user who may not do this.
   auth,
 
   /// HTTP `404` — resource does not exist on the server.

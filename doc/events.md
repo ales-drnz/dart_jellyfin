@@ -38,7 +38,15 @@ sealed `JellyfinEvent` type. Keep a `case _:` in a `switch` on it: a
 release that types a new frame adds a subclass, and a `switch` without
 one stops compiling. The client sends a keep-alive every
 `keepAliveInterval` (30 seconds by default). Call `close()` before
-connecting again.
+connecting again: a `connect()` while a socket is open, or still
+opening, throws a `state` error.
+
+`connect()` waits for the handshake at most `connectTimeout` (15 seconds
+by default) and then throws a `timeout` error. The stream ends when the
+socket does, whoever closed it — the server, the network or `close()` —
+and nothing reconnects it: call `connect()` again from the stream's
+`onDone`. `JellyfinClient.close()` closes the socket too;
+`clearSession()` and `disconnect()` leave it open.
 
 ### Typed events
 

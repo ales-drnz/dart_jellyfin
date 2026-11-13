@@ -20,8 +20,9 @@ import 'jellyfin_videos_api.dart';
 /// the stream's `index` field — same value you'd use as
 /// `subtitleStreamIndex` in [JellyfinVideosApi.streamUrl].
 ///
-/// The library currently exposes only the read paths. Upload / delete /
-/// remote search live behind the escape hatch.
+/// Besides reading and streaming them, the class uploads and deletes a
+/// video's subtitles and searches the server's remote providers
+/// ([upload], [delete], [searchRemote], [downloadRemote]).
 ///
 /// {@category Video and subtitles}
 class JellyfinSubtitlesApi {

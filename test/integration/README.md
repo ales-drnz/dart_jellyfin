@@ -42,7 +42,7 @@ integration suite below is tagged `integration` and skipped by a plain
 
    ```sh
    dart test -P integration                      # everything, serially
-   dart test -P integration --tags integration   # the integration suites only
+   dart test -P integration test/integration     # the integration suites only
    ```
 
 5. Tear down when done:

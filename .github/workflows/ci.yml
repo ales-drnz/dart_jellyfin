@@ -184,7 +184,8 @@ jobs:
       # Brings up the stack with docker compose
       # (test/integration/docker-compose.yml) and readies the server.
       - run: dart run test/integration/bootstrap.dart
-      - run: dart test -P integration --tags integration
+      # By path: with a preset, `--tags` does not narrow the run.
+      - run: dart test -P integration test/integration
       - name: Server log on failure
         if: failure()
         run: docker logs dart-jellyfin-test 2>&1 | tail -200

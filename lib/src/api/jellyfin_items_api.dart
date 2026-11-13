@@ -93,13 +93,17 @@ class JellyfinItemsApi {
   ///
   /// [parentId] with [recursive] (the default) scopes albums and tracks to
   /// one library — but **not artists**: with `includeItemTypes:
-  /// ['MusicArtist']` and a library's id as `parentId`, the server answers
+  /// [JellyfinItemKind.musicArtist]` and a library's id as `parentId`, the
+  /// server answers
   /// the artists of every library, a silent widening (verified on 12.0 with
   /// two music libraries, and on 12.2 with a non-music library's id). Below
   /// a library root `parentId` does apply, but artists are not stored
   /// under albums: an album's id answered no artists (12.2). List one
-  /// library's artists with [JellyfinArtistsApi.albumArtists] or
-  /// [JellyfinArtistsApi.list], which do honour `parentId`.
+  /// library's `MusicArtist` items with [JellyfinArtistsApi.musicArtists]
+  /// or [JellyfinArtistsApi.musicAlbumArtists], which do honour
+  /// `parentId`; [JellyfinArtistsApi.list] and
+  /// [JellyfinArtistsApi.albumArtists] honour it too, but answer `Person`
+  /// items, with ids of their own.
   ///
   /// [enableTotalRecordCount] (default `true`) makes the server count the
   /// whole result set for [JellyfinQueryResult.totalRecordCount] — a second

@@ -74,13 +74,18 @@ item:
 // From a track.
 final artistId = track.artistItems.first.id;
 
-// Or by listing them.
-final musicArtists = await jf.items.list(
-  includeItemTypes: const [JellyfinItemKind.musicArtist],
+// Or by listing them. From 0.4.1, artists.musicArtists() lists the
+// MusicArtist items of one library, sorted and filtered:
+final musicArtists = await jf.artists.musicArtists(
+  parentId: musicLibraryId,
   sortBy: const [JellyfinSortField.sortName],
 );
 final mix = await jf.instantMix.fromArtist(artistId: musicArtists.items.first.id);
 ```
+
+`items.list(includeItemTypes: const [JellyfinItemKind.musicArtist])` lists
+them too, but ignores `parentId`: it answers the artists of every
+library.
 
 An artist id stored by 0.3 is a `MusicArtist` id and keeps working with
 `items.list()` and `instantMix`.

@@ -125,7 +125,8 @@ threads.
 jellyfin.close();
 ```
 
-`close()` closes the HTTP client the `JellyfinClient` created. Later
+`close()` closes the HTTP client the `JellyfinClient` created and the
+notifications socket, if one is open. Later
 requests, through it or any `withCancelToken()` view, fail with
 `JellyfinErrorType.state`. A client you passed as `httpClient` stays
 open.
