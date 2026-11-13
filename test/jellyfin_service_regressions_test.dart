@@ -34,4 +34,28 @@ void main() {
       expect(adapter.query['size'], ['2048']);
     });
   });
+
+  group('userData.update', () {
+    test('without userData or raw sends no flag', () async {
+      adapter.body = '{}';
+      await jf.userData.update(itemId: 'item-1');
+      expect(adapter.last!.json, <String, Object?>{});
+    });
+
+    test('with userData sends its favourite and played flags', () async {
+      adapter.body = '{}';
+      await jf.userData.update(
+        itemId: 'item-1',
+        userData: const JellyfinUserData(
+          isFavorite: true,
+          played: false,
+          playCount: 3,
+        ),
+      );
+      final body = adapter.last!.json! as Map<String, Object?>;
+      expect(body['IsFavorite'], true);
+      expect(body['Played'], false);
+      expect(body['PlayCount'], 3);
+    });
+  });
 }

@@ -173,13 +173,13 @@ class JellyfinUserDataApi {
           if (userData?.playbackPositionTicks != null)
             'PlaybackPositionTicks': userData!.playbackPositionTicks,
           if (userData?.playCount != null) 'PlayCount': userData!.playCount,
-          'IsFavorite': userData?.isFavorite ?? false,
+          'IsFavorite': ?userData?.isFavorite,
           if (userData?.likes != null) 'Likes': userData!.likes,
           if (userData?.lastPlayedDate != null)
             'LastPlayedDate': userData!.lastPlayedDate!
                 .toUtc()
                 .toIso8601String(),
-          'Played': userData?.played ?? false,
+          'Played': ?userData?.played,
         };
     final res = await _http.request<Map<String, Object?>>(
       '/UserItems/$itemId/UserData',
