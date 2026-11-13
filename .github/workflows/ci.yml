@@ -92,6 +92,7 @@ jobs:
           test/jellyfin_live_tv_api_test.dart
           test/jellyfin_music_api_test.dart
           test/jellyfin_service_regressions_test.dart
+          test/jellyfin_sub_api_answers_test.dart
           test/jellyfin_notifications_api_test.dart
       # The example must compile for the web too.
       - run: dart compile js example/dart_jellyfin_example.dart -o /tmp/example.js

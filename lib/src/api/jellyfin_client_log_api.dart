@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_json.dart';
 
 /// `/ClientLog` — upload a client-side log file to the server.
 ///
@@ -34,6 +35,6 @@ class JellyfinClientLogApi {
       data: body,
       extraHeaders: {'Content-Type': contentType},
     );
-    return res.data?['FileName'] as String?;
+    return asString(res.data?['FileName']);
   }
 }
