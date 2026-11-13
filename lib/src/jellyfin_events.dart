@@ -66,11 +66,45 @@ sealed class JellyfinEvent {
   static JellyfinEvent fromFrame(Map<String, Object?> frame) {
     final type = asString(frame['MessageType']) ?? 'Unknown';
     try {
-      return _decode(type, frame) ?? JellyfinUnknownEvent(type, frame);
+      return _decode(type, frame) ??
+          JellyfinUnknownEvent(type, frame, isMalformed: _typed.contains(type));
     } on Object {
-      return JellyfinUnknownEvent(type, frame);
+      return JellyfinUnknownEvent(type, frame, isMalformed: true);
     }
   }
+
+  /// Every `MessageType` with a typed event: one of these in a
+  /// [JellyfinUnknownEvent] means its `Data` had the wrong shape.
+  static const _typed = {
+    'UserDataChanged',
+    'LibraryChanged',
+    'Sessions',
+    'Play',
+    'Playstate',
+    'GeneralCommand',
+    'RefreshProgress',
+    'ScheduledTasksInfo',
+    'ScheduledTaskEnded',
+    'KeepAlive',
+    'ForceKeepAlive',
+    'SyncPlayCommand',
+    'SyncPlayGroupUpdate',
+    'UserUpdated',
+    'UserDeleted',
+    'RestartRequired',
+    'ServerRestarting',
+    'ServerShuttingDown',
+    'TimerCreated',
+    'TimerCancelled',
+    'SeriesTimerCreated',
+    'SeriesTimerCancelled',
+    'PackageInstalling',
+    'PackageInstallationCompleted',
+    'PackageInstallationFailed',
+    'PackageInstallationCancelled',
+    'PackageUninstalled',
+    'ActivityLogEntry',
+  };
 
   static JellyfinEvent? _decode(String type, Map<String, Object?> frame) {
     final data = frame['Data'];
@@ -157,11 +191,10 @@ final class JellyfinUserDataChangedEvent extends JellyfinEvent {
 
   JellyfinUserDataChangedEvent._(super.raw, Map<String, Object?> data)
     : userId = asString(data['UserId']) ?? '',
-      changes = [
-        if (data['UserDataList'] is List)
-          for (final e in data['UserDataList'] as List)
-            if (e is Map<String, Object?>) JellyfinUserDataChange.fromJson(e),
-      ];
+      changes = asObjectList(
+        data['UserDataList'],
+        JellyfinUserDataChange.fromJson,
+      );
 
   /// The entry for [itemId], or `null` when the frame has none.
   JellyfinUserDataChange? forItem(String itemId) {
@@ -219,7 +252,7 @@ final class JellyfinUserDataChange {
   bool? get likes => userData.likes;
 
   /// `Rating`, the user's star rating; left out of the frame until set.
-  double? get rating => asDouble(raw['Rating']);
+  double? get rating => userData.rating;
 }
 
 /// `LibraryChanged`: items were added, updated or removed. The server
@@ -271,10 +304,7 @@ final class JellyfinSessionsEvent extends JellyfinEvent {
   final List<JellyfinSession> sessions;
 
   JellyfinSessionsEvent._(super.raw, List<Object?> data)
-    : sessions = [
-        for (final e in data)
-          if (e is Map<String, Object?>) JellyfinSession.fromJson(e),
-      ];
+    : sessions = asObjectList(data, JellyfinSession.fromJson);
 }
 
 /// `Play`: another client asked this one to play items
@@ -334,9 +364,7 @@ final class JellyfinPlaystateEvent extends JellyfinEvent {
       controllingUserId = asString(data['ControllingUserId']);
 
   /// [seekPositionTicks] as a [Duration].
-  Duration? get seekPosition => seekPositionTicks == null
-      ? null
-      : Duration(microseconds: seekPositionTicks! ~/ 10);
+  Duration? get seekPosition => asTicksDuration(seekPositionTicks);
 }
 
 /// `GeneralCommand`: another client sent a command such as `SetVolume` or
@@ -388,10 +416,7 @@ final class JellyfinScheduledTasksInfoEvent extends JellyfinEvent {
   final List<JellyfinScheduledTask> tasks;
 
   JellyfinScheduledTasksInfoEvent._(super.raw, List<Object?> data)
-    : tasks = [
-        for (final e in data)
-          if (e is Map<String, Object?>) JellyfinScheduledTask.fromJson(e),
-      ];
+    : tasks = asObjectList(data, JellyfinScheduledTask.fromJson);
 
   /// The tasks whose state is `Running`.
   Iterable<JellyfinScheduledTask> get running =>
@@ -411,10 +436,10 @@ final class JellyfinScheduledTaskEndedEvent extends JellyfinEvent {
     : result = JellyfinTaskResult.fromJson(data);
 
   /// The task's key, e.g. `RefreshLibrary`.
-  String? get key => asString(result.raw['Key']);
+  String? get key => result.key;
 
   /// The task's id.
-  String? get taskId => asString(result.raw['Id']);
+  String? get taskId => result.id;
 }
 
 /// `KeepAlive` (the answer to this client's keep-alive) or `ForceKeepAlive`
@@ -466,9 +491,7 @@ final class JellyfinSyncPlayCommandEvent extends JellyfinEvent {
       emittedAt = asUtcDateTime(data['EmittedAt']);
 
   /// [positionTicks] as a [Duration].
-  Duration? get position => positionTicks == null
-      ? null
-      : Duration(microseconds: positionTicks! ~/ 10);
+  Duration? get position => asTicksDuration(positionTicks);
 }
 
 /// `SyncPlayGroupUpdate`: something changed in this client's SyncPlay
@@ -633,10 +656,7 @@ final class JellyfinActivityLogEvent extends JellyfinEvent {
   final List<JellyfinActivityLogEntry> entries;
 
   JellyfinActivityLogEvent._(super.raw, List<Object?> data)
-    : entries = [
-        for (final e in data)
-          if (e is Map<String, Object?>) JellyfinActivityLogEntry.fromJson(e),
-      ];
+    : entries = asObjectList(data, JellyfinActivityLogEntry.fromJson);
 }
 
 /// A frame without a typed event (a `MessageType` the API document does not
@@ -646,8 +666,17 @@ final class JellyfinUnknownEvent extends JellyfinEvent {
   /// The frame's `MessageType`.
   final String messageType;
 
+  /// `true` when [messageType] has a typed event and this frame's `Data`
+  /// could not be read as one; `false` for a type the package does not
+  /// know.
+  final bool isMalformed;
+
   /// Wraps a frame of [messageType].
-  const JellyfinUnknownEvent(this.messageType, super.raw);
+  const JellyfinUnknownEvent(
+    this.messageType,
+    super.raw, {
+    this.isMalformed = false,
+  });
 
   /// The frame's `Data`.
   Object? get data => raw['Data'];

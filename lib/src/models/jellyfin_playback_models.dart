@@ -231,12 +231,10 @@ final class JellyfinMediaSegment {
   });
 
   /// Segment start as a [Duration], or `null` when [startTicks] is absent.
-  Duration? get start =>
-      startTicks == null ? null : Duration(microseconds: startTicks! ~/ 10);
+  Duration? get start => asTicksDuration(startTicks);
 
   /// Segment end as a [Duration], or `null` when [endTicks] is absent.
-  Duration? get end =>
-      endTicks == null ? null : Duration(microseconds: endTicks! ~/ 10);
+  Duration? get end => asTicksDuration(endTicks);
 
   /// Decodes a `/MediaSegments/{itemId}` entry.
   factory JellyfinMediaSegment.fromJson(Map<String, Object?> json) =>

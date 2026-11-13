@@ -236,6 +236,15 @@ final class JellyfinTaskResult {
   /// The error, for a failed run.
   final String? errorMessage;
 
+  /// The task's key, stable across servers (`RefreshLibrary`, …).
+  final String? key;
+
+  /// The task's id on this server.
+  final String? id;
+
+  /// The task's display name.
+  final String? name;
+
   /// The decoded body.
   final Map<String, Object?> raw;
 
@@ -246,6 +255,9 @@ final class JellyfinTaskResult {
     this.startTime,
     this.endTime,
     this.errorMessage,
+    this.key,
+    this.id,
+    this.name,
   });
 
   /// Decodes a `TaskResult`.
@@ -255,6 +267,9 @@ final class JellyfinTaskResult {
         startTime: asUtcDateTime(json['StartTimeUtc']),
         endTime: asUtcDateTime(json['EndTimeUtc']),
         errorMessage: asString(json['ErrorMessage']),
+        key: asString(json['Key']),
+        id: asString(json['Id']),
+        name: asString(json['Name']),
         raw: json,
       );
 }

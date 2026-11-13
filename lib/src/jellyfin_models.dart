@@ -56,6 +56,10 @@ final class JellyfinQueryResult<T> {
     this.startIndex,
   });
 
+  @override
+  String toString() =>
+      'JellyfinQueryResult<$T>(${items.length} of $totalRecordCount)';
+
   /// Decodes the envelope, mapping each entry under [itemsKey] through [parser].
   ///
   /// [itemsKey] defaults to `'Items'`; pass a different key for endpoints that
@@ -67,11 +71,7 @@ final class JellyfinQueryResult<T> {
   }) {
     final raw = json[itemsKey];
     return JellyfinQueryResult<T>(
-      items: [
-        if (raw is List)
-          for (final e in raw)
-            if (e is Map<String, Object?>) parser(e),
-      ],
+      items: asObjectList(raw, parser),
       totalRecordCount:
           asInt(json['TotalRecordCount']) ?? (raw is List ? raw.length : 0),
       startIndex: asInt(json['StartIndex']),

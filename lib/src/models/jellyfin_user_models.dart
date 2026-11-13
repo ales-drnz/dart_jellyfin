@@ -88,6 +88,9 @@ final class JellyfinUser {
     this.lastActivityDate,
   });
 
+  @override
+  String toString() => 'JellyfinUser($id, $name)';
+
   /// Decodes a `/Users/{id}` (or `/Users/Me`) payload.
   factory JellyfinUser.fromJson(Map<String, Object?> json) => JellyfinUser(
     id: asString(json['Id']) ?? '',

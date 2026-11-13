@@ -299,6 +299,9 @@ final class JellyfinItem {
     this.height,
   });
 
+  @override
+  String toString() => 'JellyfinItem(${type ?? 'item'} $id, $name)';
+
   /// Decodes a `BaseItemDto` payload, lifting the subset of fields used by music
   /// apps and stashing the rest in [raw].
   factory JellyfinItem.fromJson(Map<String, Object?> json) {
@@ -767,6 +770,9 @@ final class JellyfinUserData {
   /// Server-side key used by scrobbling integrations.
   final String? key;
 
+  /// The user's own rating, when one was set (`Rating`).
+  final double? rating;
+
   /// Builds a user-data record from already-parsed components.
   const JellyfinUserData({
     required this.playCount,
@@ -776,6 +782,7 @@ final class JellyfinUserData {
     this.likes,
     this.lastPlayedDate,
     this.key,
+    this.rating,
   });
 
   /// Decodes a `UserItemDataDto` payload.
@@ -784,10 +791,11 @@ final class JellyfinUserData {
         playbackPositionTicks: asInt(json['PlaybackPositionTicks']),
         playCount: asInt(json['PlayCount']) ?? 0,
         isFavorite: json['IsFavorite'] == true,
-        likes: json['Likes'] is bool ? json['Likes'] as bool : null,
+        likes: asBool(json['Likes']),
         lastPlayedDate: asUtcDateTime(json['LastPlayedDate']),
         played: json['Played'] == true,
         key: asString(json['Key']),
+        rating: asDouble(json['Rating']),
       );
 }
 

@@ -44,11 +44,10 @@ final class JellyfinLyricCue {
       );
 
   /// [startTicks] as a [Duration].
-  Duration get start => Duration(microseconds: startTicks ~/ 10);
+  Duration get start => asTicksDuration(startTicks)!;
 
   /// [endTicks] as a [Duration], when known.
-  Duration? get end =>
-      endTicks == null ? null : Duration(microseconds: endTicks! ~/ 10);
+  Duration? get end => asTicksDuration(endTicks);
 }
 
 /// One line of a lyric (`LyricLine`).
@@ -78,8 +77,7 @@ final class JellyfinLyricLine {
       );
 
   /// [startTicks] as a [Duration], or `null` for an unsynced line.
-  Duration? get start =>
-      startTicks == null ? null : Duration(microseconds: startTicks! ~/ 10);
+  Duration? get start => asTicksDuration(startTicks);
 
   /// Convert to a single LRC line `[mm:ss.xx]text`, or just `text` if no
   /// timestamp is present.
@@ -187,7 +185,7 @@ final class JellyfinLyricMetadata {
         offsetTicks: asInt(json['Offset']),
         creator: asString(json['Creator']),
         version: asString(json['Version']),
-        isSynced: json['IsSynced'] is bool ? json['IsSynced'] as bool : null,
+        isSynced: asBool(json['IsSynced']),
       );
 }
 

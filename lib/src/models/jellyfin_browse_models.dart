@@ -75,6 +75,41 @@ final class JellyfinDisplayPreferences {
     this.raw = const {},
   });
 
+  /// A copy with the given fields replaced, to change one setting and send
+  /// the rest back as it came. A field cannot be set to `null` this way.
+  JellyfinDisplayPreferences copyWith({
+    String? id,
+    String? client,
+    String? viewType,
+    String? sortBy,
+    String? sortOrder,
+    String? indexBy,
+    String? scrollDirection,
+    bool? rememberIndexing,
+    bool? rememberSorting,
+    bool? showBackdrop,
+    bool? showSidebar,
+    int? primaryImageHeight,
+    int? primaryImageWidth,
+    Map<String, String>? customPrefs,
+  }) => JellyfinDisplayPreferences(
+    id: id ?? this.id,
+    client: client ?? this.client,
+    viewType: viewType ?? this.viewType,
+    sortBy: sortBy ?? this.sortBy,
+    sortOrder: sortOrder ?? this.sortOrder,
+    indexBy: indexBy ?? this.indexBy,
+    scrollDirection: scrollDirection ?? this.scrollDirection,
+    rememberIndexing: rememberIndexing ?? this.rememberIndexing,
+    rememberSorting: rememberSorting ?? this.rememberSorting,
+    showBackdrop: showBackdrop ?? this.showBackdrop,
+    showSidebar: showSidebar ?? this.showSidebar,
+    primaryImageHeight: primaryImageHeight ?? this.primaryImageHeight,
+    primaryImageWidth: primaryImageWidth ?? this.primaryImageWidth,
+    customPrefs: customPrefs ?? this.customPrefs,
+    raw: raw,
+  );
+
   /// Decodes a `/DisplayPreferences/{id}` payload.
   factory JellyfinDisplayPreferences.fromJson(Map<String, Object?> json) {
     final cp = json['CustomPrefs'];

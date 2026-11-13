@@ -10,8 +10,15 @@
 /// page.
 library;
 
-/// A string, or the [Object.toString] of anything else.
-String? asString(Object? v) => v == null ? null : '$v';
+/// A string, or the [Object.toString] of a number or a boolean. A JSON
+/// object or array is not a string: `null`.
+String? asString(Object? v) => switch (v) {
+  null || Map() || Iterable() => null,
+  _ => '$v',
+};
+
+/// A boolean; `null` for anything else.
+bool? asBool(Object? v) => v is bool ? v : null;
 
 /// An int, from an int, a double (truncated) or a numeric string.
 int? asInt(Object? v) => switch (v) {
@@ -29,9 +36,16 @@ double? asDouble(Object? v) => switch (v) {
   _ => null,
 };
 
-/// An ISO-8601 timestamp, in UTC.
-DateTime? asUtcDateTime(Object? v) =>
-    v is String ? DateTime.tryParse(v)?.toUtc() : null;
+/// An ISO-8601 timestamp, in UTC. `0001-01-01T00:00:00Z` — what .NET
+/// sends for a date that was never set (`DateTime.MinValue`) — is `null`.
+DateTime? asUtcDateTime(Object? v) {
+  final parsed = v is String ? DateTime.tryParse(v)?.toUtc() : null;
+  return parsed == null || parsed.year <= 1 ? null : parsed;
+}
+
+/// A length or position in ticks (100 ns each) as a [Duration].
+Duration? asTicksDuration(int? ticks) =>
+    ticks == null ? null : Duration(microseconds: ticks ~/ 10);
 
 /// A JSON object, or an empty map for anything else.
 Map<String, Object?> asObject(Object? v) =>

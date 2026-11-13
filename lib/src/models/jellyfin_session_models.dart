@@ -200,6 +200,10 @@ final class JellyfinSession {
     this.playlistItemId,
   });
 
+  @override
+  String toString() =>
+      'JellyfinSession($id, ${client ?? '?'} on ${deviceName ?? '?'})';
+
   /// Decodes a `/Sessions` entry, recursing into `NowPlayingItem` when present.
   factory JellyfinSession.fromJson(Map<String, Object?> json) {
     final npi = json['NowPlayingItem'];
