@@ -9,8 +9,12 @@ import 'jellyfin_error_type.dart';
 ///
 /// {@category Errors and paging}
 final class JellyfinException implements Exception {
-  /// Human-readable description of the failure.
-  final String message;
+  final String _message;
+  final String? _path;
+
+  /// Human-readable description of the failure. A token in a URL it
+  /// quotes (`ApiKey`, `api_key`) reads `REDACTED`.
+  String get message => _redact(_message);
 
   /// Semantic category of the failure.
   final JellyfinErrorType type;
@@ -18,10 +22,14 @@ final class JellyfinException implements Exception {
   /// HTTP status code, when the failure came from an HTTP response.
   final int? statusCode;
 
-  /// Request path/URL that triggered the failure, when known.
-  final String? path;
+  /// Request path/URL that triggered the failure, when known, with the
+  /// value of `ApiKey` and `api_key` replaced by `REDACTED`: the signed
+  /// stream and download URLs carry the session token there.
+  String? get path => _path == null ? null : _redact(_path);
 
   /// Underlying error (for example the transport's `ClientException`).
+  /// Kept as it came: its text can quote the request URL with a token in
+  /// it, so log [toString], not this.
   final Object? cause;
 
   /// How long the server asked the client to wait (`Retry-After`, on a
@@ -31,6 +39,7 @@ final class JellyfinException implements Exception {
   /// The body of the error answer as text, whole, when the server sent
   /// one ([message] holds at most its first 512 bytes). Kept so a refusal
   /// the package does not recognise can still be read, logged or shown.
+  /// Kept as it came, not redacted.
   final String? body;
 
   /// The originating stack trace, when captured. Preserves the async stack
@@ -39,15 +48,26 @@ final class JellyfinException implements Exception {
 
   /// Creates an exception with the given message and optional metadata.
   const JellyfinException(
-    this.message, {
+    String message, {
     this.type = JellyfinErrorType.unknown,
     this.statusCode,
-    this.path,
+    String? path,
     this.cause,
     this.stackTrace,
     this.retryAfter,
     this.body,
-  });
+  }) : _message = message,
+       _path = path;
+
+  /// [text] with the value of every `ApiKey` and `api_key` query
+  /// parameter replaced by `REDACTED`.
+  static String _redact(String text) =>
+      text.replaceAllMapped(_secret, (m) => '${m[1]}REDACTED');
+
+  static final RegExp _secret = RegExp(
+    r'([?&;](?:apikey|api_key)=)[^&#\s]*',
+    caseSensitive: false,
+  );
 
   /// No answer from the server at all: the connection failed or timed out.
   /// The server may be down or unreachable — not the same as an answer that

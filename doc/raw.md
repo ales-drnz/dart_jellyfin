@@ -47,7 +47,10 @@ final bytes = response.data;
 
 `requestBytes()` holds the whole body in memory, which suits artwork and
 small files. Its `url` is absolute by default, for a URL a builder made;
-with `absoluteUrl: false` it is a path on the server. For media, stream
+with `absoluteUrl: false` it is a path on the server. The session token
+goes in the `Authorization` header to the connected server only (its
+host and port): a full URL to any other host is requested without it,
+unless `extraHeaders` names an `Authorization` of its own. For media, stream
 the body (see Streamed body below) or write it to disk with `downloadToFile()`, in the [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html) topic.
 
 ## Streamed body
