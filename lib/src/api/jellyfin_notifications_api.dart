@@ -276,53 +276,6 @@ class JellyfinNotificationsApi {
   }
 }
 
-/// One frame received from the Jellyfin `/socket` WebSocket.
-final class JellyfinNotification {
-  /// Upstream `MessageType` (e.g. `'Sessions'`, `'LibraryChanged'`,
-  /// `'UserDataChanged'`, `'ScheduledTasksInfo'`, `'KeepAlive'`).
-  final String messageType;
-
-  /// Payload of the frame. Most types carry a Map; the sessions
-  /// stream carries a list, the keep-alive carries nothing.
-  final Object? data;
-
-  /// Raw frame, useful when the message type is not yet promoted to
-  /// a typed [JellyfinEvent].
-  final Map<String, Object?> raw;
-
-  /// Build a [JellyfinNotification] from its decomposed fields.
-  const JellyfinNotification({
-    required this.messageType,
-    required this.data,
-    required this.raw,
-  });
-
-  /// Parse a Jellyfin websocket frame (`{MessageType, Data}`).
-  factory JellyfinNotification.fromJson(Map<String, Object?> json) =>
-      JellyfinNotification(
-        messageType: json['MessageType']?.toString() ?? 'Unknown',
-        data: json['Data'],
-        raw: json,
-      );
-
-  /// This frame as a typed [JellyfinEvent]; a [JellyfinUnknownEvent] for a
-  /// type without one or a payload of an unexpected shape. Never throws.
-  JellyfinEvent get event => JellyfinEvent.fromNotification(this);
-
-  @override
-  String toString() => 'JellyfinNotification($messageType)';
-}
-
-/// Typed decoding of a [JellyfinNotificationsApi.connect] stream.
-///
-/// {@category Events and downloads}
-extension JellyfinNotificationEvents on Stream<JellyfinNotification> {
-  /// Every frame as a [JellyfinEvent]: user-data and library changes,
-  /// sessions, remote-control commands, refresh and task progress,
-  /// keep-alives; [JellyfinUnknownEvent] for the rest.
-  Stream<JellyfinEvent> events() => map((n) => n.event);
-}
-
 /// One open socket with what serves it.
 final class _Socket {
   final WebSocketChannel channel;
