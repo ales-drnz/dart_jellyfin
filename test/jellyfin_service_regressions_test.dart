@@ -118,4 +118,31 @@ void main() {
       expect(adapter.query['userId'], ['other']);
     });
   });
+
+  group('user.authenticateWithQuickConnect', () {
+    test('an answer without an AccessToken is an auth error', () async {
+      adapter.respond = (_) => CannedResponse.json({
+        'User': {'Id': 'u', 'Name': 'n'},
+      });
+      await expectLater(
+        jf.user.authenticateWithQuickConnect(secret: 's'),
+        throwsA(
+          isA<JellyfinException>().having(
+            (e) => e.type,
+            'type',
+            JellyfinErrorType.auth,
+          ),
+        ),
+      );
+    });
+
+    test('an answer with one is returned', () async {
+      adapter.respond = (_) => CannedResponse.json({
+        'AccessToken': 'tok-2',
+        'User': {'Id': 'u', 'Name': 'n'},
+      });
+      final auth = await jf.user.authenticateWithQuickConnect(secret: 's');
+      expect(auth.accessToken, 'tok-2');
+    });
+  });
 }

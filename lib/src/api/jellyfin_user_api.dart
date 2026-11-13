@@ -67,7 +67,14 @@ class JellyfinUserApi {
         type: JellyfinErrorType.parse,
       );
     }
-    return JellyfinAuthResult.fromJson(data);
+    final auth = JellyfinAuthResult.fromJson(data);
+    if (auth.accessToken.isEmpty) {
+      throw const JellyfinException(
+        'Authentication succeeded but no AccessToken was returned',
+        type: JellyfinErrorType.auth,
+      );
+    }
+    return auth;
   }
 
   /// Current user (`/Users/Me`).
