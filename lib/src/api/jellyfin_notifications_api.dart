@@ -54,13 +54,13 @@ import '../jellyfin_exception.dart';
 /// {@category Events and downloads}
 class JellyfinNotificationsApi {
   final JellyfinConnection _http;
-
-  WebSocketChannel? _channel;
-  StreamController<JellyfinNotification>? _controller;
-  Timer? _keepAlive;
-  StreamSubscription<Object?>? _socketSub;
-
   final WebSocketChannel Function(Uri uri) _open;
+
+  /// The open socket, or `null`.
+  _Socket? _socket;
+
+  /// Whether a [connect] is waiting for its handshake.
+  bool _connecting = false;
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
   ///
@@ -72,13 +72,15 @@ class JellyfinNotificationsApi {
   }) : _open = connector ?? WebSocketChannel.connect;
 
   /// True while a socket is open.
-  bool get isConnected => _channel != null;
+  bool get isConnected => _socket != null;
 
   /// Open the `/socket` WebSocket and start emitting
   /// [JellyfinNotification]s. Throws [JellyfinException] of type
   /// [JellyfinErrorType.state] when no base URL or token has been
-  /// configured, or [JellyfinErrorType.connection] if the socket cannot
-  /// be opened.
+  /// configured or a socket is already open or opening,
+  /// [JellyfinErrorType.connection] if the socket cannot be opened, and
+  /// [JellyfinErrorType.timeout] when the handshake takes longer than
+  /// [connectTimeout].
   ///
   /// Awaits the socket handshake before returning, so the returned stream
   /// is live and [isConnected] is only `true` (and the keep-alive timer
@@ -88,10 +90,15 @@ class JellyfinNotificationsApi {
   /// frame; it does not change any timeout on the server. The server
   /// closes the socket after ~60 s of silence, so keep it well under
   /// that — the default 30 s is.
+  ///
+  /// The stream ends when the socket does, whoever closed it: there is no
+  /// automatic reconnection. Call [connect] again from the stream's
+  /// `onDone` to reopen it.
   Future<Stream<JellyfinNotification>> connect({
     Duration keepAliveInterval = const Duration(seconds: 30),
+    Duration connectTimeout = const Duration(seconds: 15),
   }) async {
-    if (_channel != null) {
+    if (_socket != null || _connecting) {
       throw const JellyfinException(
         'Already connected. Call close() before re-connecting.',
         type: JellyfinErrorType.state,
@@ -106,80 +113,84 @@ class JellyfinNotificationsApi {
       );
     }
     final wsUrl = _toWs(
-      '$base/socket?ApiKey=$token'
+      '$base/socket?ApiKey=${Uri.encodeQueryComponent(token)}'
       '&deviceId=${Uri.encodeQueryComponent(_http.credentials.deviceId)}',
     );
 
-    final WebSocketChannel channel;
+    _connecting = true;
+    WebSocketChannel? channel;
     try {
       channel = _open(Uri.parse(wsUrl));
-      await channel.ready;
+      await channel.ready.timeout(connectTimeout);
     } catch (e, st) {
+      // A channel that never opened still holds a socket attempt.
+      unawaited(channel?.sink.close().catchError((Object _) {}));
       throw JellyfinException(
-        'WebSocket connection failed: $e',
-        type: JellyfinErrorType.connection,
+        e is TimeoutException
+            ? 'WebSocket handshake timed out'
+            : 'WebSocket connection failed: $e',
+        type: e is TimeoutException
+            ? JellyfinErrorType.timeout
+            : JellyfinErrorType.connection,
         cause: e,
         stackTrace: st,
       );
+    } finally {
+      _connecting = false;
     }
-    final controller = StreamController<JellyfinNotification>.broadcast(
-      onCancel: () {
-        // Idempotent — close() releases the underlying channel.
-        if (!(_controller?.hasListener ?? false)) {
-          unawaited(close());
-        }
-      },
-    );
 
-    _channel = channel;
-    _controller = controller;
-
-    _socketSub = channel.stream.listen(
+    final socket = _Socket(channel);
+    _socket = socket;
+    socket.controller.onCancel = () {
+      // The last listener left: nobody reads the socket any more.
+      if (!socket.controller.hasListener) unawaited(_release(socket));
+    };
+    socket.subscription = channel.stream.listen(
       (message) {
         if (message is String) {
           final notif = _decode(message);
-          if (notif != null) controller.add(notif);
+          if (notif != null) socket.controller.add(notif);
         }
       },
       onError: (Object error, StackTrace stackTrace) {
-        controller.addError(
+        socket.controller.addError(
           JellyfinException(
             'WebSocket error: $error',
             type: JellyfinErrorType.connection,
+            cause: error,
+            stackTrace: stackTrace,
           ),
           stackTrace,
         );
       },
-      onDone: () {
-        unawaited(controller.close());
-        _cleanup();
-      },
+      onDone: () => unawaited(_release(socket, closeChannel: false)),
       cancelOnError: false,
     );
-
-    _keepAlive = Timer.periodic(keepAliveInterval, (_) {
+    socket.keepAlive = Timer.periodic(keepAliveInterval, (_) {
       try {
-        channel.sink.add(jsonEncode({'MessageType': 'KeepAlive'}));
+        channel!.sink.add(jsonEncode({'MessageType': 'KeepAlive'}));
       } catch (_) {
         // socket already closed; the onDone handler will clean up.
       }
     });
 
-    return controller.stream;
+    return socket.controller.stream;
   }
 
   /// Send an arbitrary frame (e.g. `SessionsStart`, `ScheduledTasksInfoStart`).
   /// See <https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json>
   /// for the upstream message catalog.
   void send({required String messageType, Object? data}) {
-    final ch = _channel;
-    if (ch == null) {
+    final socket = _socket;
+    if (socket == null) {
       throw const JellyfinException(
         'Not connected. Call connect() first.',
         type: JellyfinErrorType.state,
       );
     }
-    ch.sink.add(jsonEncode({'MessageType': messageType, 'Data': ?data}));
+    socket.channel.sink.add(
+      jsonEncode({'MessageType': messageType, 'Data': ?data}),
+    );
   }
 
   /// Subscribe to the sessions channel. Convenience for
@@ -220,22 +231,25 @@ class JellyfinNotificationsApi {
     send(messageType: 'ActivityLogEntryStop');
   }
 
-  /// Disconnect the socket and release resources.
+  /// Disconnect the socket and release resources. Does nothing when no
+  /// socket is open.
   Future<void> close() async {
-    await _channel?.sink.close();
-    _cleanup();
+    final socket = _socket;
+    if (socket != null) await _release(socket);
   }
 
-  void _cleanup() {
-    _keepAlive?.cancel();
-    _keepAlive = null;
-    unawaited(_socketSub?.cancel());
-    _socketSub = null;
-    _channel = null;
-    if (!(_controller?.isClosed ?? true)) {
-      unawaited(_controller?.close());
+  /// Lets go of [socket] — and of nothing else: a socket opened after it
+  /// is not touched, however late this one finishes closing.
+  Future<void> _release(_Socket socket, {bool closeChannel = true}) async {
+    if (identical(_socket, socket)) _socket = null;
+    socket.dispose();
+    if (closeChannel) {
+      try {
+        await socket.channel.sink.close();
+      } catch (_) {
+        // Already closed, or closing failed: there is nothing left to free.
+      }
     }
-    _controller = null;
   }
 
   JellyfinNotification? _decode(String message) {
@@ -307,4 +321,22 @@ extension JellyfinNotificationEvents on Stream<JellyfinNotification> {
   /// sessions, remote-control commands, refresh and task progress,
   /// keep-alives; [JellyfinUnknownEvent] for the rest.
   Stream<JellyfinEvent> events() => map((n) => n.event);
+}
+
+/// One open socket with what serves it.
+final class _Socket {
+  final WebSocketChannel channel;
+  final StreamController<JellyfinNotification> controller =
+      StreamController<JellyfinNotification>.broadcast();
+  StreamSubscription<Object?>? subscription;
+  Timer? keepAlive;
+
+  _Socket(this.channel);
+
+  /// Stops the keep-alive, the reading and the stream handed to the app.
+  void dispose() {
+    keepAlive?.cancel();
+    unawaited(subscription?.cancel());
+    if (!controller.isClosed) unawaited(controller.close());
+  }
 }
