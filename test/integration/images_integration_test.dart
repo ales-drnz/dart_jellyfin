@@ -39,7 +39,7 @@ void main() {
       final album = albums.items.single;
       final tag = album.primaryImageTag;
       if (tag == null) {
-        markTestSkipped('the seeded album has no cover');
+        skipOrFailOnCi('the seeded album has no cover');
         return;
       }
       final url = jf.images.pathUrl(

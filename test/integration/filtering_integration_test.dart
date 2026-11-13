@@ -73,7 +73,7 @@ void main() {
     test('items.list(genreIds:) with two genres returns their union', () async {
       final ids = genreIds;
       if (ids == null) {
-        markTestSkipped('Seed library has fewer than 2 audio genres.');
+        skipOrFailOnCi('Seed library has fewer than 2 audio genres.');
         return;
       }
 
@@ -119,7 +119,7 @@ void main() {
     test('items.count(genreIds:) agrees with items.list', () async {
       final ids = genreIds;
       if (ids == null) {
-        markTestSkipped('Seed library has fewer than 2 audio genres.');
+        skipOrFailOnCi('Seed library has fewer than 2 audio genres.');
         return;
       }
 

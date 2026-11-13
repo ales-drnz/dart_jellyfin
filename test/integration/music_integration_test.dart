@@ -212,7 +212,7 @@ void main() {
       );
       final track = bare.items.single;
       if (album.primaryImageTag == null) {
-        markTestSkipped('the seeded album has no cover');
+        skipOrFailOnCi('the seeded album has no cover');
         return;
       }
       expect(track.artworkItemId, album.id);
@@ -221,7 +221,7 @@ void main() {
 
     test('maxWidth + format=Jpg come back as a fitted JPEG', () async {
       if (album.primaryImageTag == null) {
-        markTestSkipped('the seeded album has no cover');
+        skipOrFailOnCi('the seeded album has no cover');
         return;
       }
       final res = await jf.requestBytes(

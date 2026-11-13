@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_jellyfin/dart_jellyfin.dart';
+import 'package:test/test.dart';
 
 const String _cacheFile = 'test/integration/.bootstrap-cache.json';
 
@@ -124,4 +125,15 @@ JellyfinClient jellyfinFromCache() {
   client.connect(cache.baseUrl);
   client.setSession(token: cache.token, userId: cache.userId);
   return client;
+}
+
+/// Skips the running test for something the seeded stack lacks — a cover,
+/// a second library, ffmpeg — but fails it on CI (`CI=true`), where the
+/// stack is seeded in full: there, a skip would hide the very check the
+/// test exists for.
+void skipOrFailOnCi(String reason) {
+  if (Platform.environment['CI'] == 'true') {
+    fail('Skipped on CI, where the stack must be complete: $reason');
+  }
+  markTestSkipped(reason);
 }

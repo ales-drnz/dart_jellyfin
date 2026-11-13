@@ -203,7 +203,7 @@ void main() {
         final views = await jf.library.userViews();
         final other = views.where((v) => !v.isMusic).toList();
         if (other.isEmpty) {
-          markTestSkipped('the stack has no library besides Music');
+          skipOrFailOnCi('the stack has no library besides Music');
           return;
         }
         final elsewhere = await jf.artists.musicArtists(
@@ -257,7 +257,7 @@ void main() {
           '-version',
         ]).then((r) => r.exitCode == 0, onError: (_) => false);
         if (!ffmpeg) {
-          markTestSkipped('needs ffmpeg to seed the second library');
+          skipOrFailOnCi('needs ffmpeg to seed the second library');
           return;
         }
         await Directory(dir).create(recursive: true);
