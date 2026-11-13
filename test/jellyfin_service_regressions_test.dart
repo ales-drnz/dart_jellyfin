@@ -145,4 +145,43 @@ void main() {
       expect(auth.accessToken, 'tok-2');
     });
   });
+
+  group('an answer without the id it was asked for is a parse error', () {
+    final parseError = throwsA(
+      isA<JellyfinException>().having(
+        (e) => e.type,
+        'type',
+        JellyfinErrorType.parse,
+      ),
+    );
+
+    setUp(() => adapter.body = '{}');
+
+    test('playlists.create', () async {
+      await expectLater(jf.playlists.create(name: 'p'), parseError);
+      adapter.body = '{"Id": 7}';
+      await expectLater(jf.playlists.create(name: 'p'), completes);
+      adapter.body = '{"Id": "pl-1"}';
+      expect((await jf.playlists.create(name: 'p')).id, 'pl-1');
+    });
+
+    test('user.create and user.currentUser', () async {
+      await expectLater(jf.user.create(name: 'n'), parseError);
+      await expectLater(jf.user.currentUser(), parseError);
+      adapter.body = '{"Id": "u-1", "Name": "n"}';
+      expect((await jf.user.create(name: 'n')).id, 'u-1');
+      expect((await jf.user.currentUser()).id, 'u-1');
+    });
+
+    test('quickConnect.initiate', () async {
+      await expectLater(jf.quickConnect.initiate(), parseError);
+      adapter.body = '{"Secret": "s", "Code": "123456"}';
+      expect((await jf.quickConnect.initiate()).code, '123456');
+    });
+
+    test('quickConnect.state with no body', () async {
+      adapter.body = '';
+      await expectLater(jf.quickConnect.state(secret: 's'), parseError);
+    });
+  });
 }

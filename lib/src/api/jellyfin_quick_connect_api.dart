@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_user_api.dart';
 
 /// Quick Connect flow.
@@ -32,26 +33,27 @@ class JellyfinQuickConnectApi {
   }
 
   /// Start a new Quick Connect attempt — returns the `Secret` to keep
-  /// (poll with it) and the `Code` to display to the user.
-  Future<JellyfinQuickConnectState> initiate() async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/QuickConnect/Initiate',
-      method: 'POST',
-    );
-    return JellyfinQuickConnectState.fromJson(res.data ?? const {});
-  }
+  /// (poll with it) and the `Code` to display to the user. An answer
+  /// without either is a `parse` error.
+  Future<JellyfinQuickConnectState> initiate() => _http.requestJson(
+    '/QuickConnect/Initiate',
+    requiredObjectOf(
+      JellyfinQuickConnectState.fromJson,
+      keys: const ['Secret', 'Code'],
+    ),
+    method: 'POST',
+  );
 
   /// Poll Quick Connect state.
   ///
   /// Once `authenticated` flips to true, call
   /// [JellyfinUserApi.authenticateWithQuickConnect] with the same secret.
-  Future<JellyfinQuickConnectState> state({required String secret}) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/QuickConnect/Connect',
-      queryParameters: {'secret': secret},
-    );
-    return JellyfinQuickConnectState.fromJson(res.data ?? const {});
-  }
+  Future<JellyfinQuickConnectState> state({required String secret}) =>
+      _http.requestJson(
+        '/QuickConnect/Connect',
+        requiredObjectOf(JellyfinQuickConnectState.fromJson),
+        queryParameters: {'secret': secret},
+      );
 
   /// Approve a code from an already-authenticated device — i.e. the
   /// "authorise other device" flow.

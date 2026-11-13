@@ -8,8 +8,6 @@ import 'package:meta/meta.dart';
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
@@ -82,8 +80,11 @@ class JellyfinPlaylistsApi {
     bool isPublic = false,
   }) async {
     final userId = _http.requireUserId();
-    final res = await _http.request<Map<String, Object?>>(
+    // POST returns `{ Id: "..." }`; an answer without the id is a parse
+    // error. The item is built here so the caller has one to display.
+    final (id, data) = await _http.requestJson(
       '/Playlists',
+      requiredObjectOf((json) => ('${json['Id']}', json), keys: const ['Id']),
       method: 'POST',
       data: {
         'Name': name,
@@ -93,16 +94,6 @@ class JellyfinPlaylistsApi {
         if (itemIds.isNotEmpty) 'Ids': itemIds,
       },
     );
-    final data = res.data;
-    if (data == null) {
-      throw const JellyfinException(
-        'Playlist create returned no body',
-        type: JellyfinErrorType.parse,
-      );
-    }
-    // POST returns `{ Id: "..." }` — fetch the playlist as an item so
-    // the caller gets a full JellyfinItem to display.
-    final id = (data['Id'] as String?) ?? '';
     if (itemIds.isNotEmpty) _wroteEntries(id);
     return JellyfinItem(
       id: id,

@@ -78,10 +78,12 @@ class JellyfinUserApi {
   }
 
   /// Current user (`/Users/Me`).
-  Future<JellyfinUser> currentUser() async {
-    final res = await _http.request<Map<String, Object?>>('/Users/Me');
-    return JellyfinUser.fromJson(res.data ?? const {});
-  }
+  ///
+  /// An answer without an `Id` is a `parse` error.
+  Future<JellyfinUser> currentUser() => _http.requestJson(
+    '/Users/Me',
+    requiredObjectOf(JellyfinUser.fromJson, keys: const ['Id']),
+  );
 
   /// Public users (`/Users/Public`) — does not require authentication,
   /// returns the avatars + names for the server's login picker.
@@ -116,15 +118,15 @@ class JellyfinUserApi {
   }
 
   /// `POST /Users/New?name={name}` — create a new user (admin only).
-  /// The server picks the user id.
-  Future<JellyfinUser> create({required String name, String? password}) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Users/New',
-      method: 'POST',
-      data: {'Name': name, 'Password': ?password},
-    );
-    return JellyfinUser.fromJson(res.data ?? const {});
-  }
+  /// The server picks the user id; an answer without one is a `parse`
+  /// error.
+  Future<JellyfinUser> create({required String name, String? password}) =>
+      _http.requestJson(
+        '/Users/New',
+        requiredObjectOf(JellyfinUser.fromJson, keys: const ['Id']),
+        method: 'POST',
+        data: {'Name': name, 'Password': ?password},
+      );
 
   /// `POST /Users?userId={id}` — replace a user's profile fields
   /// (admin only). Pass the full [JellyfinUser] body.
