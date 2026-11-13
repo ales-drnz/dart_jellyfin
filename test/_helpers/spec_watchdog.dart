@@ -11,10 +11,10 @@ import 'package:http/http.dart' as http;
 /// Jellyfin OpenAPI spec in `docs/jellyfin-openapi-stable.json` and
 /// the upstream copy at <https://api.jellyfin.org>.
 ///
-/// Used by `test/spec_drift_watchdog_test.dart`. Always informational
-/// — never fails, only prints a human-readable summary. Uses a 24h
-/// on-disk cache (`test/.spec_cache/`) so repeated runs don't hammer
-/// the network.
+/// Used by the `network`-tagged test of
+/// `test/spec_drift_watchdog_test.dart`, which a plain `dart test` skips.
+/// Informational: drift is printed, not failed on. Uses a 24h on-disk
+/// cache (`test/.spec_cache/`) so repeated runs don't hammer the network.
 
 const String _upstreamUrl =
     'https://api.jellyfin.org/openapi/jellyfin-openapi-stable.json';

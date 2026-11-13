@@ -12,10 +12,18 @@ tags:
   # Read-only checks against a server named by environment variables
   # (see test/live_server_test.dart).
   live:
+  # Tests that reach the internet (the upstream spec drift check). Run
+  # them with `dart test -P network test/spec_drift_watchdog_test.dart`.
+  network:
+    skip: 'reaches api.jellyfin.org: run with -P network'
 
 presets:
   integration:
     concurrency: 1
     tags:
       integration:
+        skip: false
+  network:
+    tags:
+      network:
         skip: false

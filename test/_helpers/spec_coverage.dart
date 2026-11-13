@@ -5,9 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Minimum share of the pinned spec's operations the typed wrappers
-/// reference. Enforced by `spec_drift_watchdog_test.dart`: a drop below
-/// it fails the suite, flagging that typed wrappers may have been removed.
+/// How many of the pinned spec's operations the typed wrappers reference,
+/// as measured. Enforced by `spec_drift_watchdog_test.dart`: one fewer
+/// fails the suite, flagging that a typed wrapper may have been removed.
+/// Raise it when a wrapper is added.
 ///
 /// Measured on 12.4 with 0.4.1: 331 of 346 operations (0.957). The 15
 /// left, as [jellyfinUncoveredOperations] lists them:
@@ -22,7 +23,7 @@ import 'dart:io';
 ///   `GET /Playlists/{playlistId}`.
 ///
 /// Lower it only after confirming the wrappers were removed on purpose.
-const double jellyfinLocalCoverageFloor = 0.95;
+const int jellyfinLocalCoverageFloor = 331;
 
 /// Approximate static coverage of the pinned Jellyfin spec by the typed
 /// wrappers, as `(matched, total)` operations. An operation is a method

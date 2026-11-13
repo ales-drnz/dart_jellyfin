@@ -65,14 +65,7 @@ const _allowedExtras = <String, Map<String, String>>{
 const _skipped = <String, String>{
   // Opens a WebSocket, not an HTTP request.
   'JellyfinNotificationsApi.connect': 'WebSocket',
-  'JellyfinNotificationsApi.disconnect': 'WebSocket',
   'JellyfinNotificationsApi.send': 'WebSocket',
-  'JellyfinNotificationsApi.startSessionsFeed': 'WebSocket',
-  'JellyfinNotificationsApi.stopSessionsFeed': 'WebSocket',
-  'JellyfinNotificationsApi.startScheduledTasksFeed': 'WebSocket',
-  'JellyfinNotificationsApi.stopScheduledTasksFeed': 'WebSocket',
-  'JellyfinNotificationsApi.startActivityLogFeed': 'WebSocket',
-  'JellyfinNotificationsApi.stopActivityLogFeed': 'WebSocket',
   'JellyfinNotificationsApi.startSessions': 'WebSocket',
   'JellyfinNotificationsApi.stopSessions': 'WebSocket',
   'JellyfinNotificationsApi.startScheduledTasks': 'WebSocket',
@@ -255,6 +248,7 @@ void main() {
         .map((v) => clientMirror.getField(v.simpleName))
         .where((m) => MirrorSystem.getName(m.type.simpleName).endsWith('Api'));
 
+    final skippedSeen = <String>{};
     for (final api in apis) {
       final apiName = MirrorSystem.getName(api.type.simpleName);
       final methods = api.type.declarations.values
@@ -269,7 +263,10 @@ void main() {
           );
       for (final m in methods) {
         final name = '$apiName.${MirrorSystem.getName(m.simpleName)}';
-        if (_skipped.containsKey(name)) continue;
+        if (_skipped.containsKey(name)) {
+          skippedSeen.add(name);
+          continue;
+        }
         final positional = <Object?>[];
         final named = <Symbol, Object?>{};
         var callable = true;
@@ -350,6 +347,11 @@ void main() {
     );
     expect(violations, isEmpty, reason: violations.join('\n'));
     expect(uncalled, isEmpty, reason: 'every method must be exercised');
+    expect(
+      _skipped.keys.toSet().difference(skippedSeen),
+      isEmpty,
+      reason: '_skipped names methods that no longer exist',
+    );
     expect(calls, greaterThan(250));
   });
 }

@@ -35,7 +35,7 @@ void main() {
           client: 'dart_jellyfin live tests',
           device: 'live-tests',
           deviceId: 'dart-jellyfin-live-tests',
-          version: '0.3.0',
+          version: 'live',
         ),
         baseUrl: _url,
         retryPolicy: const JellyfinRetryPolicy(),

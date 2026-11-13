@@ -7,69 +7,55 @@ import 'package:test/test.dart';
 import '_helpers/spec_coverage.dart';
 import '_helpers/spec_watchdog.dart';
 
-/// Two informational checks that run on every `dart test`:
+/// Two checks on the pinned Jellyfin OpenAPI document
+/// (`docs/jellyfin-openapi-stable.json`):
 ///
-/// 1. **Upstream drift**: compare the pinned Jellyfin OpenAPI spec
-///    against `api.jellyfin.org`. Reports added/removed endpoints.
-/// 2. **Local coverage**: approximate static count of how many spec
-///    operations (method and path) the library references in
-///    `lib/src/api/`. Lossy by
-///    design — a sudden drop is the signal worth investigating.
-///
-/// Upstream drift stays informational. Two floors are enforced: a
-/// sanity floor on the pinned-spec op count (guards against a corrupted
-/// or truncated `docs/jellyfin-openapi-stable.json` silently parsing to
-/// zero ops) and a local-coverage floor (fails the suite if a refactor
-/// removes a meaningful chunk of the typed wrappers). Real correctness is
-/// still enforced by the integration tests in `test/integration/`, which
-/// exercise the library against a real Jellyfin server in Docker.
+/// 1. **Local coverage**, on every `dart test`, offline: how many of its
+///    operations the typed wrappers in `lib/src/api/` reference. A drop
+///    below [jellyfinLocalCoverageFloor] fails: a wrapper went missing.
+/// 2. **Upstream drift**, tagged `network` and skipped by default: fetches
+///    the latest document from api.jellyfin.org and prints the operations
+///    added or removed since the pinned one. Run it with
+///    `dart test -P network test/spec_drift_watchdog_test.dart`; CI does on
+///    a schedule.
+///    Informational: drift is printed, not failed on.
 void main() {
+  test('local coverage of the pinned spec does not drop', () {
+    final cov = computeJellyfinLocalCoverage();
+    // ignore: avoid_print
+    print(
+      'ℹ Local static coverage: ${cov.matched}/${cov.total} spec '
+      'operations referenced in lib/src/api/ (approximate). Not '
+      'referenced: ${jellyfinUncoveredOperations().join(', ')}',
+    );
+
+    // The pinned document is read from disk. Far fewer operations than
+    // it holds means it is truncated or its structure changed.
+    expect(
+      cov.total,
+      greaterThan(300),
+      reason: 'the pinned Jellyfin spec parsed to too few operations',
+    );
+    expect(
+      cov.matched,
+      greaterThanOrEqualTo(jellyfinLocalCoverageFloor),
+      reason:
+          'local static coverage (${cov.matched}/${cov.total}) fell below '
+          'the measured $jellyfinLocalCoverageFloor: a typed wrapper may '
+          'have been removed. If that was intended, update '
+          'jellyfinLocalCoverageFloor in test/_helpers/spec_coverage.dart',
+    );
+  });
+
   test(
-    'upstream Jellyfin spec drift + local coverage (informational)',
+    'upstream Jellyfin spec drift (informational)',
     () async {
       final report = await runJellyfinSpecWatchdog();
       // ignore: avoid_print
       print(report.render());
-
-      // Sanity floor: the pinned spec is read from disk unconditionally
-      // (independent of network availability). If it ever parses to far
-      // fewer ops than the vendored spec actually contains, the pinned
-      // `docs/jellyfin-openapi-stable.json` is likely corrupted, truncated,
-      // or its structure changed — otherwise the watchdog would silently
-      // report "up to date (0 ops)".
-      expect(
-        report.pinnedCount,
-        greaterThan(300),
-        reason:
-            'pinned Jellyfin spec parsed to too few ops (have 346) — '
-            'likely corrupted or schema changed',
-      );
-
-      final cov = computeJellyfinLocalCoverage();
-      final ratio = cov.total == 0 ? 0.0 : cov.matched / cov.total;
-      final pct = ratio * 100;
-      // ignore: avoid_print
-      print(
-        'ℹ Local static coverage: ${cov.matched}/${cov.total} spec '
-        'operations referenced in lib/src/api/ '
-        '(~${pct.toStringAsFixed(0)}%, approximate). Not referenced: '
-        '${jellyfinUncoveredOperations().join(', ')}',
-      );
-
-      // Local coverage is a real regression tripwire (not just printed):
-      // removing a meaningful chunk of the typed wrappers drops this ratio
-      // below the committed floor and fails CI — the "sudden drop is the
-      // signal" mechanism the docstring promises.
-      expect(
-        ratio,
-        greaterThan(jellyfinLocalCoverageFloor),
-        reason:
-            'local static coverage (${cov.matched}/${cov.total}) fell below '
-            'the $jellyfinLocalCoverageFloor floor — typed API wrappers may '
-            'have been removed; if intentional, update '
-            'jellyfinLocalCoverageFloor in test/_helpers/spec_coverage.dart',
-      );
+      expect(report.pinnedCount, greaterThan(300));
     },
+    tags: 'network',
     timeout: const Timeout(Duration(seconds: 30)),
   );
 }
