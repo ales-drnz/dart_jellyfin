@@ -132,6 +132,45 @@ void main() {
       return sw.elapsed;
     }
 
+    test('a withCancelToken view waits out a write made through the '
+        'client, and the other way round', () async {
+      adapter.respond = (_) => CannedResponse(204, const []);
+      final view = client.withCancelToken(JellyfinCancelToken());
+      await client.playlists.addItems(playlistId: 'p', itemIds: ['a']);
+      expect(
+        await timed(() => view.playlists.rename(playlistId: 'p', name: 'n')),
+        greaterThanOrEqualTo(settle * 0.9),
+      );
+      await view.playlists.addItems(playlistId: 'q', itemIds: ['a']);
+      expect(
+        await timed(() => client.playlists.rename(playlistId: 'q', name: 'n')),
+        greaterThanOrEqualTo(settle * 0.9),
+      );
+    });
+
+    test('cancelling the view ends the wait; the rename is not sent', () async {
+      adapter.respond = (_) => CannedResponse(204, const []);
+      final token = JellyfinCancelToken();
+      final view = client.withCancelToken(token);
+      await view.playlists.addItems(playlistId: 'p', itemIds: ['a']);
+      final sent = adapter.requests.length;
+      final renaming = timed(
+        () => view.playlists.rename(playlistId: 'p', name: 'n'),
+      );
+      token.cancel();
+      await expectLater(
+        renaming,
+        throwsA(
+          isA<JellyfinException>().having(
+            (e) => e.isCancelled,
+            'isCancelled',
+            isTrue,
+          ),
+        ),
+      );
+      expect(adapter.requests, hasLength(sent));
+    });
+
     test('waits out renameSettle after addItems', () async {
       adapter.respond = (_) => CannedResponse(204, const []);
       await client.playlists.addItems(playlistId: 'p', itemIds: ['a']);
