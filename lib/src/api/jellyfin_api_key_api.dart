@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/Auth/Keys` — API key management.
 ///
@@ -40,6 +41,6 @@ class JellyfinApiKeyApi {
 
   /// `DELETE /Auth/Keys/{key}` — revoke an API key by its value.
   Future<void> revoke({required String key}) async {
-    await _http.request<void>('/Auth/Keys/$key', method: 'DELETE');
+    await _http.request<void>('/Auth/Keys/${seg(key)}', method: 'DELETE');
   }
 }

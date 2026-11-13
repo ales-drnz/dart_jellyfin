@@ -8,6 +8,7 @@ import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_playback_api.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/Sessions/*` — list active sessions, send remote-control commands,
 /// register your own client as a cast target.
@@ -160,7 +161,7 @@ class JellyfinSessionsApi {
       qp['controllingUserId'] = controllingUserId;
     }
     await _http.request<void>(
-      '/Sessions/$sessionId/Playing/$command',
+      '/Sessions/$sessionId/Playing/${seg(command)}',
       method: 'POST',
       queryParameters: qp.isEmpty ? null : qp,
     );
@@ -173,7 +174,7 @@ class JellyfinSessionsApi {
     required String command,
   }) async {
     await _http.request<void>(
-      '/Sessions/$sessionId/System/$command',
+      '/Sessions/$sessionId/System/${seg(command)}',
       method: 'POST',
     );
   }
@@ -186,7 +187,7 @@ class JellyfinSessionsApi {
     required String command,
   }) async {
     await _http.request<void>(
-      '/Sessions/$sessionId/Command/$command',
+      '/Sessions/$sessionId/Command/${seg(command)}',
       method: 'POST',
     );
   }

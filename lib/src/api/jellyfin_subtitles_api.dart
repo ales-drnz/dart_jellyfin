@@ -10,6 +10,7 @@ import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../transport/jellyfin_response.dart';
 import 'jellyfin_text_body.dart';
+import 'jellyfin_url_helpers.dart';
 import 'jellyfin_videos_api.dart';
 
 /// Subtitle endpoints — `Subtitle` OpenAPI tag.
@@ -65,9 +66,9 @@ class JellyfinSubtitlesApi {
     bool addVttTimeMap = false,
     int? vttTimestampMapMpegts,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       if (startPositionTicks != null)
         'StartPositionTicks': '$startPositionTicks',
       if (copyTimestamps) 'CopyTimestamps': 'true',
@@ -75,7 +76,7 @@ class JellyfinSubtitlesApi {
       if (vttTimestampMapMpegts != null)
         'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
     };
-    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format?${_encode(qp)}';
+    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format?${encodeQuery(qp)}';
   }
 
   /// Same as [streamUrl] but the server returns a sub-segment of the
@@ -94,15 +95,15 @@ class JellyfinSubtitlesApi {
     int? endPositionTicks,
     int? vttTimestampMapMpegts,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'StartPositionTicks': '$startPositionTicks',
       if (endPositionTicks != null) 'EndPositionTicks': '$endPositionTicks',
       if (vttTimestampMapMpegts != null)
         'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
     };
-    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/$startPositionTicks/Stream.$format?${_encode(qp)}';
+    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/$startPositionTicks/Stream.$format?${encodeQuery(qp)}';
   }
 
   // ─── Upload / delete ──────────────────────────────────────────────
@@ -153,7 +154,7 @@ class JellyfinSubtitlesApi {
     required String language,
     bool isPerfectMatch = false,
   }) => _http.requestJson(
-    '/Items/$itemId/RemoteSearch/Subtitles/$language',
+    '/Items/$itemId/RemoteSearch/Subtitles/${seg(language)}',
     queryParameters: {'isPerfectMatch': isPerfectMatch},
     listOf(JellyfinRemoteSubtitle.fromJson),
   );
@@ -205,7 +206,8 @@ class JellyfinSubtitlesApi {
 
   /// URL of a single fallback font, suitable for handing to libass.
   String fallbackFontUrl({required String name}) {
-    return '${_requireBaseUrl()}/FallbackFont/Fonts/$name?ApiKey=${_requireToken()}';
+    return '${_http.requireBaseUrl()}/FallbackFont/Fonts/${seg(name)}'
+        '${_http.apiKeyQuery}';
   }
 
   // ─── HLS subtitle playlist ────────────────────────────────────────
@@ -223,13 +225,13 @@ class JellyfinSubtitlesApi {
     required int segmentLength,
     int? vttTimestampMapMpegts,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       if (vttTimestampMapMpegts != null)
         'vttTimestampMapMpegts': '$vttTimestampMapMpegts',
     };
-    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/subtitles.m3u8?segmentLength=$segmentLength&${_encode(qp)}';
+    return '$base/Videos/$itemId/$mediaSourceId/Subtitles/$index/subtitles.m3u8?segmentLength=$segmentLength&${encodeQuery(qp)}';
   }
 
   /// Fetch the subtitle body as text. Returns null on 404.
@@ -282,30 +284,4 @@ class JellyfinSubtitlesApi {
       rethrow;
     }
   }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
-  }
-
-  String _encode(Map<String, String> qp) => qp.entries
-      .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-      .join('&');
 }

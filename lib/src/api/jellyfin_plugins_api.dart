@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/Plugins` — installed plugin management.
 ///
@@ -36,7 +37,10 @@ class JellyfinPluginsApi {
     required String pluginId,
     required String version,
   }) async {
-    await _http.request<void>('/Plugins/$pluginId/$version', method: 'DELETE');
+    await _http.request<void>(
+      '/Plugins/$pluginId/${seg(version)}',
+      method: 'DELETE',
+    );
   }
 
   /// `POST /Plugins/{pluginId}/{version}/Enable`.
@@ -64,9 +68,8 @@ class JellyfinPluginsApi {
   /// `GET /Plugins/{pluginId}/{version}/Image` — URL to the plugin
   /// thumbnail (signed with the session token).
   String imageUrl({required String pluginId, required String version}) {
-    final base = _http.baseUrl;
-    final token = _http.token ?? '';
-    return '$base/Plugins/$pluginId/$version/Image?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/Plugins/$pluginId/${seg(version)}'
+        '/Image${_http.apiKeyQuery}';
   }
 
   /// `GET /Plugins/{pluginId}/Configuration` — fetch a plugin's

@@ -11,6 +11,7 @@ import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_artists_api.dart';
 import 'jellyfin_filter_api.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/Items` — the backbone of Jellyfin browsing.
 ///
@@ -488,18 +489,15 @@ class JellyfinItemsApi {
   /// (`package:dart_jellyfin/io.dart`) or [JellyfinClient.requestStream] to
   /// stream it to disk.
   String downloadUrl({required String itemId}) {
-    final base = _http.baseUrl;
-    final token = _http.token ?? '';
-    return '$base/Items/$itemId/Download?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/Items/$itemId/Download'
+        '${_http.apiKeyQuery}';
   }
 
   /// `GET /Items/{itemId}/File` — same as [downloadUrl] but the
   /// upstream operation is `GetFile`. Some clients honour
   /// `Content-Disposition` here for original filename.
   String fileUrl({required String itemId}) {
-    final base = _http.baseUrl;
-    final token = _http.token ?? '';
-    return '$base/Items/$itemId/File?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/Items/$itemId/File${_http.apiKeyQuery}';
   }
 
   /// `GET /Items/{itemId}/SpecialFeatures` — bonus content (deleted

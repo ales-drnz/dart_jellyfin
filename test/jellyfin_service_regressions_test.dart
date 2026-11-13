@@ -184,4 +184,89 @@ void main() {
       await expectLater(jf.quickConnect.state(secret: 's'), parseError);
     });
   });
+
+  group('signed URL builders', () {
+    final stateError = throwsA(
+      isA<JellyfinException>().having(
+        (e) => e.type,
+        'type',
+        JellyfinErrorType.state,
+      ),
+    );
+
+    test('without a session they are a state error, not a broken URL', () {
+      jf.clearSession();
+      expect(() => jf.items.downloadUrl(itemId: 'i'), stateError);
+      expect(() => jf.items.fileUrl(itemId: 'i'), stateError);
+      expect(
+        () => jf.plugins.imageUrl(pluginId: 'p', version: '1.0'),
+        stateError,
+      );
+      expect(
+        () =>
+            jf.videos.attachmentUrl(videoId: 'v', mediaSourceId: 'm', index: 0),
+        stateError,
+      );
+    });
+
+    test('without a base URL they are a state error', () {
+      jf.disconnect();
+      expect(() => jf.items.downloadUrl(itemId: 'i'), stateError);
+    });
+
+    test('the token is percent-encoded', () {
+      jf.setSession(token: 'to k+&x', userId: 'user-1');
+      const signed = '?ApiKey=to+k%2B%26x';
+      expect(
+        jf.items.downloadUrl(itemId: 'i'),
+        'https://jf.example.test/Items/i/Download$signed',
+      );
+      expect(
+        jf.items.fileUrl(itemId: 'i'),
+        'https://jf.example.test/Items/i/File$signed',
+      );
+      expect(
+        jf.liveTv.liveRecordingStreamUrl(recordingId: 'r'),
+        'https://jf.example.test/LiveTv/LiveRecordings/r/stream$signed',
+      );
+      expect(Uri.parse(jf.items.downloadUrl(itemId: 'i')).queryParameters, {
+        'ApiKey': 'to k+&x',
+      });
+    });
+
+    test('a font name with a space or a slash stays one path segment', () {
+      expect(
+        jf.subtitles.fallbackFontUrl(name: 'Noto Sans/CJK.ttf'),
+        'https://jf.example.test/FallbackFont/Fonts/Noto%20Sans%2FCJK.ttf'
+        '?ApiKey=tok',
+      );
+    });
+  });
+
+  group('free-text path segments are percent-encoded', () {
+    setUp(() => adapter.respond = (_) => CannedResponse(204, const []));
+
+    test('sessions commands', () async {
+      await jf.sessions.sendCommand(sessionId: 's', command: 'Go Home/x');
+      expect(
+        adapter.last!.uri.toString(),
+        contains('/Sessions/s/Command/Go%20Home%2Fx'),
+      );
+    });
+
+    test('an API key', () async {
+      await jf.apiKey.revoke(key: 'a/b c');
+      expect(adapter.last!.uri.toString(), endsWith('/Auth/Keys/a%2Fb%20c'));
+    });
+
+    test('a subtitle language and a plugin version', () async {
+      adapter.respond = null;
+      adapter.body = '[]';
+      await jf.subtitles.searchRemote(itemId: 'i', language: 'pt/BR');
+      expect(adapter.last!.uri.path, endsWith('/Subtitles/pt%2FBR'));
+      adapter.respond = (_) => CannedResponse(204, const []);
+      await jf.plugins.uninstallVersion(pluginId: 'p', version: '1.0 beta');
+      expect(adapter.last!.uri.toString(), endsWith('/Plugins/p/1.0%20beta'));
+    });
+  });
 }

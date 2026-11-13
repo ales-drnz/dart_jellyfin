@@ -5,11 +5,10 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_credentials.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import 'jellyfin_audio_api.dart';
 import 'jellyfin_media_info_api.dart';
 import 'jellyfin_playback_api.dart';
+import 'jellyfin_url_helpers.dart';
 import 'jellyfin_videos_api.dart';
 
 /// HLS master / variant / segment URLs for both audio and video.
@@ -72,7 +71,7 @@ class JellyfinHlsApi {
       breakOnNonKeyFrames: breakOnNonKeyFrames,
       context: context,
     )..addAll(params);
-    return '${_requireBaseUrl()}/Audio/$itemId/master.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Audio/$itemId/master.m3u8?${encodeQuery(qp)}';
   }
 
   /// `GET /Audio/{itemId}/main.m3u8` — a single-variant playlist (when
@@ -137,7 +136,7 @@ class JellyfinHlsApi {
       breakOnNonKeyFrames: breakOnNonKeyFrames,
       context: context,
     )..addAll(params);
-    return '${_requireBaseUrl()}/Audio/$itemId/main.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Audio/$itemId/main.m3u8?${encodeQuery(qp)}';
   }
 
   /// `GET /Audio/{itemId}/hls1/{playlistId}/{segmentId}.{container}` —
@@ -152,11 +151,11 @@ class JellyfinHlsApi {
     String? playSessionId,
   }) {
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'PlaySessionId': ?playSessionId,
     };
-    return '${_requireBaseUrl()}/Audio/$itemId/hls1/$playlistId/$segmentId.$container?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Audio/$itemId/hls1/$playlistId/$segmentId.$container?${encodeQuery(qp)}';
   }
 
   // ─── Video ────────────────────────────────────────────────────────
@@ -203,7 +202,7 @@ class JellyfinHlsApi {
       tag: tag,
       breakOnNonKeyFrames: breakOnNonKeyFrames,
     )..addAll(params);
-    return '${_requireBaseUrl()}/Videos/$itemId/master.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/master.m3u8?${encodeQuery(qp)}';
   }
 
   /// `GET /Videos/{itemId}/main.m3u8` — single-variant playlist.
@@ -245,7 +244,7 @@ class JellyfinHlsApi {
       playSessionId: playSessionId,
       tag: tag,
     )..addAll(params);
-    return '${_requireBaseUrl()}/Videos/$itemId/main.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/main.m3u8?${encodeQuery(qp)}';
   }
 
   /// `GET /Videos/{itemId}/hls1/{playlistId}/{segmentId}.{container}` —
@@ -258,11 +257,11 @@ class JellyfinHlsApi {
     String? playSessionId,
   }) {
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'PlaySessionId': ?playSessionId,
     };
-    return '${_requireBaseUrl()}/Videos/$itemId/hls1/$playlistId/$segmentId.$container?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/hls1/$playlistId/$segmentId.$container?${encodeQuery(qp)}';
   }
 
   /// `GET /Videos/{itemId}/live.m3u8` — live (continuously updating)
@@ -278,7 +277,7 @@ class JellyfinHlsApi {
     Map<String, String> params = const {},
   }) {
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'MediaSourceId': ?mediaSourceId,
       'VideoCodec': ?videoCodec,
@@ -288,7 +287,7 @@ class JellyfinHlsApi {
       'PlaySessionId': ?playSessionId,
       ...params,
     };
-    return '${_requireBaseUrl()}/Videos/$itemId/live.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/live.m3u8?${encodeQuery(qp)}';
   }
 
   // ─── Legacy HLS (HlsSegment tag) ─────────────────────────────────
@@ -300,8 +299,8 @@ class JellyfinHlsApi {
     required String itemId,
     required int segmentId,
   }) {
-    final qp = <String, String>{'ApiKey': _requireToken()};
-    return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.aac?${_encode(qp)}';
+    final qp = <String, String>{'ApiKey': _http.requireToken()};
+    return '${_http.requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.aac?${encodeQuery(qp)}';
   }
 
   /// `GET /Audio/{itemId}/hls/{segmentId}/stream.mp3` — legacy
@@ -310,8 +309,8 @@ class JellyfinHlsApi {
     required String itemId,
     required int segmentId,
   }) {
-    final qp = <String, String>{'ApiKey': _requireToken()};
-    return '${_requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.mp3?${_encode(qp)}';
+    final qp = <String, String>{'ApiKey': _http.requireToken()};
+    return '${_http.requireBaseUrl()}/Audio/$itemId/hls/$segmentId/stream.mp3?${encodeQuery(qp)}';
   }
 
   /// `GET /Videos/{itemId}/hls/{playlistId}/{segmentId}.{segmentContainer}`
@@ -323,8 +322,8 @@ class JellyfinHlsApi {
     required int segmentId,
     required String segmentContainer,
   }) {
-    final qp = <String, String>{'ApiKey': _requireToken()};
-    return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/$segmentId.$segmentContainer?${_encode(qp)}';
+    final qp = <String, String>{'ApiKey': _http.requireToken()};
+    return '${_http.requireBaseUrl()}/Videos/$itemId/hls/$playlistId/$segmentId.$segmentContainer?${encodeQuery(qp)}';
   }
 
   /// `GET /Videos/{itemId}/hls/{playlistId}/stream.m3u8` — legacy
@@ -333,8 +332,8 @@ class JellyfinHlsApi {
     required String itemId,
     required String playlistId,
   }) {
-    final qp = <String, String>{'ApiKey': _requireToken()};
-    return '${_requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${_encode(qp)}';
+    final qp = <String, String>{'ApiKey': _http.requireToken()};
+    return '${_http.requireBaseUrl()}/Videos/$itemId/hls/$playlistId/stream.m3u8?${encodeQuery(qp)}';
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
@@ -360,7 +359,7 @@ class JellyfinHlsApi {
     String? context,
   }) {
     return <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'MediaSourceId': ?mediaSourceId,
       if (maxStreamingBitrate != null)
@@ -406,7 +405,7 @@ class JellyfinHlsApi {
     bool breakOnNonKeyFrames = false,
   }) {
     return <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'MediaSourceId': ?mediaSourceId,
       'VideoCodec': ?videoCodec,
@@ -428,30 +427,4 @@ class JellyfinHlsApi {
       if (breakOnNonKeyFrames) 'BreakOnNonKeyFrames': 'true',
     };
   }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
-  }
-
-  String _encode(Map<String, String> qp) => qp.entries
-      .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-      .join('&');
 }

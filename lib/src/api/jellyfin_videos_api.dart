@@ -4,12 +4,11 @@
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import 'jellyfin_audio_api.dart';
 import 'jellyfin_media_info_api.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// Video streaming, additional parts, alternate sources.
 ///
@@ -60,13 +59,13 @@ class JellyfinVideosApi {
     String? tag,
     Map<String, String> params = const {},
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final ext = container ?? '';
     final path = ext.isEmpty
         ? '/Videos/$itemId/stream'
         : '/Videos/$itemId/stream.$ext';
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
       'MediaSourceId': ?mediaSourceId,
@@ -88,7 +87,7 @@ class JellyfinVideosApi {
       'Tag': ?tag,
       ...params,
     };
-    return ('$base$path?${_encode(qp)}', ext);
+    return ('$base$path?${encodeQuery(qp)}', ext);
   }
 
   /// "Additional parts" — multi-file movies (CD1/CD2, parts/halves).
@@ -119,9 +118,8 @@ class JellyfinVideosApi {
     required String mediaSourceId,
     required int index,
   }) {
-    final base = _requireBaseUrl();
-    final token = _http.token ?? '';
-    return '$base/Videos/$videoId/$mediaSourceId/Attachments/$index?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/Videos/$videoId/$mediaSourceId'
+        '/Attachments/$index${_http.apiKeyQuery}';
   }
 
   /// `POST /Videos/MergeVersions?ids={ids}` — merge several videos
@@ -134,30 +132,4 @@ class JellyfinVideosApi {
       queryParameters: {'ids': ids},
     );
   }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
-  }
-
-  String _encode(Map<String, String> qp) => qp.entries
-      .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-      .join('&');
 }

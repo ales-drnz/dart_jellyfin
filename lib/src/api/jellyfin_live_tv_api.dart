@@ -4,11 +4,10 @@
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/LiveTv/*` — live TV channels, EPG, recordings, timers.
 ///
@@ -438,9 +437,8 @@ class JellyfinLiveTvApi {
   /// `GET /LiveTv/LiveRecordings/{recordingId}/stream` — URL for an
   /// in-progress live recording stream.
   String liveRecordingStreamUrl({required String recordingId}) {
-    final base = _requireBaseUrl();
-    final token = _requireToken();
-    return '$base/LiveTv/LiveRecordings/$recordingId/stream?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/LiveTv/LiveRecordings/$recordingId'
+        '/stream${_http.apiKeyQuery}';
   }
 
   /// `GET /LiveTv/LiveStreamFiles/{streamId}/stream.{container}` —
@@ -449,9 +447,8 @@ class JellyfinLiveTvApi {
     required String streamId,
     required String container,
   }) {
-    final base = _requireBaseUrl();
-    final token = _requireToken();
-    return '$base/LiveTv/LiveStreamFiles/$streamId/stream.$container?ApiKey=$token';
+    return '${_http.requireBaseUrl()}/LiveTv/LiveStreamFiles/$streamId'
+        '/stream.${seg(container)}${_http.apiKeyQuery}';
   }
 
   /// `GET /LiveTv/Recordings/Folders` — folder roots used for
@@ -492,27 +489,5 @@ class JellyfinLiveTvApi {
       queryParameters: qp.isEmpty ? null : qp,
       objectOrEmptyOf(JellyfinSeriesTimer.fromJson),
     );
-  }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
   }
 }

@@ -12,6 +12,7 @@ import '../jellyfin_exception.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
 import '../transport/jellyfin_cancel_token.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// Image URL builders + bytes fetch.
 ///
@@ -129,7 +130,7 @@ class JellyfinImagesApi {
     int? blur,
     String? backgroundColor,
   }) {
-    final base = _requireBase();
+    final base = _http.requireBaseUrl();
     final qp = _sizing(
       tag: tag,
       maxWidth: maxWidth,
@@ -181,7 +182,7 @@ class JellyfinImagesApi {
     int? blur,
     String? backgroundColor,
   }) {
-    final base = _requireBase();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
       if (quality != null) 'quality': '$quality',
       if (blur != null) 'blur': '$blur',
@@ -451,7 +452,7 @@ class JellyfinImagesApi {
   /// [formatBmp]/[formatGif]/[formatJpg]/[formatPng]/[formatWebp]/[formatSvg]
   /// constants.
   String userImageUrl({String? tag, String? format}) {
-    final base = _requireBase();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{};
     if (tag != null) qp['tag'] = tag;
     if (format != null) qp['format'] = format;
@@ -554,7 +555,7 @@ class JellyfinImagesApi {
   /// [formatBmp]/[formatGif]/[formatJpg]/[formatPng]/[formatWebp]/[formatSvg]
   /// constants.
   String splashscreenUrl({String? tag, String? format}) {
-    final base = _requireBase();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{};
     if (tag != null) qp['tag'] = tag;
     if (format != null) qp['format'] = format;
@@ -601,7 +602,7 @@ class JellyfinImagesApi {
     int? quality,
     String? format,
   }) {
-    final base = _requireBase();
+    final base = _http.requireBaseUrl();
     final qp = _sizing(
       tag: tag,
       maxWidth: maxWidth,
@@ -620,15 +621,4 @@ class JellyfinImagesApi {
   String _query(Map<String, String> qp) => qp.isEmpty
       ? ''
       : '?${qp.entries.map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}').join('&')}';
-
-  String _requireBase() {
-    final base = _http.baseUrl;
-    if (base == null) {
-      throw const JellyfinException(
-        'No base URL. Call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return base;
-  }
 }

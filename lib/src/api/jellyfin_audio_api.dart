@@ -7,6 +7,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// Audio streaming, lyrics, instant mix.
 ///
@@ -46,11 +47,11 @@ class JellyfinAudioApi {
     bool enableRemoteMedia = false,
     bool breakOnNonKeyFrames = false,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
       'UserId': _http.requireUserId(),
       'DeviceId': _http.credentials.deviceId,
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'Container': containers.join(','),
       'TranscodingContainer': transcodingContainer,
       'TranscodingProtocol': transcodingProtocol,
@@ -77,7 +78,7 @@ class JellyfinAudioApi {
     }
     if (startTimeTicks != null) qp['StartTimeTicks'] = '$startTimeTicks';
     if (playSessionId != null) qp['PlaySessionId'] = playSessionId;
-    return '$base/Audio/$itemId/universal?${_encode(qp)}';
+    return '$base/Audio/$itemId/universal?${encodeQuery(qp)}';
   }
 
   /// Direct (non-transcoded) audio stream URL — `/Audio/{id}/stream`.
@@ -94,18 +95,18 @@ class JellyfinAudioApi {
     bool isStatic = true,
     String? playSessionId,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final ext = container ?? '';
     final path = ext.isEmpty
         ? '/Audio/$itemId/stream'
         : '/Audio/$itemId/stream.$ext';
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       if (isStatic) 'Static': 'true',
       'PlaySessionId': ?playSessionId,
     };
-    return ('$base$path?${_encode(qp)}', ext);
+    return ('$base$path?${encodeQuery(qp)}', ext);
   }
 
   /// A progressive transcode — one file, not HLS segments — at
@@ -134,9 +135,9 @@ class JellyfinAudioApi {
     int? audioSampleRate,
     String? mediaSourceId,
   }) {
-    final base = _requireBaseUrl();
+    final base = _http.requireBaseUrl();
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'DeviceId': _http.credentials.deviceId,
       'Static': 'false',
       'PlaySessionId': playSessionId,
@@ -146,7 +147,10 @@ class JellyfinAudioApi {
       if (audioSampleRate != null) 'AudioSampleRate': '$audioSampleRate',
       'MediaSourceId': ?mediaSourceId,
     };
-    return ('$base/Audio/$itemId/stream.$container?${_encode(qp)}', container);
+    return (
+      '$base/Audio/$itemId/stream.$container?${encodeQuery(qp)}',
+      container,
+    );
   }
 
   /// Lyrics for a track, parsed into [JellyfinLyrics].
@@ -171,30 +175,4 @@ class JellyfinAudioApi {
       rethrow;
     }
   }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
-  }
-
-  String _encode(Map<String, String> qp) => qp.entries
-      .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-      .join('&');
 }

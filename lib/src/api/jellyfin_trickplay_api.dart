@@ -4,8 +4,7 @@
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
+import 'jellyfin_url_helpers.dart';
 
 /// `/Videos/{itemId}/Trickplay/{width}/{index}.jpg` — scrubbing
 /// thumbnails. A video item lists the resolutions the server generated
@@ -43,10 +42,10 @@ class JellyfinTrickplayApi {
     String? mediaSourceId,
   }) {
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'mediaSourceId': ?mediaSourceId,
     };
-    return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/$index.jpg?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/Trickplay/$width/$index.jpg?${encodeQuery(qp)}';
   }
 
   /// `/Videos/{itemId}/Trickplay/{width}/tiles.m3u8` — HLS playlist
@@ -61,35 +60,9 @@ class JellyfinTrickplayApi {
     String? mediaSourceId,
   }) {
     final qp = <String, String>{
-      'ApiKey': _requireToken(),
+      'ApiKey': _http.requireToken(),
       'mediaSourceId': ?mediaSourceId,
     };
-    return '${_requireBaseUrl()}/Videos/$itemId/Trickplay/$width/tiles.m3u8?${_encode(qp)}';
+    return '${_http.requireBaseUrl()}/Videos/$itemId/Trickplay/$width/tiles.m3u8?${encodeQuery(qp)}';
   }
-
-  String _requireBaseUrl() {
-    final url = _http.baseUrl;
-    if (url == null) {
-      throw const JellyfinException(
-        'No base URL — call JellyfinClient.connect() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return url;
-  }
-
-  String _requireToken() {
-    final t = _http.token;
-    if (t == null) {
-      throw const JellyfinException(
-        'No token — call JellyfinClient.setSession() first.',
-        type: JellyfinErrorType.state,
-      );
-    }
-    return t;
-  }
-
-  String _encode(Map<String, String> qp) => qp.entries
-      .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-      .join('&');
 }
