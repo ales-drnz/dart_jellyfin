@@ -2,6 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:meta/meta.dart';
+
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
@@ -31,27 +35,40 @@ class JellyfinPlaylistsApi {
 
   final JellyfinConnection _http;
 
-  /// Monotonic clock for [_entryWrites].
-  final Stopwatch _clock = Stopwatch()..start();
-
-  /// Playlist id → [_clock] time of the last entry write answered.
-  final Map<String, Duration> _entryWrites = {};
+  /// The entry writes [rename], [update] and [delete] wait out. Shared by
+  /// a client and its `withCancelToken` views: the server does not care
+  /// which of them wrote.
+  final _EntryWrites _writes;
 
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
-  JellyfinPlaylistsApi(this._http);
+  JellyfinPlaylistsApi(this._http) : _writes = _EntryWrites();
+
+  /// The playlists of a `withCancelToken` view: its own connection, and
+  /// the entry writes of [parent].
+  @internal
+  JellyfinPlaylistsApi.sharing(this._http, JellyfinPlaylistsApi parent)
+    : _writes = parent._writes;
 
   void _wroteEntries(String playlistId) =>
-      _entryWrites[playlistId] = _clock.elapsed;
+      _writes.at[playlistId] = _writes.clock.elapsed;
 
   /// Waits out what is left of [renameSettle] since the last entry write
-  /// to [playlistId]; returns at once when there was none.
+  /// to [playlistId]; returns at once when there was none. A cancel token
+  /// on the connection ends the wait: the request that follows then fails
+  /// as cancelled.
   Future<void> _settle(String playlistId) async {
-    final at = _entryWrites[playlistId];
+    final at = _writes.at[playlistId];
     if (at == null) return;
-    final left = renameSettle - (_clock.elapsed - at);
-    if (left > Duration.zero) await Future<void>.delayed(left);
+    final left = renameSettle - (_writes.clock.elapsed - at);
+    if (left > Duration.zero) {
+      final timer = Completer<void>();
+      final t = Timer(left, timer.complete);
+      final token = _http.scopeToken;
+      await Future.any([timer.future, ?token?.whenCancelled]);
+      t.cancel();
+    }
     // Another entry write may have landed while this one waited.
-    if (_entryWrites[playlistId] == at) _entryWrites.remove(playlistId);
+    if (_writes.at[playlistId] == at) _writes.at.remove(playlistId);
   }
 
   /// Create a new playlist for the current user.
@@ -176,7 +193,7 @@ class JellyfinPlaylistsApi {
   Future<void> delete({required String playlistId}) async {
     await _settle(playlistId);
     await _http.request<void>('/Items/$playlistId', method: 'DELETE');
-    _entryWrites.remove(playlistId);
+    _writes.at.remove(playlistId);
   }
 
   /// Rename a playlist.
@@ -316,4 +333,13 @@ class JellyfinPlaylistsApi {
       method: 'DELETE',
     );
   }
+}
+
+/// When each playlist's entries were last written.
+final class _EntryWrites {
+  /// Monotonic clock for [at].
+  final Stopwatch clock = Stopwatch()..start();
+
+  /// Playlist id → [clock] time of the last entry write answered.
+  final Map<String, Duration> at = {};
 }

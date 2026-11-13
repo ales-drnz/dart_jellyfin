@@ -2,6 +2,7 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -83,165 +84,183 @@ import 'transport/jellyfin_retry_policy.dart';
 class JellyfinClient {
   final JellyfinConnection _http;
 
+  /// The client this one is a [withCancelToken] view of, or `null`.
+  final JellyfinClient? _parent;
+
   /// `/System` operations — info, ping, restart, shutdown.
-  late final JellyfinSystemApi system;
+  late final JellyfinSystemApi system = JellyfinSystemApi(_http);
 
   /// `/Users` operations — login, list, manage.
-  late final JellyfinUserApi user;
+  late final JellyfinUserApi user = JellyfinUserApi(_http);
 
   /// `/QuickConnect` operations — passwordless device pairing.
-  late final JellyfinQuickConnectApi quickConnect;
+  late final JellyfinQuickConnectApi quickConnect = JellyfinQuickConnectApi(
+    _http,
+  );
 
   /// `/Library` operations — top-level library browsing and refresh.
-  late final JellyfinLibraryApi library;
+  late final JellyfinLibraryApi library = JellyfinLibraryApi(_http);
 
   /// `/Items` operations — query, fetch, and mutate library items.
-  late final JellyfinItemsApi items;
+  late final JellyfinItemsApi items = JellyfinItemsApi(_http);
 
   /// `/Playlists` operations — create, edit, and play playlists.
-  late final JellyfinPlaylistsApi playlists;
+  late final JellyfinPlaylistsApi playlists = switch (_parent) {
+    null => JellyfinPlaylistsApi(_http),
+    final parent => JellyfinPlaylistsApi.sharing(_http, parent.playlists),
+  };
 
   /// `/Search` operations — global hint search.
-  late final JellyfinSearchApi search;
+  late final JellyfinSearchApi search = JellyfinSearchApi(_http);
 
   /// `/Audio` streaming endpoints.
-  late final JellyfinAudioApi audio;
+  late final JellyfinAudioApi audio = JellyfinAudioApi(_http);
 
   /// `/Videos` streaming endpoints.
-  late final JellyfinVideosApi videos;
+  late final JellyfinVideosApi videos = JellyfinVideosApi(_http);
 
   /// HLS adaptive-streaming endpoints.
-  late final JellyfinHlsApi hls;
+  late final JellyfinHlsApi hls = JellyfinHlsApi(_http);
 
   /// `/MediaInfo` operations — playback info, bitrate testing.
-  late final JellyfinMediaInfoApi mediaInfo;
+  late final JellyfinMediaInfoApi mediaInfo = JellyfinMediaInfoApi(_http);
 
   /// `/Trickplay` operations — scrubbing thumbnails.
-  late final JellyfinTrickplayApi trickplay;
+  late final JellyfinTrickplayApi trickplay = JellyfinTrickplayApi(_http);
 
   /// `/Subtitles` operations — fetch and configure subtitle tracks.
-  late final JellyfinSubtitlesApi subtitles;
+  late final JellyfinSubtitlesApi subtitles = JellyfinSubtitlesApi(_http);
 
   /// `/Images` operations — poster, backdrop, and chapter artwork.
-  late final JellyfinImagesApi images;
+  late final JellyfinImagesApi images = JellyfinImagesApi(_http);
 
   /// Playback reporting — start, progress, stopped events.
-  late final JellyfinPlaybackApi playback;
+  late final JellyfinPlaybackApi playback = JellyfinPlaybackApi(_http);
 
   /// `/Sessions` operations — list and control active sessions.
-  late final JellyfinSessionsApi sessions;
+  late final JellyfinSessionsApi sessions = JellyfinSessionsApi(_http);
 
   /// `/UserData` operations — favourites, play state, ratings.
-  late final JellyfinUserDataApi userData;
+  late final JellyfinUserDataApi userData = JellyfinUserDataApi(_http);
 
   /// `/InstantMix` operations — generate on-the-fly mixes.
-  late final JellyfinInstantMixApi instantMix;
+  late final JellyfinInstantMixApi instantMix = JellyfinInstantMixApi(_http);
 
   /// `/LiveTv` operations — channels, recordings, EPG.
-  late final JellyfinLiveTvApi liveTv;
+  late final JellyfinLiveTvApi liveTv = JellyfinLiveTvApi(_http);
 
   /// `/SyncPlay` operations — group playback coordination.
-  late final JellyfinSyncPlayApi syncPlay;
+  late final JellyfinSyncPlayApi syncPlay = JellyfinSyncPlayApi(_http);
 
   /// `/Shows` operations — TV-show specific browsing helpers.
-  late final JellyfinTvShowsApi tvShows;
+  late final JellyfinTvShowsApi tvShows = JellyfinTvShowsApi(_http);
 
   /// `/Movies` operations — movie-specific browsing helpers.
-  late final JellyfinMoviesApi movies;
+  late final JellyfinMoviesApi movies = JellyfinMoviesApi(_http);
 
   /// `/Suggestions` operations — recommendations for a user.
-  late final JellyfinSuggestionsApi suggestions;
+  late final JellyfinSuggestionsApi suggestions = JellyfinSuggestionsApi(_http);
 
   /// `/MediaSegments` operations — intro/credit markers.
-  late final JellyfinMediaSegmentsApi mediaSegments;
+  late final JellyfinMediaSegmentsApi mediaSegments = JellyfinMediaSegmentsApi(
+    _http,
+  );
 
   /// `/Items/Filters` operations — facet/filter queries.
-  late final JellyfinFilterApi filter;
+  late final JellyfinFilterApi filter = JellyfinFilterApi(_http);
 
   /// `/Artists` operations — list and fetch music artists.
-  late final JellyfinArtistsApi artists;
+  late final JellyfinArtistsApi artists = JellyfinArtistsApi(_http);
 
   /// `/DisplayPreferences` operations — per-user UI state.
-  late final JellyfinDisplayPreferencesApi displayPreferences;
+  late final JellyfinDisplayPreferencesApi displayPreferences =
+      JellyfinDisplayPreferencesApi(_http);
 
   /// `/Lyrics` operations — fetch and upload synchronized lyrics.
-  late final JellyfinLyricsApi lyrics;
+  late final JellyfinLyricsApi lyrics = JellyfinLyricsApi(_http);
 
   /// `/Channels` operations — virtual channels (plugins).
-  late final JellyfinChannelsApi channels;
+  late final JellyfinChannelsApi channels = JellyfinChannelsApi(_http);
 
   /// `/Collections` operations — manage user-defined collections.
-  late final JellyfinCollectionApi collection;
+  late final JellyfinCollectionApi collection = JellyfinCollectionApi(_http);
 
   /// `/UserViews` operations — per-user library shortcuts.
-  late final JellyfinUserViewsApi userViews;
+  late final JellyfinUserViewsApi userViews = JellyfinUserViewsApi(_http);
 
   /// `/Persons` operations — list and fetch people (artists included
   /// since Jellyfin 12).
-  late final JellyfinPersonsApi persons;
+  late final JellyfinPersonsApi persons = JellyfinPersonsApi(_http);
 
   /// `/Studios` operations — list and fetch studios.
-  late final JellyfinStudiosApi studios;
+  late final JellyfinStudiosApi studios = JellyfinStudiosApi(_http);
 
   /// `/Genres` operations — list and fetch genres.
-  late final JellyfinGenresApi genres;
+  late final JellyfinGenresApi genres = JellyfinGenresApi(_http);
 
   /// `/Years` operations — list and fetch year groupings.
-  late final JellyfinYearsApi years;
+  late final JellyfinYearsApi years = JellyfinYearsApi(_http);
 
   /// `/Localization` operations — cultures, countries, options.
-  late final JellyfinLocalizationApi localization;
+  late final JellyfinLocalizationApi localization = JellyfinLocalizationApi(
+    _http,
+  );
 
   /// `/Items/RemoteSearch` operations — metadata provider lookup.
-  late final JellyfinItemLookupApi itemLookup;
+  late final JellyfinItemLookupApi itemLookup = JellyfinItemLookupApi(_http);
 
   /// `/Library/VirtualFolders` operations — manage library roots.
-  late final JellyfinLibraryStructureApi libraryStructure;
+  late final JellyfinLibraryStructureApi libraryStructure =
+      JellyfinLibraryStructureApi(_http);
 
   /// `/Plugins` operations — list, configure, uninstall plugins.
-  late final JellyfinPluginsApi plugins;
+  late final JellyfinPluginsApi plugins = JellyfinPluginsApi(_http);
 
   /// `/Packages` operations — repository catalog and install.
-  late final JellyfinPackagesApi packages;
+  late final JellyfinPackagesApi packages = JellyfinPackagesApi(_http);
 
   /// `/ScheduledTasks` operations — server background jobs.
-  late final JellyfinScheduledTasksApi scheduledTasks;
+  late final JellyfinScheduledTasksApi scheduledTasks =
+      JellyfinScheduledTasksApi(_http);
 
   /// `/System/Configuration` operations — server settings.
-  late final JellyfinConfigurationApi configuration;
+  late final JellyfinConfigurationApi configuration = JellyfinConfigurationApi(
+    _http,
+  );
 
   /// `/Environment` operations — server-host filesystem browsing.
-  late final JellyfinEnvironmentApi environment;
+  late final JellyfinEnvironmentApi environment = JellyfinEnvironmentApi(_http);
 
   /// `/Startup` operations — first-run wizard endpoints.
-  late final JellyfinStartupApi startup;
+  late final JellyfinStartupApi startup = JellyfinStartupApi(_http);
 
   /// `/Branding` operations — login splash, custom CSS.
-  late final JellyfinBrandingApi branding;
+  late final JellyfinBrandingApi branding = JellyfinBrandingApi(_http);
 
   /// `/Auth/Keys` operations — long-lived API key management.
-  late final JellyfinApiKeyApi apiKey;
+  late final JellyfinApiKeyApi apiKey = JellyfinApiKeyApi(_http);
 
   /// `/Backup` operations — server backup and restore.
-  late final JellyfinBackupApi backup;
+  late final JellyfinBackupApi backup = JellyfinBackupApi(_http);
 
   /// `/Dashboard` operations — admin dashboard data.
-  late final JellyfinDashboardApi dashboard;
+  late final JellyfinDashboardApi dashboard = JellyfinDashboardApi(_http);
 
   /// `/System/ActivityLog` operations — audit log entries.
-  late final JellyfinActivityLogApi activityLog;
+  late final JellyfinActivityLogApi activityLog = JellyfinActivityLogApi(_http);
 
   /// `/ClientLog` operations — client-side log submission.
-  late final JellyfinClientLogApi clientLog;
+  late final JellyfinClientLogApi clientLog = JellyfinClientLogApi(_http);
 
   /// `/RemoteImages` operations — fetch images from metadata providers.
-  late final JellyfinRemoteImageApi remoteImage;
+  late final JellyfinRemoteImageApi remoteImage = JellyfinRemoteImageApi(_http);
 
   /// `/Devices` operations — list and manage registered devices.
-  late final JellyfinDevicesApi devices;
+  late final JellyfinDevicesApi devices = JellyfinDevicesApi(_http);
 
   /// `/Notifications` operations — server notification feed.
-  late final JellyfinNotificationsApi notifications;
+  late final JellyfinNotificationsApi notifications =
+      _parent?.notifications ?? JellyfinNotificationsApi(_http);
 
   /// Creates a client bound to [credentials] and (optionally) a server URL.
   ///
@@ -276,14 +295,12 @@ class JellyfinClient {
          receiveTimeout: receiveTimeout,
          jsonIsolateThreshold: jsonIsolateThreshold,
          retryPolicy: retryPolicy,
-       ) {
-    _wire(JellyfinNotificationsApi(_http));
-  }
+       ),
+       _parent = null;
 
   JellyfinClient._scoped(JellyfinClient parent, JellyfinCancelToken token)
-    : _http = JellyfinConnection.scoped(parent._http, token) {
-    _wire(parent.notifications);
-  }
+    : _http = JellyfinConnection.scoped(parent._http, token),
+      _parent = parent;
 
   /// A view of this client whose every request is cancelled by
   /// [cancelToken].
@@ -307,62 +324,6 @@ class JellyfinClient {
   /// on this client: a WebSocket is not a request and is not cancelled.
   JellyfinClient withCancelToken(JellyfinCancelToken cancelToken) =>
       JellyfinClient._scoped(this, cancelToken);
-
-  void _wire(JellyfinNotificationsApi notifications) {
-    system = JellyfinSystemApi(_http);
-    user = JellyfinUserApi(_http);
-    quickConnect = JellyfinQuickConnectApi(_http);
-    library = JellyfinLibraryApi(_http);
-    items = JellyfinItemsApi(_http);
-    playlists = JellyfinPlaylistsApi(_http);
-    search = JellyfinSearchApi(_http);
-    audio = JellyfinAudioApi(_http);
-    videos = JellyfinVideosApi(_http);
-    hls = JellyfinHlsApi(_http);
-    mediaInfo = JellyfinMediaInfoApi(_http);
-    trickplay = JellyfinTrickplayApi(_http);
-    subtitles = JellyfinSubtitlesApi(_http);
-    images = JellyfinImagesApi(_http);
-    playback = JellyfinPlaybackApi(_http);
-    sessions = JellyfinSessionsApi(_http);
-    userData = JellyfinUserDataApi(_http);
-    instantMix = JellyfinInstantMixApi(_http);
-    liveTv = JellyfinLiveTvApi(_http);
-    syncPlay = JellyfinSyncPlayApi(_http);
-    tvShows = JellyfinTvShowsApi(_http);
-    movies = JellyfinMoviesApi(_http);
-    suggestions = JellyfinSuggestionsApi(_http);
-    mediaSegments = JellyfinMediaSegmentsApi(_http);
-    filter = JellyfinFilterApi(_http);
-    artists = JellyfinArtistsApi(_http);
-    displayPreferences = JellyfinDisplayPreferencesApi(_http);
-    lyrics = JellyfinLyricsApi(_http);
-    channels = JellyfinChannelsApi(_http);
-    collection = JellyfinCollectionApi(_http);
-    userViews = JellyfinUserViewsApi(_http);
-    persons = JellyfinPersonsApi(_http);
-    studios = JellyfinStudiosApi(_http);
-    genres = JellyfinGenresApi(_http);
-    years = JellyfinYearsApi(_http);
-    localization = JellyfinLocalizationApi(_http);
-    itemLookup = JellyfinItemLookupApi(_http);
-    libraryStructure = JellyfinLibraryStructureApi(_http);
-    plugins = JellyfinPluginsApi(_http);
-    packages = JellyfinPackagesApi(_http);
-    scheduledTasks = JellyfinScheduledTasksApi(_http);
-    configuration = JellyfinConfigurationApi(_http);
-    environment = JellyfinEnvironmentApi(_http);
-    startup = JellyfinStartupApi(_http);
-    branding = JellyfinBrandingApi(_http);
-    apiKey = JellyfinApiKeyApi(_http);
-    backup = JellyfinBackupApi(_http);
-    dashboard = JellyfinDashboardApi(_http);
-    activityLog = JellyfinActivityLogApi(_http);
-    clientLog = JellyfinClientLogApi(_http);
-    remoteImage = JellyfinRemoteImageApi(_http);
-    devices = JellyfinDevicesApi(_http);
-    this.notifications = notifications;
-  }
 
   /// Client identity sent on every request.
   JellyfinCredentials get credentials => _http.credentials;
@@ -394,6 +355,9 @@ class JellyfinClient {
   }
 
   /// Clear the active token + user id.
+  ///
+  /// An open [notifications] socket is left open: it was authenticated
+  /// when it connected. Close it with `notifications.close()`.
   void clearSession() {
     _http.token = null;
     _http.userId = null;
@@ -405,10 +369,14 @@ class JellyfinClient {
     _http.baseUrl = null;
   }
 
-  /// Closes the HTTP client this client created. Requests made afterwards
-  /// — through this client or any [withCancelToken] view — fail with
+  /// Closes the HTTP client this client created and the [notifications]
+  /// socket, if one is open. Requests made afterwards — through this
+  /// client or any [withCancelToken] view — fail with
   /// [JellyfinErrorType.state]. Does nothing to an injected `httpClient`.
-  void close() => _http.close();
+  void close() {
+    _http.close();
+    unawaited(notifications.close());
+  }
 
   /// Escape hatch: issue an arbitrary request through the same HTTP client
   /// and headers as the sub-APIs.

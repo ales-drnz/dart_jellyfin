@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../jellyfin_client.dart';
@@ -59,8 +60,16 @@ class JellyfinNotificationsApi {
   Timer? _keepAlive;
   StreamSubscription<Object?>? _socketSub;
 
+  final WebSocketChannel Function(Uri uri) _open;
+
   /// Wraps a [JellyfinConnection]; obtain through [JellyfinClient].
-  JellyfinNotificationsApi(this._http);
+  ///
+  /// [connector] opens the socket; tests pass one that answers a fake
+  /// channel.
+  JellyfinNotificationsApi(
+    this._http, {
+    @visibleForTesting WebSocketChannel Function(Uri uri)? connector,
+  }) : _open = connector ?? WebSocketChannel.connect;
 
   /// True while a socket is open.
   bool get isConnected => _channel != null;
@@ -103,7 +112,7 @@ class JellyfinNotificationsApi {
 
     final WebSocketChannel channel;
     try {
-      channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      channel = _open(Uri.parse(wsUrl));
       await channel.ready;
     } catch (e, st) {
       throw JellyfinException(
