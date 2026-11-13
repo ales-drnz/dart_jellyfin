@@ -149,9 +149,10 @@ class JellyfinMediaInfoApi {
   /// filled with `0`; [size] is caller-controlled and defaults to ~100 KB
   /// (102400 bytes, the spec default), up to a spec maximum of 100000000.
   Future<int?> bitrateTestBytesLength({int size = 102400}) async {
-    final res = await _http.request<List<int>>(
+    final res = await _http.requestBytes(
       '/Playback/BitrateTest',
       queryParameters: {'size': size},
+      absoluteUrl: false,
     );
     return res.data?.length;
   }
