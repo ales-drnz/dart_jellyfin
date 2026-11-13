@@ -4,6 +4,10 @@ on:
   push:
     branches: [main, 'release/**']
   pull_request:
+  # Weekly: the integration suite against Jellyfin in Docker and the
+  # upstream spec drift check, which no push runs.
+  schedule:
+    - cron: '17 4 * * 1'
   workflow_dispatch:
     inputs:
       integration:
@@ -60,6 +64,67 @@ jobs:
       # The integration suites are tagged and skipped here (dart_test.yaml).
       - run: dart test
 
+  test-web:
+    name: Test (compiled to JavaScript, on Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - run: dart pub get
+      # The web build of the library (transport/platform_web.dart, no
+      # isolates), through an injected client. The suites left out read
+      # files or use dart:io sockets or dart:mirrors.
+      - run: >-
+          dart test -p node
+          test/jellyfin_json_test.dart
+          test/jellyfin_models_test.dart
+          test/jellyfin_account_models_test.dart
+          test/jellyfin_config_models_test.dart
+          test/jellyfin_live_tv_models_test.dart
+          test/jellyfin_metadata_models_test.dart
+          test/jellyfin_plugin_models_test.dart
+          test/jellyfin_server_models_test.dart
+          test/jellyfin_storage_models_test.dart
+          test/jellyfin_dto_fields_test.dart
+          test/jellyfin_typed_answers_test.dart
+          test/jellyfin_paging_test.dart
+          test/jellyfin_browse_query_shape_test.dart
+          test/jellyfin_live_tv_api_test.dart
+          test/jellyfin_music_api_test.dart
+          test/jellyfin_service_regressions_test.dart
+          test/jellyfin_notifications_api_test.dart
+      # The example must compile for the web too.
+      - run: dart compile js example/dart_jellyfin_example.dart -o /tmp/example.js
+
+  downgrade:
+    name: Lowest dependency versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+        with:
+          sdk: '3.10.0'
+      # The package's own dependencies at the lowest versions the
+      # resolver allows, on the lowest SDK. Not a bare `dart pub
+      # downgrade`: that also takes the test runner's dependencies back
+      # to versions that no longer compile.
+      - run: dart pub get
+      - run: dart pub downgrade http meta web_socket_channel
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  spec-drift:
+    name: Upstream spec drift
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - run: dart pub get
+      # Prints the operations api.jellyfin.org added or removed since the
+      # pinned document (dart_test.yaml, the network tag).
+      - run: dart test -P network test/spec_drift_watchdog_test.dart
+
   publish:
     name: Publish dry run
     runs-on: ubuntu-latest
@@ -105,7 +170,7 @@ jobs:
 
   integration:
     name: Integration (Jellyfin in Docker)
-    if: github.event_name == 'workflow_dispatch' && inputs.integration
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.integration)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
