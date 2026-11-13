@@ -54,7 +54,8 @@ class JellyfinSearchApi {
       'includePeople': includePeople,
     };
     if (limit != null) qp['limit'] = limit;
-    if (userId != null) qp['userId'] = userId;
+    final user = userId ?? _http.userId;
+    if (user != null) qp['userId'] = user;
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;

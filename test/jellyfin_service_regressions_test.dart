@@ -106,4 +106,16 @@ void main() {
     await jf.videos.additionalParts(itemId: 'i');
     expect(adapter.query['userId'], ['user-1']);
   });
+
+  group('search.hints', () {
+    test('falls back to the session user', () async {
+      await jf.search.hints(query: 'x');
+      expect(adapter.query['userId'], ['user-1']);
+    });
+
+    test('an explicit userId wins', () async {
+      await jf.search.hints(query: 'x', userId: 'other');
+      expect(adapter.query['userId'], ['other']);
+    });
+  });
 }
