@@ -1,0 +1,12 @@
+# Commits that only move code. `git blame --ignore-revs-file
+# .git-blame-ignore-revs` (GitHub reads this file by itself) looks
+# through them to the commit that wrote each line.
+
+# The command and playback vocabularies move to jellyfin_vocabulary.dart
+863d3e08c07bb9b8914ce25491af605b20675541
+# The model files become libraries of their own
+bdb83d0cfc81fdf61cd06e2a30c1d7b53da11f77
+# Each model moves to the file of its domain
+41e3265fefb7bc7d6c3425b84c25294c0c36b422
+# Doc-only imports become @docImport
+2ef5617cff639f03380b84f15688bfaa7ba5644c
