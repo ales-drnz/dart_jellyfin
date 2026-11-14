@@ -107,12 +107,10 @@ class JellyfinUserApi {
   /// `GET /Users/{userId}` — fetch a single user by id (admin only).
   /// Returns null on 404.
   Future<JellyfinUser?> byId({required String userId}) async {
-    return nullOnNotFound(() async {
-      final res = await _http.request<Map<String, Object?>>('/Users/$userId');
-      final data = res.data;
-      if (data == null) return null;
-      return JellyfinUser.fromJson(data);
-    });
+    return _http.requestJsonOrNull(
+      '/Users/$userId',
+      objectOf(JellyfinUser.fromJson),
+    );
   }
 
   /// `POST /Users/New?name={name}` — create a new user (admin only).

@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_query_helpers.dart';
 import 'jellyfin_url_helpers.dart';
 
@@ -162,13 +163,9 @@ class JellyfinAudioApi {
   /// that names no item (12.2), so `null` does not tell the two apart.
   /// Other errors (a malformed id is a 400) are thrown.
   Future<JellyfinLyrics?> lyrics({required String itemId}) async {
-    return nullOnNotFound(() async {
-      final res = await _http.request<Map<String, Object?>>(
-        '/Audio/$itemId/Lyrics',
-      );
-      final data = res.data;
-      if (data == null) return null;
-      return JellyfinLyrics.fromJson(data);
-    });
+    return _http.requestJsonOrNull(
+      '/Audio/$itemId/Lyrics',
+      objectOf(JellyfinLyrics.fromJson),
+    );
   }
 }

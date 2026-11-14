@@ -74,14 +74,10 @@ class JellyfinYearsApi {
   /// `GET /Years/{year}` — lookup a single year. Returns null on 404.
   Future<JellyfinItem?> byYear({required int year}) async {
     final qp = <String, Object?>{'userId': ?_http.userId};
-    return nullOnNotFound(() async {
-      final res = await _http.request<Map<String, Object?>>(
-        '/Years/$year',
-        queryParameters: qp,
-      );
-      final data = res.data;
-      if (data == null) return null;
-      return JellyfinItem.fromJson(data);
-    });
+    return _http.requestJsonOrNull(
+      '/Years/$year',
+      objectOf(JellyfinItem.fromJson),
+      queryParameters: qp,
+    );
   }
 }

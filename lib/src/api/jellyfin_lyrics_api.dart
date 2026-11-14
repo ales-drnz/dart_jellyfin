@@ -36,14 +36,10 @@ class JellyfinLyricsApi {
   /// answers 404 both for a track without lyrics and for an id that names
   /// no item.
   Future<JellyfinLyrics?> forItem({required String itemId}) async {
-    return nullOnNotFound(() async {
-      final res = await _http.request<Map<String, Object?>>(
-        '/Audio/$itemId/Lyrics',
-      );
-      final data = res.data;
-      if (data == null) return null;
-      return JellyfinLyrics.fromJson(data);
-    });
+    return _http.requestJsonOrNull(
+      '/Audio/$itemId/Lyrics',
+      objectOf(JellyfinLyrics.fromJson),
+    );
   }
 
   /// `POST /Audio/{itemId}/Lyrics?fileName={name}` — upload a lyric

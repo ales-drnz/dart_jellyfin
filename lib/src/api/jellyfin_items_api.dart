@@ -356,15 +356,11 @@ class JellyfinItemsApi {
   /// `ids: [itemId]` if you need server-side field selection.
   Future<JellyfinItem?> byId({required String itemId}) async {
     final userId = _http.userId;
-    return nullOnNotFound(() async {
-      final res = await _http.request<Map<String, Object?>>(
-        '/Items/$itemId',
-        queryParameters: {'userId': ?userId},
-      );
-      final data = res.data;
-      if (data == null) return null;
-      return JellyfinItem.fromJson(data);
-    });
+    return _http.requestJsonOrNull(
+      '/Items/$itemId',
+      objectOf(JellyfinItem.fromJson),
+      queryParameters: {'userId': ?userId},
+    );
   }
 
   /// "Continue Listening / Watching" — items with playback position > 0.

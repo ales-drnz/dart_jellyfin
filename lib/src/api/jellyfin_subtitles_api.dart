@@ -6,9 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
-import '../transport/jellyfin_response.dart';
 import 'jellyfin_query_helpers.dart';
-import 'jellyfin_text_body.dart';
 import 'jellyfin_url_helpers.dart';
 import 'jellyfin_videos_api.dart';
 
@@ -181,15 +179,7 @@ class JellyfinSubtitlesApi {
   /// The route answers the subtitle file (`text/*`), not JSON; it is
   /// decoded like [fetch].
   Future<String?> getRemote({required String id}) async {
-    return nullOnNotFound(() async {
-      final res = await _http.request<List<int>>(
-        '/Providers/Subtitles/Subtitles/$id',
-        responseType: JellyfinResponseType.bytes,
-      );
-      final body = res.data;
-      if (body == null || body.isEmpty) return null;
-      return decodeTextBody(body, contentType: res.contentType);
-    });
+    return _http.requestTextOrNull('/Providers/Subtitles/Subtitles/$id');
   }
 
   // ─── Fallback fonts (libass) ──────────────────────────────────────
@@ -242,15 +232,9 @@ class JellyfinSubtitlesApi {
     required int index,
     String format = formatVtt,
   }) async {
-    return nullOnNotFound(() async {
-      final res = await _http.request<List<int>>(
-        '/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format',
-        responseType: JellyfinResponseType.bytes,
-      );
-      final body = res.data;
-      if (body == null || body.isEmpty) return null;
-      return decodeTextBody(body, contentType: res.contentType);
-    });
+    return _http.requestTextOrNull(
+      '/Videos/$itemId/$mediaSourceId/Subtitles/$index/Stream.$format',
+    );
   }
 
   /// `GET /Videos/{itemId}/{mediaSourceId}/Subtitles/{index}/{startPositionTicks}/Stream.{format}` —
@@ -265,14 +249,8 @@ class JellyfinSubtitlesApi {
     String format = formatVtt,
   }) async {
     final ticks = startPosition.inMilliseconds * 10000;
-    return nullOnNotFound(() async {
-      final res = await _http.request<List<int>>(
-        '/Videos/$itemId/$mediaSourceId/Subtitles/$index/$ticks/Stream.$format',
-        responseType: JellyfinResponseType.bytes,
-      );
-      final body = res.data;
-      if (body == null || body.isEmpty) return null;
-      return decodeTextBody(body, contentType: res.contentType);
-    });
+    return _http.requestTextOrNull(
+      '/Videos/$itemId/$mediaSourceId/Subtitles/$index/$ticks/Stream.$format',
+    );
   }
 }

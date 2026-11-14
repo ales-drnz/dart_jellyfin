@@ -7,6 +7,7 @@ library;
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_exception.dart';
+import 'jellyfin_text_body.dart';
 
 /// The answer of [call], or `null` when the server answers `404`: for a
 /// read of one thing by its id or name, a confirmed absence is an answer,
@@ -31,4 +32,15 @@ extension JellyfinLookups on JellyfinConnection {
   }) => nullOnNotFound(
     () => requestJson(path, parse, queryParameters: queryParameters),
   );
+
+  /// The body of a `GET` to [path] as text — a subtitle or lyric file —
+  /// decoded by its byte-order mark, then the response's `charset`, then
+  /// as UTF-8 with a Latin-1 fallback (see [decodeTextBody]). `null` on a
+  /// `404` and for an empty body.
+  Future<String?> requestTextOrNull(String path) => nullOnNotFound(() async {
+    final res = await requestBytes(path, absoluteUrl: false);
+    final body = res.data;
+    if (body == null || body.isEmpty) return null;
+    return decodeTextBody(body, contentType: res.contentType);
+  });
 }
