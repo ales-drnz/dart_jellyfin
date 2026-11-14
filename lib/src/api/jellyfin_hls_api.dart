@@ -2,14 +2,16 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import '../jellyfin_client.dart';
+/// @docImport '../jellyfin_client.dart';
+/// @docImport 'jellyfin_audio_api.dart';
+/// @docImport 'jellyfin_media_info_api.dart';
+/// @docImport 'jellyfin_playback_api.dart';
+/// @docImport 'jellyfin_videos_api.dart';
+library;
+
 import '../jellyfin_connection.dart';
 import '../jellyfin_credentials.dart';
-import 'jellyfin_audio_api.dart';
-import 'jellyfin_media_info_api.dart';
-import 'jellyfin_playback_api.dart';
 import 'jellyfin_url_helpers.dart';
-import 'jellyfin_videos_api.dart';
 
 /// HLS master / variant / segment URLs for both audio and video.
 ///

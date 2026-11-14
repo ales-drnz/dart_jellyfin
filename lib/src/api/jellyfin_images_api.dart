@@ -2,6 +2,9 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+/// @docImport '../jellyfin_client.dart';
+library;
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -12,7 +15,6 @@ import 'package:dart_jellyfin/src/jellyfin_models.dart' show JellyfinImageInfo;
 import 'package:dart_jellyfin/src/models/jellyfin_metadata_models.dart'
     show JellyfinImageInfo;
 
-import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_parsing.dart';
 import '../transport/jellyfin_cancel_token.dart';

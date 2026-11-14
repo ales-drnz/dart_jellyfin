@@ -2,13 +2,15 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+/// @docImport '../jellyfin_client.dart';
+library;
+
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_events.dart';

@@ -2,13 +2,15 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import '../jellyfin_client.dart';
+/// @docImport '../jellyfin_client.dart';
+/// @docImport 'jellyfin_instant_mix_api.dart';
+/// @docImport 'jellyfin_items_api.dart';
+library;
+
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
-import 'jellyfin_instant_mix_api.dart';
-import 'jellyfin_items_api.dart';
 import 'jellyfin_persons_api.dart';
 import 'jellyfin_query_helpers.dart';
 

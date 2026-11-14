@@ -5,9 +5,10 @@
 /// What the URL builders share: the URLs a player or an image widget
 /// opens itself, signed with `ApiKey` because it sends no auth header.
 /// Not exported.
+///
+/// @docImport '../jellyfin_client.dart';
 library;
 
-import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';

@@ -12,9 +12,10 @@
 /// `UserDataChanged` for a track also carries its album's entry, and an
 /// entry leaves `LastPlayedDate` out (rather than sending `null`) once the
 /// item is marked unplayed.
+///
+/// @docImport 'api/jellyfin_notifications_api.dart';
 library;
 
-import 'api/jellyfin_notifications_api.dart';
 import 'jellyfin_json.dart';
 import 'jellyfin_models.dart';
 
