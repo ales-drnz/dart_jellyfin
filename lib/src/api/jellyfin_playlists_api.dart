@@ -82,7 +82,7 @@ class JellyfinPlaylistsApi {
     List<String> itemIds = const [],
     bool isPublic = false,
   }) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     // POST returns `{ Id: "..." }`; an answer without the id is a parse
     // error. The item is built here so the caller has one to display.
     final (id, data) = await _http.requestJson(
@@ -91,7 +91,7 @@ class JellyfinPlaylistsApi {
       method: 'POST',
       data: {
         'Name': name,
-        'UserId': userId,
+        'UserId': ?userId,
         'MediaType': mediaType,
         'IsPublic': isPublic,
         if (itemIds.isNotEmpty) 'Ids': itemIds,
@@ -130,9 +130,9 @@ class JellyfinPlaylistsApi {
     int? limit,
     List<JellyfinItemField> fields = const [],
   }) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     final qp = <String, Object?>{
-      'userId': userId,
+      'userId': ?userId,
       'startIndex': startIndex,
       if (fields.isNotEmpty) 'fields': fields,
     };
@@ -150,11 +150,11 @@ class JellyfinPlaylistsApi {
     required List<String> itemIds,
   }) async {
     if (itemIds.isEmpty) return;
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     await _http.request<void>(
       '/Playlists/$playlistId/Items',
       method: 'POST',
-      queryParameters: {'ids': itemIds, 'userId': userId},
+      queryParameters: {'ids': itemIds, 'userId': ?userId},
     );
     _wroteEntries(playlistId);
   }

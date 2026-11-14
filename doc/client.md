@@ -93,6 +93,12 @@ call `clearSession()` first when the new server has other accounts.
 `token`, `userId`, `baseUrl` and `isAuthenticated` are read-only getters,
 so you can store the session and restore it with `setSession()`.
 
+Every call that acts for a user sends the session's `userId` when there
+is one and leaves it out otherwise: the server then acts for the user
+the token belongs to. No call needs a `userId` to be set; the calls that
+take a `userId:` of their own act for that user instead (an
+administrator's token only).
+
 ### Choosing the HTTP stack
 
 The transport is `package:http`, so any `http.Client` works. On Apple

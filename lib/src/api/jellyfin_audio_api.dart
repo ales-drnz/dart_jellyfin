@@ -48,7 +48,7 @@ class JellyfinAudioApi {
   }) {
     final base = _http.requireBaseUrl();
     final qp = <String, String>{
-      'UserId': _http.requireUserId(),
+      'UserId': ?_http.userId,
       'DeviceId': _http.credentials.deviceId,
       'ApiKey': _http.requireToken(),
       'Container': containers.join(','),

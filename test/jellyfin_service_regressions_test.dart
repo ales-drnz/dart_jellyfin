@@ -318,4 +318,59 @@ void main() {
       expect(await jf.playlists.byId(playlistId: 'p1'), isNull);
     });
   });
+
+  group('userId: sent when the session has one, left out otherwise', () {
+    final calls = <String, Future<Object?> Function(JellyfinClient)>{
+      'items.list': (jf) => jf.items.list(),
+      'items.count': (jf) => jf.items.count(),
+      'items.byId': (jf) => jf.items.byId(itemId: 'i'),
+      'items.resume': (jf) => jf.items.resume(),
+      'items.root': (jf) => jf.items.root(),
+      'items.intros': (jf) => jf.items.intros(itemId: 'i'),
+      'items.localTrailers': (jf) => jf.items.localTrailers(itemId: 'i'),
+      'items.specialFeatures': (jf) => jf.items.specialFeatures(itemId: 'i'),
+      'items.latest': (jf) => jf.items.latest(),
+      'library.userViews': (jf) => jf.library.userViews(),
+      'playlists.items': (jf) => jf.playlists.items(playlistId: 'p'),
+      'playlists.addItems': (jf) =>
+          jf.playlists.addItems(playlistId: 'p', itemIds: ['a']),
+    };
+
+    for (final MapEntry(key: name, value: call) in calls.entries) {
+      test(name, () async {
+        // These three answer a bare list.
+        const lists = {
+          'items.localTrailers',
+          'items.specialFeatures',
+          'items.latest',
+        };
+        if (lists.contains(name)) adapter.body = '[]';
+        await call(jf);
+        expect(adapter.query['userId'], ['user-1'], reason: 'with a user');
+        // A token alone: the server acts for the user it belongs to.
+        final tokenOnly = capturingClient(adapter)..clearSession();
+        await call(tokenOnly);
+        expect(adapter.rawQuery, isNot(contains('userId')));
+      });
+    }
+
+    test('playlists.create puts it in the body, or leaves it out', () async {
+      adapter.body = '{"Id": "pl"}';
+      await jf.playlists.create(name: 'n');
+      expect((adapter.last!.json! as Map)['UserId'], 'user-1');
+      jf.clearSession();
+      await jf.playlists.create(name: 'n');
+      expect((adapter.last!.json! as Map).containsKey('UserId'), isFalse);
+    });
+
+    test('audio.universalStreamUrl signs with the token alone', () {
+      final connection = capturingClient(adapter);
+      expect(
+        Uri.parse(
+          connection.audio.universalStreamUrl(itemId: 'i'),
+        ).queryParameters['UserId'],
+        'user-1',
+      );
+    });
+  });
 }

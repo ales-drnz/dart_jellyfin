@@ -309,7 +309,7 @@ class JellyfinItemsApi {
     required bool enableTotalRecordCount,
   }) {
     final qp = <String, Object?>{
-      'userId': _http.requireUserId(),
+      'userId': ?_http.userId,
       'recursive': recursive,
       'enableTotalRecordCount': enableTotalRecordCount,
     };
@@ -355,11 +355,11 @@ class JellyfinItemsApi {
   /// no `fields` parameter, so none is sent. Use [list] with
   /// `ids: [itemId]` if you need server-side field selection.
   Future<JellyfinItem?> byId({required String itemId}) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     return nullOnNotFound(() async {
       final res = await _http.request<Map<String, Object?>>(
         '/Items/$itemId',
-        queryParameters: {'userId': userId},
+        queryParameters: {'userId': ?userId},
       );
       final data = res.data;
       if (data == null) return null;
@@ -374,9 +374,9 @@ class JellyfinItemsApi {
     int startIndex = 0,
     int? limit,
   }) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     final qp = <String, Object?>{
-      'userId': userId,
+      'userId': ?userId,
       'startIndex': startIndex,
       'enableImages': true,
       'enableUserData': true,
@@ -394,10 +394,10 @@ class JellyfinItemsApi {
   /// `GET /Items/Root` — the user's root folder. Returned as a
   /// single [JellyfinItem]; treat it as the "Home" parent.
   Future<JellyfinItem?> root() async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     final res = await _http.request<Map<String, Object?>>(
       '/Items/Root',
-      queryParameters: {'userId': userId},
+      queryParameters: {'userId': ?userId},
     );
     final data = res.data;
     if (data == null) return null;
@@ -409,10 +409,10 @@ class JellyfinItemsApi {
   Future<JellyfinQueryResult<JellyfinItem>> intros({
     required String itemId,
   }) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     return _http.requestJson(
       '/Items/$itemId/Intros',
-      queryParameters: {'userId': userId},
+      queryParameters: {'userId': ?userId},
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -420,10 +420,10 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/LocalTrailers` — every local trailer file
   /// attached to the item (returned as a flat list).
   Future<List<JellyfinItem>> localTrailers({required String itemId}) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     return _http.requestJson(
       '/Items/$itemId/LocalTrailers',
-      queryParameters: {'userId': userId},
+      queryParameters: {'userId': ?userId},
       listOf(JellyfinItem.fromJson),
     );
   }
@@ -503,10 +503,10 @@ class JellyfinItemsApi {
   /// `GET /Items/{itemId}/SpecialFeatures` — bonus content (deleted
   /// scenes, behind-the-scenes, etc.) attached to a movie or show.
   Future<List<JellyfinItem>> specialFeatures({required String itemId}) async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     return _http.requestJson(
       '/Items/$itemId/SpecialFeatures',
-      queryParameters: {'userId': userId},
+      queryParameters: {'userId': ?userId},
       listOf(JellyfinItem.fromJson),
     );
   }
@@ -523,8 +523,8 @@ class JellyfinItemsApi {
     int limit = 20,
     bool? isPlayed,
   }) async {
-    final userId = _http.requireUserId();
-    final qp = <String, Object?>{'userId': userId, 'limit': limit};
+    final userId = _http.userId;
+    final qp = <String, Object?>{'userId': ?userId, 'limit': limit};
     if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;

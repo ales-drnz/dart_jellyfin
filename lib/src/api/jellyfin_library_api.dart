@@ -20,10 +20,10 @@ class JellyfinLibraryApi {
 
   /// The libraries visible to the current user.
   Future<List<JellyfinView>> userViews() async {
-    final userId = _http.requireUserId();
+    final userId = _http.userId;
     final res = await _http.request<Map<String, Object?>>(
       '/UserViews',
-      queryParameters: {'userId': userId},
+      queryParameters: {'userId': ?userId},
     );
     final result = JellyfinQueryResult.fromJson(
       res.data ?? const {},
