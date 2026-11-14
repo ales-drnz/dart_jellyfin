@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// `/DisplayPreferences/*` — per-client UI state, stored on the
 /// server so layout choices follow the user across devices.
@@ -28,11 +29,11 @@ class JellyfinDisplayPreferencesApi {
     required String client,
   }) async {
     final qp = <String, Object?>{'client': client, 'userId': ?_http.userId};
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/DisplayPreferences/${Uri.encodeComponent(displayPreferencesId)}',
+      objectOrEmptyOf(JellyfinDisplayPreferences.fromJson),
       queryParameters: qp,
     );
-    return JellyfinDisplayPreferences.fromJson(res.data ?? const {});
   }
 
   /// `POST /DisplayPreferences/{id}` — replace the document.

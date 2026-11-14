@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import 'jellyfin_audio_api.dart';
 import 'jellyfin_videos_api.dart';
 
@@ -41,11 +42,11 @@ class JellyfinMediaInfoApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/$itemId/PlaybackInfo',
+      objectOrEmptyOf(JellyfinPlaybackInfo.fromJson),
       queryParameters: {'userId': ?(userId ?? _http.userId)},
     );
-    return JellyfinPlaybackInfo.fromJson(res.data ?? const {});
   }
 
   /// POST `/Items/{itemId}/PlaybackInfo`. **Use this for video** — the
@@ -90,12 +91,12 @@ class JellyfinMediaInfoApi {
       'MediaSourceId': ?mediaSourceId,
       'LiveStreamId': ?liveStreamId,
     };
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/$itemId/PlaybackInfo',
+      objectOrEmptyOf(JellyfinPlaybackInfo.fromJson),
       method: 'POST',
       data: body,
     );
-    return JellyfinPlaybackInfo.fromJson(res.data ?? const {});
   }
 
   /// Open a live stream once `postedInfo()` returned a
@@ -126,12 +127,12 @@ class JellyfinMediaInfoApi {
       'ItemId': ?itemId,
       if (deviceProfile != null) 'DeviceProfile': deviceProfile.toJson(),
     };
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/LiveStreams/Open',
+      objectOrEmptyOf(JellyfinPlaybackInfo.fromJson),
       method: 'POST',
       data: body,
     );
-    return JellyfinPlaybackInfo.fromJson(res.data ?? const {});
   }
 
   /// Tear down a live stream previously opened via [openLiveStream].

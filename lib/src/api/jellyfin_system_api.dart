@@ -19,18 +19,20 @@ class JellyfinSystemApi {
 
   /// Authenticated server info (`GET /System/Info`).
   Future<JellyfinSystemInfo> info() async {
-    final res = await _http.request<Map<String, Object?>>('/System/Info');
-    return JellyfinSystemInfo.fromJson(res.data ?? const {});
+    return _http.requestJson(
+      '/System/Info',
+      objectOrEmptyOf(JellyfinSystemInfo.fromJson),
+    );
   }
 
   /// Unauthenticated server info (`GET /System/Info/Public`) — useful
   /// for testing reachability and confirming the URL really points at a
   /// Jellyfin server before asking the user for credentials.
   Future<JellyfinSystemInfo> publicInfo() async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/System/Info/Public',
+      objectOrEmptyOf(JellyfinSystemInfo.fromJson),
     );
-    return JellyfinSystemInfo.fromJson(res.data ?? const {});
   }
 
   /// `true` when the server replies to `/System/Info/Public`.

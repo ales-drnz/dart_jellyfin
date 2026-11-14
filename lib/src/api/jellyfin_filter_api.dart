@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
 
@@ -50,11 +51,11 @@ class JellyfinFilterApi {
     if (isNews != null) qp['isNews'] = isNews;
     if (isSeries != null) qp['isSeries'] = isSeries;
 
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/Filters2',
+      objectOrEmptyOf(JellyfinQueryFilters.fromJson),
       queryParameters: qp,
     );
-    return JellyfinQueryFilters.fromJson(res.data ?? const {});
   }
 
   /// `/Items/Filters` — legacy facet payload (flat string arrays plus
@@ -73,10 +74,10 @@ class JellyfinFilterApi {
     }
     if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
 
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/Items/Filters',
+      objectOrEmptyOf(JellyfinQueryFiltersLegacy.fromJson),
       queryParameters: qp,
     );
-    return JellyfinQueryFiltersLegacy.fromJson(res.data ?? const {});
   }
 }

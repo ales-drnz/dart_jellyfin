@@ -5,6 +5,7 @@
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
+import '../jellyfin_parsing.dart';
 
 /// Favourites and played flags, plus the unified user-data record.
 ///
@@ -34,12 +35,12 @@ class JellyfinUserDataApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserFavoriteItems/$itemId',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'POST',
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Remove favourite mark.
@@ -50,12 +51,12 @@ class JellyfinUserDataApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserFavoriteItems/$itemId',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'DELETE',
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Convenience wrapper — calls [markFavorite] or [unmarkFavorite] based on
@@ -79,8 +80,9 @@ class JellyfinUserDataApi {
     DateTime? datePlayed,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserPlayedItems/$itemId',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'POST',
       queryParameters: _userQuery(
         userId,
@@ -89,7 +91,6 @@ class JellyfinUserDataApi {
             : {'datePlayed': datePlayed.toUtc().toIso8601String()},
       ),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Remove played mark.
@@ -100,12 +101,12 @@ class JellyfinUserDataApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserPlayedItems/$itemId',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'DELETE',
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Fetch the current user's data for an item (favourite flag,
@@ -114,11 +115,11 @@ class JellyfinUserDataApi {
   /// [userId] targets another user's data (admin token only); defaults to
   /// the token's own user when omitted.
   Future<JellyfinUserData> get({required String itemId, String? userId}) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserItems/$itemId/UserData',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// `POST /UserItems/{itemId}/Rating?likes={bool}` — update the
@@ -131,12 +132,12 @@ class JellyfinUserDataApi {
     required bool likes,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserItems/$itemId/Rating',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'POST',
       queryParameters: _userQuery(userId, extra: {'likes': likes}),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// `DELETE /UserItems/{itemId}/Rating` — clear the user's
@@ -148,12 +149,12 @@ class JellyfinUserDataApi {
     required String itemId,
     String? userId,
   }) async {
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserItems/$itemId/Rating',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'DELETE',
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Update the user-data record on an item (e.g. set
@@ -181,13 +182,13 @@ class JellyfinUserDataApi {
                 .toIso8601String(),
           'Played': ?userData?.played,
         };
-    final res = await _http.request<Map<String, Object?>>(
+    return _http.requestJson(
       '/UserItems/$itemId/UserData',
+      objectOrEmptyOf(JellyfinUserData.fromJson),
       method: 'POST',
       data: body,
       queryParameters: _userQuery(userId),
     );
-    return JellyfinUserData.fromJson(res.data ?? const {});
   }
 
   /// Builds the `userId` query map shared by every method, defaulting to the
