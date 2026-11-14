@@ -8,6 +8,7 @@ import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_lookup_helpers.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Persons*` — actors, directors, composers, artists, etc.
 ///
@@ -51,31 +52,26 @@ class JellyfinPersonsApi {
     final qp = <String, Object?>{
       'enableUserData': enableUserData,
       'enableImages': enableImages,
-      'userId': ?_http.userId,
       'startIndex': ?startIndex,
-      'limit': ?limit,
+      ...browseQuery(
+        userId: _http.userId,
+        parentId: parentId,
+        searchTerm: searchTerm,
+        limit: limit,
+        fields: fields,
+        filters: filters,
+        isFavorite: isFavorite,
+        imageTypeLimit: imageTypeLimit,
+        enableImageTypes: enableImageTypes,
+        nameStartsWith: nameStartsWith,
+        nameStartsWithOrGreater: nameStartsWithOrGreater,
+        nameLessThan: nameLessThan,
+      ),
+      if (personTypes.isNotEmpty) 'personTypes': personTypes,
+      if (excludePersonTypes.isNotEmpty)
+        'excludePersonTypes': excludePersonTypes,
+      'appearsInItemId': ?appearsInItemId,
     };
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      qp['searchTerm'] = searchTerm;
-    }
-    if (parentId != null) qp['parentId'] = parentId;
-    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
-    if (nameStartsWithOrGreater != null) {
-      qp['nameStartsWithOrGreater'] = nameStartsWithOrGreater;
-    }
-    if (nameLessThan != null) qp['nameLessThan'] = nameLessThan;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (filters.isNotEmpty) qp['filters'] = filters;
-    if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
-    if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes;
-    }
-    if (personTypes.isNotEmpty) qp['personTypes'] = personTypes;
-    if (excludePersonTypes.isNotEmpty) {
-      qp['excludePersonTypes'] = excludePersonTypes;
-    }
-    if (appearsInItemId != null) qp['appearsInItemId'] = appearsInItemId;
 
     return _http.requestJson(
       '/Persons',

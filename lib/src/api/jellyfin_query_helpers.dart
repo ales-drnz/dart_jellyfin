@@ -7,6 +7,7 @@ library;
 
 import '../jellyfin_connection.dart';
 import '../jellyfin_exception.dart';
+import '../jellyfin_vocabulary.dart';
 import 'jellyfin_text_body.dart';
 
 /// The answer of [call], or `null` when the server answers `404`: for a
@@ -44,3 +45,48 @@ extension JellyfinLookups on JellyfinConnection {
     return decodeTextBody(body, contentType: res.contentType);
   });
 }
+
+/// The query entries the list routes for genres, studios, people, years
+/// and artists have in common, each left out when its argument is `null`
+/// or empty. A route's own entries go beside it:
+/// `{'startIndex': startIndex, ...browseQuery(...)}`.
+///
+/// [searchTerm] is left out when empty too, and `sortOrder` travels only
+/// with a [sortBy]: the server ignores an order without a column.
+Map<String, Object?> browseQuery({
+  String? userId,
+  String? parentId,
+  String? searchTerm,
+  int? limit,
+  List<JellyfinSortField> sortBy = const [],
+  bool descending = false,
+  List<JellyfinItemField> fields = const [],
+  List<JellyfinItemFilter> filters = const [],
+  List<JellyfinItemKind> includeItemTypes = const [],
+  List<JellyfinItemKind> excludeItemTypes = const [],
+  bool? isFavorite,
+  int? imageTypeLimit,
+  List<String> enableImageTypes = const [],
+  String? nameStartsWith,
+  String? nameStartsWithOrGreater,
+  String? nameLessThan,
+}) => {
+  'userId': ?userId,
+  'parentId': ?parentId,
+  if (searchTerm != null && searchTerm.isNotEmpty) 'searchTerm': searchTerm,
+  'limit': ?limit,
+  if (sortBy.isNotEmpty) ...{
+    'sortBy': sortBy,
+    'sortOrder': descending ? 'Descending' : 'Ascending',
+  },
+  if (fields.isNotEmpty) 'fields': fields,
+  if (filters.isNotEmpty) 'filters': filters,
+  if (includeItemTypes.isNotEmpty) 'includeItemTypes': includeItemTypes,
+  if (excludeItemTypes.isNotEmpty) 'excludeItemTypes': excludeItemTypes,
+  'isFavorite': ?isFavorite,
+  'imageTypeLimit': ?imageTypeLimit,
+  if (enableImageTypes.isNotEmpty) 'enableImageTypes': enableImageTypes,
+  'nameStartsWith': ?nameStartsWith,
+  'nameStartsWithOrGreater': ?nameStartsWithOrGreater,
+  'nameLessThan': ?nameLessThan,
+};

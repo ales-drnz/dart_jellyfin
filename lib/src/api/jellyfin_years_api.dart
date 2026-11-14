@@ -43,26 +43,20 @@ class JellyfinYearsApi {
       'recursive': recursive,
       'enableUserData': enableUserData,
       'enableImages': enableImages,
-      'userId': ?_http.userId,
-      'parentId': ?parentId,
-      'limit': ?limit,
+      ...browseQuery(
+        userId: _http.userId,
+        parentId: parentId,
+        limit: limit,
+        sortBy: sortBy,
+        descending: descending,
+        fields: fields,
+        includeItemTypes: includeItemTypes,
+        excludeItemTypes: excludeItemTypes,
+        imageTypeLimit: imageTypeLimit,
+        enableImageTypes: enableImageTypes,
+      ),
+      if (mediaTypes.isNotEmpty) 'mediaTypes': mediaTypes,
     };
-    if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy;
-      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
-    }
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes;
-    }
-    if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes;
-    }
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
-    if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes;
-    }
 
     return _http.requestJson(
       '/Years',

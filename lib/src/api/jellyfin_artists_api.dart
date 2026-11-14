@@ -10,6 +10,7 @@ import '../jellyfin_vocabulary.dart';
 import 'jellyfin_instant_mix_api.dart';
 import 'jellyfin_items_api.dart';
 import 'jellyfin_persons_api.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// Music artists, through the people routes.
 ///
@@ -242,24 +243,22 @@ class JellyfinArtistsApi {
       'startIndex': startIndex,
       'enableUserData': enableUserData,
       'enableImages': enableImages,
-      'userId': ?_http.userId,
-      'parentId': ?parentId,
+      ...browseQuery(
+        userId: _http.userId,
+        parentId: parentId,
+        searchTerm: searchTerm,
+        limit: limit,
+        sortBy: sortBy,
+        descending: descending,
+        fields: fields,
+        filters: filters,
+        isFavorite: isFavorite,
+        nameStartsWith: nameStartsWith,
+      ),
+      if (genreIds.isNotEmpty) 'genreIds': genreIds,
+      if (genres.isNotEmpty) 'genres': genres,
+      if (years.isNotEmpty) 'years': years,
     };
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      qp['searchTerm'] = searchTerm;
-    }
-    if (limit != null) qp['limit'] = limit;
-    if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy;
-      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
-    }
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (filters.isNotEmpty) qp['filters'] = filters;
-    if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (genreIds.isNotEmpty) qp['genreIds'] = genreIds;
-    if (genres.isNotEmpty) qp['genres'] = genres;
-    if (years.isNotEmpty) qp['years'] = years;
-    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
     return _http.requestJson(
       path,
       queryParameters: qp,

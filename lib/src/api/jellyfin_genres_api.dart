@@ -8,6 +8,7 @@ import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_lookup_helpers.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Genres*` — generic genres across the library.
 ///
@@ -64,34 +65,24 @@ class JellyfinGenresApi {
   }) async {
     final qp = <String, Object?>{
       'startIndex': startIndex,
-      'userId': ?_http.userId,
-      'parentId': ?parentId,
+      ...browseQuery(
+        userId: _http.userId,
+        parentId: parentId,
+        searchTerm: searchTerm,
+        limit: limit,
+        sortBy: sortBy,
+        descending: descending,
+        fields: fields,
+        includeItemTypes: includeItemTypes,
+        excludeItemTypes: excludeItemTypes,
+        isFavorite: isFavorite,
+        imageTypeLimit: imageTypeLimit,
+        enableImageTypes: enableImageTypes,
+        nameStartsWith: nameStartsWith,
+        nameStartsWithOrGreater: nameStartsWithOrGreater,
+        nameLessThan: nameLessThan,
+      ),
     };
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      qp['searchTerm'] = searchTerm;
-    }
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (includeItemTypes.isNotEmpty) {
-      qp['includeItemTypes'] = includeItemTypes;
-    }
-    if (excludeItemTypes.isNotEmpty) {
-      qp['excludeItemTypes'] = excludeItemTypes;
-    }
-    if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
-    if (enableImageTypes.isNotEmpty) {
-      qp['enableImageTypes'] = enableImageTypes;
-    }
-    if (nameStartsWith != null) qp['nameStartsWith'] = nameStartsWith;
-    if (nameStartsWithOrGreater != null) {
-      qp['nameStartsWithOrGreater'] = nameStartsWithOrGreater;
-    }
-    if (nameLessThan != null) qp['nameLessThan'] = nameLessThan;
-    if (sortBy.isNotEmpty) {
-      qp['sortBy'] = sortBy;
-      qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
-    }
 
     return _http.requestJson(
       '/Genres',
