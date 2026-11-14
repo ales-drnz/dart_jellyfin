@@ -9,97 +9,6 @@ import '../jellyfin_json.dart';
 import 'jellyfin_item_models.dart';
 
 // ---------------------------------------------------------------------------
-// Search hints
-// ---------------------------------------------------------------------------
-
-/// One match from `/Search/Hints` — a lightweight pointer into the library.
-final class JellyfinSearchHint {
-  /// Id of the matched item.
-  final String itemId;
-
-  /// Display name of the matched item.
-  final String? name;
-
-  /// Substring of the query that triggered the match, when reported.
-  final String? matchedTerm;
-
-  /// `BaseItemKind` of the matched item.
-  final String? type;
-
-  /// `MediaType` of the matched item.
-  final String? mediaType;
-
-  /// Album-artist string, for audio hits.
-  final String? albumArtist;
-
-  /// Album title, for audio hits.
-  final String? album;
-
-  /// Id of the owning album, for audio hits.
-  final String? albumId;
-
-  /// All artist names, for audio hits.
-  final List<String> artists;
-
-  /// Duration in ticks (10_000 per millisecond).
-  final int? runTimeTicks;
-
-  /// Track/episode number within the parent, when applicable.
-  final int? indexNumber;
-
-  /// Disc/season number (parent index) within the parent, when applicable.
-  final int? parentIndexNumber;
-
-  /// Release year, when applicable.
-  final int? productionYear;
-
-  /// Image tag for the `Primary` image.
-  final String? primaryImageTag;
-
-  /// Untouched response body for fields not lifted above.
-  final Map<String, Object?> raw;
-
-  /// Builds a search hint from already-parsed components.
-  const JellyfinSearchHint({
-    required this.itemId,
-    required this.artists,
-    required this.raw,
-    this.name,
-    this.matchedTerm,
-    this.type,
-    this.mediaType,
-    this.albumArtist,
-    this.album,
-    this.albumId,
-    this.runTimeTicks,
-    this.indexNumber,
-    this.parentIndexNumber,
-    this.productionYear,
-    this.primaryImageTag,
-  });
-
-  /// Decodes a search-hint entry; accepts both `Id` and legacy `ItemId` keys.
-  factory JellyfinSearchHint.fromJson(Map<String, Object?> json) =>
-      JellyfinSearchHint(
-        itemId: asString(json['Id']) ?? asString(json['ItemId']) ?? '',
-        name: asString(json['Name']),
-        matchedTerm: asString(json['MatchedTerm']),
-        type: asString(json['Type']),
-        mediaType: asString(json['MediaType']),
-        albumArtist: asString(json['AlbumArtist']),
-        album: asString(json['Album']),
-        albumId: asString(json['AlbumId']),
-        artists: asStringList(json['Artists']),
-        runTimeTicks: asInt(json['RunTimeTicks']),
-        indexNumber: asInt(json['IndexNumber']),
-        parentIndexNumber: asInt(json['ParentIndexNumber']),
-        productionYear: asInt(json['ProductionYear']),
-        primaryImageTag: asString(json['PrimaryImageTag']),
-        raw: json,
-      );
-}
-
-// ---------------------------------------------------------------------------
 // Sessions (now playing / remote control)
 // ---------------------------------------------------------------------------
 
@@ -271,6 +180,52 @@ final class JellyfinQueueItem {
       JellyfinQueueItem(
         itemId: asString(json['Id']) ?? '',
         playlistItemId: asString(json['PlaylistItemId']),
+        raw: json,
+      );
+}
+
+/// A SyncPlay group (`GroupInfoDto`).
+final class JellyfinSyncPlayGroup {
+  /// Group id.
+  final String id;
+
+  /// Group name.
+  final String name;
+
+  /// `Idle`, `Waiting`, `Paused` or `Playing`.
+  final String state;
+
+  /// Display names of the participants.
+  final List<String> participants;
+
+  /// When the group last changed.
+  final DateTime? lastUpdatedAt;
+
+  /// The decoded body.
+  final Map<String, Object?> raw;
+
+  /// Builds a group from already-parsed components.
+  const JellyfinSyncPlayGroup({
+    required this.id,
+    required this.name,
+    required this.state,
+    required this.participants,
+    required this.raw,
+    this.lastUpdatedAt,
+  });
+
+  /// Decodes a `GroupInfoDto`.
+  factory JellyfinSyncPlayGroup.fromJson(Map<String, Object?> json) =>
+      JellyfinSyncPlayGroup(
+        id: asString(json['GroupId']) ?? '',
+        name: asString(json['GroupName']) ?? '',
+        state: asString(json['State']) ?? '',
+        participants: [
+          if (json['Participants'] is List)
+            for (final p in json['Participants'] as List)
+              if (p != null) '$p',
+        ],
+        lastUpdatedAt: asUtcDateTime(json['LastUpdatedAt']),
         raw: json,
       );
 }

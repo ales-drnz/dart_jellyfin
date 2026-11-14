@@ -5,10 +5,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dart_jellyfin/dart_jellyfin.dart' show JellyfinImageInfo;
+
+import 'package:dart_jellyfin/src/jellyfin_models.dart' show JellyfinImageInfo;
+
+import 'package:dart_jellyfin/src/models/jellyfin_metadata_models.dart'
+    show JellyfinImageInfo;
+
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_parsing.dart';
-import '../jellyfin_server_models.dart';
 import '../transport/jellyfin_cancel_token.dart';
 import 'jellyfin_query_helpers.dart';
 import 'jellyfin_url_helpers.dart';

@@ -27,4 +27,5 @@ export 'models/jellyfin_plugin_models.dart';
 export 'models/jellyfin_query_result.dart';
 export 'models/jellyfin_session_models.dart';
 export 'models/jellyfin_storage_models.dart';
+export 'models/jellyfin_system_models.dart';
 export 'models/jellyfin_user_models.dart';

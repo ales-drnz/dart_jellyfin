@@ -296,3 +296,260 @@ final class JellyfinMovieRecommendation {
         raw: json,
       );
 }
+
+/// One match from `/Search/Hints` — a lightweight pointer into the library.
+final class JellyfinSearchHint {
+  /// Id of the matched item.
+  final String itemId;
+
+  /// Display name of the matched item.
+  final String? name;
+
+  /// Substring of the query that triggered the match, when reported.
+  final String? matchedTerm;
+
+  /// `BaseItemKind` of the matched item.
+  final String? type;
+
+  /// `MediaType` of the matched item.
+  final String? mediaType;
+
+  /// Album-artist string, for audio hits.
+  final String? albumArtist;
+
+  /// Album title, for audio hits.
+  final String? album;
+
+  /// Id of the owning album, for audio hits.
+  final String? albumId;
+
+  /// All artist names, for audio hits.
+  final List<String> artists;
+
+  /// Duration in ticks (10_000 per millisecond).
+  final int? runTimeTicks;
+
+  /// Track/episode number within the parent, when applicable.
+  final int? indexNumber;
+
+  /// Disc/season number (parent index) within the parent, when applicable.
+  final int? parentIndexNumber;
+
+  /// Release year, when applicable.
+  final int? productionYear;
+
+  /// Image tag for the `Primary` image.
+  final String? primaryImageTag;
+
+  /// Untouched response body for fields not lifted above.
+  final Map<String, Object?> raw;
+
+  /// Builds a search hint from already-parsed components.
+  const JellyfinSearchHint({
+    required this.itemId,
+    required this.artists,
+    required this.raw,
+    this.name,
+    this.matchedTerm,
+    this.type,
+    this.mediaType,
+    this.albumArtist,
+    this.album,
+    this.albumId,
+    this.runTimeTicks,
+    this.indexNumber,
+    this.parentIndexNumber,
+    this.productionYear,
+    this.primaryImageTag,
+  });
+
+  /// Decodes a search-hint entry; accepts both `Id` and legacy `ItemId` keys.
+  factory JellyfinSearchHint.fromJson(Map<String, Object?> json) =>
+      JellyfinSearchHint(
+        itemId: asString(json['Id']) ?? asString(json['ItemId']) ?? '',
+        name: asString(json['Name']),
+        matchedTerm: asString(json['MatchedTerm']),
+        type: asString(json['Type']),
+        mediaType: asString(json['MediaType']),
+        albumArtist: asString(json['AlbumArtist']),
+        album: asString(json['Album']),
+        albumId: asString(json['AlbumId']),
+        artists: asStringList(json['Artists']),
+        runTimeTicks: asInt(json['RunTimeTicks']),
+        indexNumber: asInt(json['IndexNumber']),
+        parentIndexNumber: asInt(json['ParentIndexNumber']),
+        productionYear: asInt(json['ProductionYear']),
+        primaryImageTag: asString(json['PrimaryImageTag']),
+        raw: json,
+      );
+}
+
+/// Jellyfin's "library" abstraction — what `/UserViews` returns.
+///
+/// `collectionType` is what tells you the library kind:
+/// `'movies' | 'tvshows' | 'music' | 'musicvideos' | 'photos' | 'books' |
+///  'livetv' | 'homevideos' | 'boxsets' | 'playlists' | 'folders' | null`.
+final class JellyfinView {
+  /// Stable server-side library id.
+  final String id;
+
+  /// Library display name.
+  final String name;
+
+  /// Library kind (`'music'`, `'movies'`, …); see class doc for full set.
+  final String? collectionType;
+
+  /// Image tag for the library's `Primary` poster.
+  final String? primaryImageTag;
+
+  /// Id of the server this library lives on.
+  final String? serverId;
+
+  /// Untouched response body for fields not lifted above.
+  final Map<String, Object?> raw;
+
+  /// Builds a view from already-parsed components.
+  const JellyfinView({
+    required this.id,
+    required this.name,
+    required this.raw,
+    this.collectionType,
+    this.primaryImageTag,
+    this.serverId,
+  });
+
+  /// Decodes a `/UserViews` entry, flattening `ImageTags.Primary` for convenience.
+  factory JellyfinView.fromJson(Map<String, Object?> json) {
+    final tags = json['ImageTags'];
+    return JellyfinView(
+      id: asString(json['Id']) ?? '',
+      name: asString(json['Name']) ?? '',
+      collectionType: asString(json['CollectionType']),
+      primaryImageTag: tags is Map ? asString(tags['Primary']) : null,
+      serverId: asString(json['ServerId']),
+      raw: json,
+    );
+  }
+
+  /// `true` when this view holds music.
+  bool get isMusic => collectionType == 'music';
+
+  /// `true` when this view holds movies.
+  bool get isMovies => collectionType == 'movies';
+
+  /// `true` when this view holds TV shows.
+  bool get isTvShows => collectionType == 'tvshows';
+
+  /// `true` when this view holds photos.
+  bool get isPhotos => collectionType == 'photos';
+}
+
+/// How many items of each kind a user can see (`/Items/Counts`).
+final class JellyfinItemCounts {
+  /// Tracks (`SongCount`).
+  final int songCount;
+
+  /// Albums (`AlbumCount`).
+  final int albumCount;
+
+  /// Artists (`ArtistCount`).
+  final int artistCount;
+
+  /// Music videos (`MusicVideoCount`).
+  final int musicVideoCount;
+
+  /// Movies (`MovieCount`).
+  final int movieCount;
+
+  /// Series (`SeriesCount`).
+  final int seriesCount;
+
+  /// Episodes (`EpisodeCount`).
+  final int episodeCount;
+
+  /// Collections (`BoxSetCount`).
+  final int boxSetCount;
+
+  /// Books (`BookCount`).
+  final int bookCount;
+
+  /// Audiobooks (`AudioBookCount`). Jellyfin 13.0 sends it; `null` from
+  /// 12.x, which counts audiobooks nowhere on their own.
+  final int? audioBookCount;
+
+  /// Trailers (`TrailerCount`).
+  final int trailerCount;
+
+  /// Live TV programs (`ProgramCount`).
+  final int programCount;
+
+  /// Every item (`ItemCount`).
+  final int itemCount;
+
+  /// The decoded body.
+  final Map<String, Object?> raw;
+
+  /// Builds item counts from already-parsed components.
+  const JellyfinItemCounts({
+    required this.songCount,
+    required this.albumCount,
+    required this.artistCount,
+    required this.musicVideoCount,
+    required this.movieCount,
+    required this.seriesCount,
+    required this.episodeCount,
+    required this.boxSetCount,
+    required this.bookCount,
+    required this.itemCount,
+    required this.raw,
+    this.audioBookCount,
+    this.trailerCount = 0,
+    this.programCount = 0,
+  });
+
+  /// Decodes an `ItemCounts` body; a missing count is 0.
+  factory JellyfinItemCounts.fromJson(Map<String, Object?> json) =>
+      JellyfinItemCounts(
+        songCount: asInt(json['SongCount']) ?? 0,
+        albumCount: asInt(json['AlbumCount']) ?? 0,
+        artistCount: asInt(json['ArtistCount']) ?? 0,
+        musicVideoCount: asInt(json['MusicVideoCount']) ?? 0,
+        movieCount: asInt(json['MovieCount']) ?? 0,
+        seriesCount: asInt(json['SeriesCount']) ?? 0,
+        episodeCount: asInt(json['EpisodeCount']) ?? 0,
+        boxSetCount: asInt(json['BoxSetCount']) ?? 0,
+        bookCount: asInt(json['BookCount']) ?? 0,
+        audioBookCount: asInt(json['AudioBookCount']),
+        trailerCount: asInt(json['TrailerCount']) ?? 0,
+        programCount: asInt(json['ProgramCount']) ?? 0,
+        itemCount: asInt(json['ItemCount']) ?? 0,
+        raw: json,
+      );
+}
+
+/// A user's access to a shared playlist (`PlaylistUserPermissions`).
+final class JellyfinPlaylistUserPermission {
+  /// The user.
+  final String userId;
+
+  /// Whether the user may edit the playlist.
+  final bool canEdit;
+
+  /// The decoded body.
+  final Map<String, Object?> raw;
+
+  /// Builds a permission from already-parsed components.
+  const JellyfinPlaylistUserPermission({
+    required this.userId,
+    required this.canEdit,
+    required this.raw,
+  });
+
+  /// Decodes `{UserId, CanEdit}`.
+  factory JellyfinPlaylistUserPermission.fromJson(Map<String, Object?> json) =>
+      JellyfinPlaylistUserPermission(
+        userId: asString(json['UserId']) ?? '',
+        canEdit: json['CanEdit'] == true,
+        raw: json,
+      );
+}

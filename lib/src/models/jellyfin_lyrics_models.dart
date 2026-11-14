@@ -237,3 +237,39 @@ final class JellyfinLyrics {
   /// Render as plain text (one line per entry, timestamps dropped).
   String toPlainText() => lines.map((l) => l.text).join('\n');
 }
+
+/// A lyric found by a lyric provider plugin (`RemoteLyricInfoDto`).
+final class JellyfinRemoteLyric {
+  /// Id to pass to `lyrics.downloadRemote` / `previewRemote`.
+  final String id;
+
+  /// The provider that found it.
+  final String? providerName;
+
+  /// The lyric itself, when the provider sent it with the result.
+  final JellyfinLyrics? lyrics;
+
+  /// The decoded body.
+  final Map<String, Object?> raw;
+
+  /// Builds a remote lyric from already-parsed components.
+  const JellyfinRemoteLyric({
+    required this.id,
+    required this.raw,
+    this.providerName,
+    this.lyrics,
+  });
+
+  /// Decodes a `RemoteLyricInfoDto`.
+  factory JellyfinRemoteLyric.fromJson(Map<String, Object?> json) {
+    final lyrics = json['Lyrics'];
+    return JellyfinRemoteLyric(
+      id: asString(json['Id']) ?? '',
+      providerName: asString(json['ProviderName']),
+      lyrics: lyrics is Map<String, Object?>
+          ? JellyfinLyrics.fromJson(lyrics)
+          : null,
+      raw: json,
+    );
+  }
+}

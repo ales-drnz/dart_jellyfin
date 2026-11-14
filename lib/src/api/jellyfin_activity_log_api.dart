@@ -6,7 +6,6 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
-import '../jellyfin_server_models.dart';
 
 /// `/System/ActivityLog` — recent server activity.
 ///

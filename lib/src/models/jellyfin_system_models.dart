@@ -2,15 +2,56 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-/// Typed answers of the server, device and housekeeping endpoints.
+/// The server itself: its identity, clock, tasks, devices and activity log.
 ///
 /// Every model keeps the decoded body in `raw`, so a field not lifted here
 /// is still one map lookup away. Shapes were checked against Jellyfin 12.2
 /// and 12.4 responses, not only the API document.
 library;
 
-import 'jellyfin_json.dart';
-import 'jellyfin_models.dart';
+import '../jellyfin_json.dart';
+
+/// Subset of `/System/Info` describing the remote server build.
+final class JellyfinSystemInfo {
+  /// Stable server-side id.
+  final String? id;
+
+  /// Operator-configured display name.
+  final String? serverName;
+
+  /// Server build version (e.g. `'10.9.11'`).
+  final String? version;
+
+  /// Product brand string (typically `'Jellyfin Server'`).
+  final String? productName;
+
+  /// Host operating system identifier.
+  final String? operatingSystem;
+
+  /// Untouched response body for fields not lifted above.
+  final Map<String, Object?> raw;
+
+  /// Builds a system-info DTO from already-parsed components.
+  const JellyfinSystemInfo({
+    required this.raw,
+    this.id,
+    this.serverName,
+    this.version,
+    this.productName,
+    this.operatingSystem,
+  });
+
+  /// Decodes the flat `/System/Info` payload.
+  factory JellyfinSystemInfo.fromJson(Map<String, Object?> json) =>
+      JellyfinSystemInfo(
+        id: asString(json['Id']),
+        serverName: asString(json['ServerName']),
+        version: asString(json['Version']),
+        productName: asString(json['ProductName']),
+        operatingSystem: asString(json['OperatingSystem']),
+        raw: json,
+      );
+}
 
 /// How the server sees this client's connection (`/System/Endpoint`).
 final class JellyfinEndpointInfo {
@@ -64,89 +105,6 @@ final class JellyfinUtcTime {
         responseTransmissionTime: asUtcDateTime(
           json['ResponseTransmissionTime'],
         ),
-        raw: json,
-      );
-}
-
-/// How many items of each kind a user can see (`/Items/Counts`).
-final class JellyfinItemCounts {
-  /// Tracks (`SongCount`).
-  final int songCount;
-
-  /// Albums (`AlbumCount`).
-  final int albumCount;
-
-  /// Artists (`ArtistCount`).
-  final int artistCount;
-
-  /// Music videos (`MusicVideoCount`).
-  final int musicVideoCount;
-
-  /// Movies (`MovieCount`).
-  final int movieCount;
-
-  /// Series (`SeriesCount`).
-  final int seriesCount;
-
-  /// Episodes (`EpisodeCount`).
-  final int episodeCount;
-
-  /// Collections (`BoxSetCount`).
-  final int boxSetCount;
-
-  /// Books (`BookCount`).
-  final int bookCount;
-
-  /// Audiobooks (`AudioBookCount`). Jellyfin 13.0 sends it; `null` from
-  /// 12.x, which counts audiobooks nowhere on their own.
-  final int? audioBookCount;
-
-  /// Trailers (`TrailerCount`).
-  final int trailerCount;
-
-  /// Live TV programs (`ProgramCount`).
-  final int programCount;
-
-  /// Every item (`ItemCount`).
-  final int itemCount;
-
-  /// The decoded body.
-  final Map<String, Object?> raw;
-
-  /// Builds item counts from already-parsed components.
-  const JellyfinItemCounts({
-    required this.songCount,
-    required this.albumCount,
-    required this.artistCount,
-    required this.musicVideoCount,
-    required this.movieCount,
-    required this.seriesCount,
-    required this.episodeCount,
-    required this.boxSetCount,
-    required this.bookCount,
-    required this.itemCount,
-    required this.raw,
-    this.audioBookCount,
-    this.trailerCount = 0,
-    this.programCount = 0,
-  });
-
-  /// Decodes an `ItemCounts` body; a missing count is 0.
-  factory JellyfinItemCounts.fromJson(Map<String, Object?> json) =>
-      JellyfinItemCounts(
-        songCount: asInt(json['SongCount']) ?? 0,
-        albumCount: asInt(json['AlbumCount']) ?? 0,
-        artistCount: asInt(json['ArtistCount']) ?? 0,
-        musicVideoCount: asInt(json['MusicVideoCount']) ?? 0,
-        movieCount: asInt(json['MovieCount']) ?? 0,
-        seriesCount: asInt(json['SeriesCount']) ?? 0,
-        episodeCount: asInt(json['EpisodeCount']) ?? 0,
-        boxSetCount: asInt(json['BoxSetCount']) ?? 0,
-        bookCount: asInt(json['BookCount']) ?? 0,
-        audioBookCount: asInt(json['AudioBookCount']),
-        trailerCount: asInt(json['TrailerCount']) ?? 0,
-        programCount: asInt(json['ProgramCount']) ?? 0,
-        itemCount: asInt(json['ItemCount']) ?? 0,
         raw: json,
       );
 }
@@ -383,172 +341,6 @@ final class JellyfinActivityLogEntry {
         userId: asString(json['UserId']),
         severity: asString(json['Severity']),
         overview: asString(json['Overview']),
-        raw: json,
-      );
-}
-
-/// One image of an item (`ImageInfo`, from `images.listItemImages`).
-final class JellyfinImageInfo {
-  /// `Primary`, `Backdrop`, `Logo`, …
-  final String type;
-
-  /// Index among images of the same type, when there are several.
-  final int? index;
-
-  /// Image tag — the version to pass as `tag`.
-  final String? tag;
-
-  /// BlurHash placeholder.
-  final String? blurHash;
-
-  /// Pixel width.
-  final int? width;
-
-  /// Pixel height.
-  final int? height;
-
-  /// File size in bytes.
-  final int? size;
-
-  /// Path on the server.
-  final String? path;
-
-  /// The decoded body.
-  final Map<String, Object?> raw;
-
-  /// Builds an image info from already-parsed components.
-  const JellyfinImageInfo({
-    required this.type,
-    required this.raw,
-    this.index,
-    this.tag,
-    this.blurHash,
-    this.width,
-    this.height,
-    this.size,
-    this.path,
-  });
-
-  /// Decodes an `ImageInfo`.
-  factory JellyfinImageInfo.fromJson(Map<String, Object?> json) =>
-      JellyfinImageInfo(
-        type: asString(json['ImageType']) ?? '',
-        index: asInt(json['ImageIndex']),
-        tag: asString(json['ImageTag']),
-        blurHash: asString(json['BlurHash']),
-        width: asInt(json['Width']),
-        height: asInt(json['Height']),
-        size: asInt(json['Size']),
-        path: asString(json['Path']),
-        raw: json,
-      );
-}
-
-/// A lyric found by a lyric provider plugin (`RemoteLyricInfoDto`).
-final class JellyfinRemoteLyric {
-  /// Id to pass to `lyrics.downloadRemote` / `previewRemote`.
-  final String id;
-
-  /// The provider that found it.
-  final String? providerName;
-
-  /// The lyric itself, when the provider sent it with the result.
-  final JellyfinLyrics? lyrics;
-
-  /// The decoded body.
-  final Map<String, Object?> raw;
-
-  /// Builds a remote lyric from already-parsed components.
-  const JellyfinRemoteLyric({
-    required this.id,
-    required this.raw,
-    this.providerName,
-    this.lyrics,
-  });
-
-  /// Decodes a `RemoteLyricInfoDto`.
-  factory JellyfinRemoteLyric.fromJson(Map<String, Object?> json) {
-    final lyrics = json['Lyrics'];
-    return JellyfinRemoteLyric(
-      id: asString(json['Id']) ?? '',
-      providerName: asString(json['ProviderName']),
-      lyrics: lyrics is Map<String, Object?>
-          ? JellyfinLyrics.fromJson(lyrics)
-          : null,
-      raw: json,
-    );
-  }
-}
-
-/// A SyncPlay group (`GroupInfoDto`).
-final class JellyfinSyncPlayGroup {
-  /// Group id.
-  final String id;
-
-  /// Group name.
-  final String name;
-
-  /// `Idle`, `Waiting`, `Paused` or `Playing`.
-  final String state;
-
-  /// Display names of the participants.
-  final List<String> participants;
-
-  /// When the group last changed.
-  final DateTime? lastUpdatedAt;
-
-  /// The decoded body.
-  final Map<String, Object?> raw;
-
-  /// Builds a group from already-parsed components.
-  const JellyfinSyncPlayGroup({
-    required this.id,
-    required this.name,
-    required this.state,
-    required this.participants,
-    required this.raw,
-    this.lastUpdatedAt,
-  });
-
-  /// Decodes a `GroupInfoDto`.
-  factory JellyfinSyncPlayGroup.fromJson(Map<String, Object?> json) =>
-      JellyfinSyncPlayGroup(
-        id: asString(json['GroupId']) ?? '',
-        name: asString(json['GroupName']) ?? '',
-        state: asString(json['State']) ?? '',
-        participants: [
-          if (json['Participants'] is List)
-            for (final p in json['Participants'] as List)
-              if (p != null) '$p',
-        ],
-        lastUpdatedAt: asUtcDateTime(json['LastUpdatedAt']),
-        raw: json,
-      );
-}
-
-/// A user's access to a shared playlist (`PlaylistUserPermissions`).
-final class JellyfinPlaylistUserPermission {
-  /// The user.
-  final String userId;
-
-  /// Whether the user may edit the playlist.
-  final bool canEdit;
-
-  /// The decoded body.
-  final Map<String, Object?> raw;
-
-  /// Builds a permission from already-parsed components.
-  const JellyfinPlaylistUserPermission({
-    required this.userId,
-    required this.canEdit,
-    required this.raw,
-  });
-
-  /// Decodes `{UserId, CanEdit}`.
-  factory JellyfinPlaylistUserPermission.fromJson(Map<String, Object?> json) =>
-      JellyfinPlaylistUserPermission(
-        userId: asString(json['UserId']) ?? '',
-        canEdit: json['CanEdit'] == true,
         raw: json,
       );
 }

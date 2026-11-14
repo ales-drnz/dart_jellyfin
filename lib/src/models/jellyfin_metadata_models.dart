@@ -643,3 +643,60 @@ final class JellyfinVirtualFolder {
         raw: json,
       );
 }
+
+/// One image of an item (`ImageInfo`, from `images.listItemImages`).
+final class JellyfinImageInfo {
+  /// `Primary`, `Backdrop`, `Logo`, …
+  final String type;
+
+  /// Index among images of the same type, when there are several.
+  final int? index;
+
+  /// Image tag — the version to pass as `tag`.
+  final String? tag;
+
+  /// BlurHash placeholder.
+  final String? blurHash;
+
+  /// Pixel width.
+  final int? width;
+
+  /// Pixel height.
+  final int? height;
+
+  /// File size in bytes.
+  final int? size;
+
+  /// Path on the server.
+  final String? path;
+
+  /// The decoded body.
+  final Map<String, Object?> raw;
+
+  /// Builds an image info from already-parsed components.
+  const JellyfinImageInfo({
+    required this.type,
+    required this.raw,
+    this.index,
+    this.tag,
+    this.blurHash,
+    this.width,
+    this.height,
+    this.size,
+    this.path,
+  });
+
+  /// Decodes an `ImageInfo`.
+  factory JellyfinImageInfo.fromJson(Map<String, Object?> json) =>
+      JellyfinImageInfo(
+        type: asString(json['ImageType']) ?? '',
+        index: asInt(json['ImageIndex']),
+        tag: asString(json['ImageTag']),
+        blurHash: asString(json['BlurHash']),
+        width: asInt(json['Width']),
+        height: asInt(json['Height']),
+        size: asInt(json['Size']),
+        path: asString(json['Path']),
+        raw: json,
+      );
+}
