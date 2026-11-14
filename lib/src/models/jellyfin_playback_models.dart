@@ -247,24 +247,3 @@ final class JellyfinMediaSegment {
         raw: json,
       );
 }
-
-/// Canonical [JellyfinMediaSegment.type] values.
-abstract final class JellyfinMediaSegmentType {
-  /// Unclassified segment.
-  static const unknown = 'Unknown';
-
-  /// Commercial break.
-  static const commercial = 'Commercial';
-
-  /// "Next on…" or upcoming-content preview.
-  static const preview = 'Preview';
-
-  /// Recap of previous episodes.
-  static const recap = 'Recap';
-
-  /// Closing/outro sequence.
-  static const outro = 'Outro';
-
-  /// Opening/intro sequence.
-  static const intro = 'Intro';
-}

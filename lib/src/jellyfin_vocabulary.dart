@@ -13,6 +13,10 @@
 /// server's) is still one constructor away: `JellyfinItemKind('NewKind')`.
 ///
 /// The constants are the enums of the Jellyfin 12.4 API document.
+///
+/// @docImport 'api/jellyfin_playback_api.dart';
+/// @docImport 'api/jellyfin_sessions_api.dart';
+/// @docImport 'jellyfin_models.dart';
 library;
 
 /// An item kind (`BaseItemKind`), as sent in `includeItemTypes` and `excludeItemTypes`.
@@ -438,4 +442,157 @@ extension type const JellyfinItemFilter(String wire) implements String {
 
   /// `IsFavoriteOrLikes`.
   static const isFavoriteOrLikes = JellyfinItemFilter('IsFavoriteOrLikes');
+}
+
+/// String constants for `play(playCommand: …)`.
+abstract final class JellyfinPlayCommand {
+  /// Start playing the items immediately, replacing the queue.
+  static const playNow = 'PlayNow';
+
+  /// Insert the items to play right after the current one.
+  static const playNext = 'PlayNext';
+
+  /// Append the items to the end of the queue.
+  static const playLast = 'PlayLast';
+
+  /// Start an instant mix seeded from the items.
+  static const playInstantMix = 'PlayInstantMix';
+
+  /// Shuffle the items and play them.
+  static const playShuffle = 'PlayShuffle';
+}
+
+/// String constants for `sendPlaystateCommand(command: …)`.
+abstract final class JellyfinPlaystateCommand {
+  /// Stop playback.
+  static const stop = 'Stop';
+
+  /// Pause playback.
+  static const pause = 'Pause';
+
+  /// Resume from pause.
+  static const unpause = 'Unpause';
+
+  /// Skip to the next track in the queue.
+  static const nextTrack = 'NextTrack';
+
+  /// Jump back to the previous track.
+  static const previousTrack = 'PreviousTrack';
+
+  /// Seek to `seekPositionTicks`.
+  static const seek = 'Seek';
+
+  /// Rewind a small fixed amount.
+  static const rewind = 'Rewind';
+
+  /// Fast-forward a small fixed amount.
+  static const fastForward = 'FastForward';
+
+  /// Toggle between play and pause.
+  static const playPause = 'PlayPause';
+}
+
+/// String constants for `sendCommand(command: …)`.
+abstract final class JellyfinGeneralCommand {
+  /// Increase volume one notch.
+  static const volumeUp = 'VolumeUp';
+
+  /// Decrease volume one notch.
+  static const volumeDown = 'VolumeDown';
+
+  /// Mute audio.
+  static const mute = 'Mute';
+
+  /// Unmute audio.
+  static const unmute = 'Unmute';
+
+  /// Toggle the mute state.
+  static const toggleMute = 'ToggleMute';
+
+  /// Set absolute volume — requires a `Volume` argument via [JellyfinSessionsApi.sendFullCommand].
+  static const setVolume = 'SetVolume';
+
+  /// Switch audio track — requires an `Index` argument.
+  static const setAudioStreamIndex = 'SetAudioStreamIndex';
+
+  /// Switch subtitle track — requires an `Index` argument.
+  static const setSubtitleStreamIndex = 'SetSubtitleStreamIndex';
+
+  /// Toggle fullscreen mode on the remote client.
+  static const toggleFullscreen = 'ToggleFullscreen';
+
+  /// Toggle the on-screen-display / overlay menu.
+  static const toggleOsdMenu = 'ToggleOsdMenu';
+
+  /// Show an item's detail page — requires `ItemId`/`ItemType`/`ItemName` arguments.
+  static const displayContent = 'DisplayContent';
+}
+
+/// How a client plays an item (`PlayMethod`).
+enum JellyfinPlayMethod {
+  /// The file as it is.
+  directPlay('DirectPlay'),
+
+  /// Remuxed into another container, streams copied.
+  directStream('DirectStream'),
+
+  /// Re-encoded by the server.
+  transcode('Transcode');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinPlayMethod(this.wire);
+}
+
+/// Queue order (`PlaybackOrder`).
+enum JellyfinPlaybackOrder {
+  /// In order.
+  defaultOrder('Default'),
+
+  /// Shuffled.
+  shuffle('Shuffle');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinPlaybackOrder(this.wire);
+}
+
+/// Repeat mode (`RepeatMode`).
+enum JellyfinRepeatMode {
+  /// No repeat.
+  none('RepeatNone'),
+
+  /// Repeat the queue.
+  all('RepeatAll'),
+
+  /// Repeat the current item.
+  one('RepeatOne');
+
+  /// The wire value.
+  final String wire;
+
+  const JellyfinRepeatMode(this.wire);
+}
+
+/// Canonical [JellyfinMediaSegment.type] values.
+abstract final class JellyfinMediaSegmentType {
+  /// Unclassified segment.
+  static const unknown = 'Unknown';
+
+  /// Commercial break.
+  static const commercial = 'Commercial';
+
+  /// "Next on…" or upcoming-content preview.
+  static const preview = 'Preview';
+
+  /// Recap of previous episodes.
+  static const recap = 'Recap';
+
+  /// Closing/outro sequence.
+  static const outro = 'Outro';
+
+  /// Opening/intro sequence.
+  static const intro = 'Intro';
 }

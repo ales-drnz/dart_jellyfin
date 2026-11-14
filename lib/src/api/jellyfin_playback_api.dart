@@ -4,6 +4,7 @@
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/Sessions/Playing/*` — playback reporting.
 ///
@@ -125,52 +126,4 @@ class JellyfinPlaybackApi {
   }
 
   static int _ticks(Duration d) => d.inMilliseconds * 10000;
-}
-
-/// How a client plays an item (`PlayMethod`).
-enum JellyfinPlayMethod {
-  /// The file as it is.
-  directPlay('DirectPlay'),
-
-  /// Remuxed into another container, streams copied.
-  directStream('DirectStream'),
-
-  /// Re-encoded by the server.
-  transcode('Transcode');
-
-  /// The wire value.
-  final String wire;
-
-  const JellyfinPlayMethod(this.wire);
-}
-
-/// Queue order (`PlaybackOrder`).
-enum JellyfinPlaybackOrder {
-  /// In order.
-  defaultOrder('Default'),
-
-  /// Shuffled.
-  shuffle('Shuffle');
-
-  /// The wire value.
-  final String wire;
-
-  const JellyfinPlaybackOrder(this.wire);
-}
-
-/// Repeat mode (`RepeatMode`).
-enum JellyfinRepeatMode {
-  /// No repeat.
-  none('RepeatNone'),
-
-  /// Repeat the queue.
-  all('RepeatAll'),
-
-  /// Repeat the current item.
-  one('RepeatOne');
-
-  /// The wire value.
-  final String wire;
-
-  const JellyfinRepeatMode(this.wire);
 }

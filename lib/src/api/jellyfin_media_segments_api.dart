@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import '../jellyfin_vocabulary.dart';
 
 /// `/MediaSegments/*` — skip-intro/recap/outro markers.
 ///
