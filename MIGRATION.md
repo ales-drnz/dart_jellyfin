@@ -1,3 +1,74 @@
+# Migrating to 0.4.2
+
+0.4.2 removes and renames nothing: code written for 0.4.1 compiles as it
+is. It fixes defects, and some of the fixes change what a call does. Check
+the ones below against your code.
+
+## Calls that now throw
+
+| Call | 0.4.1 | 0.4.2 |
+| --- | --- | --- |
+| `items.downloadUrl()`, `items.fileUrl()`, `plugins.imageUrl()`, `videos.attachmentUrl()` before `connect()` or `setSession()` | answered `null/…?ApiKey=` | throw a `state` error, as the other URL builders do |
+| `JellyfinClient(baseUrl: …)` and `connect()` with a URL that is not `http://` or `https://` with a host | failed at the first request | throw a `state` error at once |
+| `notifications.connect()` while another `connect()` is still opening | opened a second socket | throws a `state` error |
+| `notifications.connect()` to a server that never ends the handshake | waited for ever | throws a `timeout` error after `connectTimeout` (15 seconds) |
+| `user.authenticateWithQuickConnect()` answered without an `AccessToken` | returned an empty token | throws an `auth` error |
+| `playlists.create()`, `user.create()`, `user.currentUser()`, `quickConnect.initiate()` answered without the id | returned a model with an empty id | throw a `parse` error |
+
+## The token and other hosts
+
+`request()`, `requestBytes()`, `requestStream()` and `downloadToFile()`
+send the session token only to the connected server, its host and port.
+A full URL to another host — artwork on a CDN, a metadata provider — is
+requested without the `Authorization` header. If such a request must
+carry it, name it yourself:
+
+```dart
+await jf.requestBytes(
+  'https://other.example.com/file',
+  extraHeaders: {'Authorization': myHeader},
+);
+```
+
+`JellyfinException.path` and `message` read `REDACTED` where a URL had
+the value of `ApiKey` or `api_key`. Code that parsed the token back out
+of an exception no longer finds it; `body` and `cause` are unchanged.
+
+## Values that changed
+
+- `userData.update(itemId: id)` with neither `userData` nor `raw` sends
+  an empty document. In 0.4.1 it sent `IsFavorite: false` and
+  `Played: false`: if you relied on it to clear them, pass a
+  `JellyfinUserData` that says so, or call `unmarkFavorite()` and
+  `markUnplayed()`.
+- `search.hints()` sends the session user when `userId` is not passed,
+  so the hints are those of the user's libraries.
+- A date the server never set comes as `null`, not as year 1:
+  `JellyfinSession.lastPlaybackCheckIn` is the one seen.
+- A model field typed as text is `null` when the server sent a JSON
+  object or array there; it was the value's `toString()`.
+- `JellyfinClient.close()` also closes the notifications socket.
+  `clearSession()` and `disconnect()` still leave it open.
+- A signed URL percent-encodes its token, and the calls that put a name
+  in the path — a font, a subtitle language, a session command, an API
+  key, a plugin version — encode it as one segment. Do not encode these
+  values before passing them.
+
+## Fakes and tests
+
+- The sub-API fields of `JellyfinClient` (`jf.items`, `jf.playlists`, …)
+  have no setter any more. A fake that implements `JellyfinClient` is not
+  affected.
+- `JellyfinNotificationsApi.connect()` has a new named parameter,
+  `connectTimeout`: a fake that implements the class must add it to its
+  own `connect()`, or it no longer compiles. Nothing else in 0.4.2 asks
+  a fake for a change.
+- `JellyfinUnknownEvent` has a new field, `isMalformed`, `false` unless
+  its constructor is told otherwise.
+- The integration suites run with `dart test -P integration
+  test/integration`. With a preset, `--tags integration` does not narrow
+  the run.
+
 # Migrating to 0.4.0
 
 0.4.0 targets Jellyfin 12.4 and needs a server from 12.0 on and Dart
