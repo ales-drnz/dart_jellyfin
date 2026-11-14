@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/SyncPlay/*` — synchronised playback across multiple clients.
 ///
@@ -235,9 +236,13 @@ class JellyfinSyncPlayApi {
     );
   }
 
-  /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id.
-  Future<JellyfinSyncPlayGroup?> group({required String id}) => _http
-      .requestJson('/SyncPlay/$id', objectOf(JellyfinSyncPlayGroup.fromJson));
+  /// `GET /SyncPlay/{id}` — fetch a single SyncPlay group by id; `null`
+  /// when there is no such group (a `404`).
+  Future<JellyfinSyncPlayGroup?> group({required String id}) =>
+      _http.requestJsonOrNull(
+        '/SyncPlay/$id',
+        objectOf(JellyfinSyncPlayGroup.fromJson),
+      );
 
   /// `POST /SyncPlay/SetNewQueue` — replace the group's playback
   /// queue with a new set of items.

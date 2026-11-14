@@ -6,6 +6,7 @@ import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/ScheduledTasks` — server background tasks (library scan,
 /// thumbnail generation, cleanup, …).
@@ -32,9 +33,10 @@ class JellyfinScheduledTasksApi {
     );
   }
 
-  /// `GET /ScheduledTasks/{taskId}` — one task's full status.
+  /// `GET /ScheduledTasks/{taskId}` — one task's full status; `null`
+  /// when there is no such task (a `404`).
   Future<JellyfinScheduledTask?> byId({required String taskId}) =>
-      _http.requestJson(
+      _http.requestJsonOrNull(
         '/ScheduledTasks/$taskId',
         objectOf(JellyfinScheduledTask.fromJson),
       );

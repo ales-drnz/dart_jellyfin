@@ -269,4 +269,53 @@ void main() {
       expect(adapter.last!.uri.toString(), endsWith('/Plugins/p/1.0%20beta'));
     });
   });
+
+  group('a read of one thing answers null on a 404', () {
+    setUp(() => adapter.respond = (_) => CannedResponse(404, const []));
+
+    test('playlists.byId', () async {
+      expect(await jf.playlists.byId(playlistId: 'gone'), isNull);
+    });
+    test('liveTv.channel, recording and program', () async {
+      expect(await jf.liveTv.channel(channelId: 'gone'), isNull);
+      expect(await jf.liveTv.recording(recordingId: 'gone'), isNull);
+      expect(await jf.liveTv.program(programId: 'gone'), isNull);
+    });
+    test('scheduledTasks.byId', () async {
+      expect(await jf.scheduledTasks.byId(taskId: 'gone'), isNull);
+    });
+    test('devices.info', () async {
+      expect(await jf.devices.info(id: 'gone'), isNull);
+    });
+    test('syncPlay.group', () async {
+      expect(await jf.syncPlay.group(id: 'gone'), isNull);
+    });
+    test('lyrics.previewRemote', () async {
+      expect(await jf.lyrics.previewRemote(lyricId: 'gone'), isNull);
+    });
+
+    test('any other error is still thrown', () async {
+      adapter.respond = (_) => CannedResponse(500, const []);
+      await expectLater(
+        jf.playlists.byId(playlistId: 'p'),
+        throwsA(isA<JellyfinException>()),
+      );
+      adapter.respond = (_) => CannedResponse(403, const []);
+      await expectLater(
+        jf.devices.info(id: 'd'),
+        throwsA(
+          isA<JellyfinException>().having((e) => e.isAuthError, 'auth', isTrue),
+        ),
+      );
+    });
+
+    test('and an answer is read as before', () async {
+      adapter.respond = null;
+      adapter.body = '{"Id": "p1", "Name": "Mix", "Type": "Playlist"}';
+      expect((await jf.playlists.byId(playlistId: 'p1'))!.name, 'Mix');
+      expect((await jf.liveTv.program(programId: 'p1'))!.id, 'p1');
+      adapter.body = '';
+      expect(await jf.playlists.byId(playlistId: 'p1'), isNull);
+    });
+  });
 }

@@ -7,6 +7,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
+import 'jellyfin_query_helpers.dart';
 import 'jellyfin_url_helpers.dart';
 
 /// `/LiveTv/*` — live TV channels, EPG, recordings, timers.
@@ -64,14 +65,14 @@ class JellyfinLiveTvApi {
   /// Unlike [channels], this endpoint does not populate the
   /// `CurrentProgram` field, so the currently airing program may be
   /// absent from the returned item.
-  Future<JellyfinItem?> channel({required String channelId}) async {
-    final res = await _http.request<Map<String, Object?>>(
+  ///
+  /// `null` when there is no such channel (a `404`).
+  Future<JellyfinItem?> channel({required String channelId}) {
+    return _http.requestJsonOrNull(
       '/LiveTv/Channels/$channelId',
+      objectOf(JellyfinItem.fromJson),
       queryParameters: {'userId': ?_http.userId},
     );
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinItem.fromJson(data);
   }
 
   // ─── EPG / Programs ────────────────────────────────────────────────
@@ -180,16 +181,14 @@ class JellyfinLiveTvApi {
     );
   }
 
-  /// `GET /LiveTv/Recordings/{recordingId}`.
-  Future<JellyfinItem?> recording({required String recordingId}) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/Recordings/$recordingId',
-      queryParameters: {'userId': ?_http.userId},
-    );
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinItem.fromJson(data);
-  }
+  /// `GET /LiveTv/Recordings/{recordingId}`; `null` when there is no
+  /// such recording (a `404`).
+  Future<JellyfinItem?> recording({required String recordingId}) =>
+      _http.requestJsonOrNull(
+        '/LiveTv/Recordings/$recordingId',
+        objectOf(JellyfinItem.fromJson),
+        queryParameters: {'userId': ?_http.userId},
+      );
 
   /// `DELETE /LiveTv/Recordings/{recordingId}` — delete a recording.
   Future<void> deleteRecording({required String recordingId}) async {
@@ -467,15 +466,12 @@ class JellyfinLiveTvApi {
   }
 
   /// `GET /LiveTv/Programs/{programId}` — fetch a single program
-  /// (EPG entry) by id.
-  Future<JellyfinItem?> program({required String programId}) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/LiveTv/Programs/$programId',
-    );
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinItem.fromJson(data);
-  }
+  /// (EPG entry) by id; `null` when there is no such program (a `404`).
+  Future<JellyfinItem?> program({required String programId}) =>
+      _http.requestJsonOrNull(
+        '/LiveTv/Programs/$programId',
+        objectOf(JellyfinItem.fromJson),
+      );
 
   /// `GET /LiveTv/Timers/Defaults` — default values to pre-populate
   /// a new recording timer form, as a series timer

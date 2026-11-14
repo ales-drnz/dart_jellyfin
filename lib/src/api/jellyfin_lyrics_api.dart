@@ -106,13 +106,11 @@ class JellyfinLyricsApi {
   }
 
   /// `GET /Providers/Lyrics/{lyricId}` — preview a remote lyric
-  /// result without attaching it. Same id as [downloadRemote].
-  Future<JellyfinLyrics?> previewRemote({required String lyricId}) async {
-    final res = await _http.request<Map<String, Object?>>(
-      '/Providers/Lyrics/$lyricId',
-    );
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinLyrics.fromJson(data);
-  }
+  /// result without attaching it. Same id as [downloadRemote]. `null`
+  /// when the providers have no such lyric (a `404`).
+  Future<JellyfinLyrics?> previewRemote({required String lyricId}) =>
+      _http.requestJsonOrNull(
+        '/Providers/Lyrics/$lyricId',
+        objectOf(JellyfinLyrics.fromJson),
+      );
 }

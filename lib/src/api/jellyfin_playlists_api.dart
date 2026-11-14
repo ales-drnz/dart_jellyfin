@@ -13,6 +13,7 @@ import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
 import '../jellyfin_vocabulary.dart';
 import 'jellyfin_items_api.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Playlists/*`.
 ///
@@ -225,12 +226,10 @@ class JellyfinPlaylistsApi {
   /// served from `/Items/{id}` (a `BaseItemDto`). The `/Playlists/{id}`
   /// endpoint returns a `PlaylistDto` (only `OpenAccess`, `Shares`,
   /// `ItemIds`) and carries none of these fields, so it is not used here.
-  Future<JellyfinItem?> byId({required String playlistId}) async {
-    final res = await _http.request<Map<String, Object?>>('/Items/$playlistId');
-    final data = res.data;
-    if (data == null) return null;
-    return JellyfinItem.fromJson(data);
-  }
+  ///
+  /// `null` when no item has that id (a `404`).
+  Future<JellyfinItem?> byId({required String playlistId}) => _http
+      .requestJsonOrNull('/Items/$playlistId', objectOf(JellyfinItem.fromJson));
 
   /// `POST /Playlists/{playlistId}` — update playlist metadata
   /// (name, IsPublic flag, ids order). Accepts any subset of the

@@ -7,6 +7,7 @@ import '../jellyfin_connection.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Devices` — admin view of clients that have logged into the
 /// server.
@@ -41,11 +42,12 @@ class JellyfinDevicesApi {
     );
   }
 
-  /// `GET /Devices/Info?id={id}` — full info for one device.
-  Future<JellyfinDevice?> info({required String id}) => _http.requestJson(
+  /// `GET /Devices/Info?id={id}` — full info for one device; `null`
+  /// when there is no such device (a `404`).
+  Future<JellyfinDevice?> info({required String id}) => _http.requestJsonOrNull(
     '/Devices/Info',
-    queryParameters: {'id': id},
     objectOf(JellyfinDevice.fromJson),
+    queryParameters: {'id': id},
   );
 
   /// `GET /Devices/Options?id={id}` — per-device admin options
