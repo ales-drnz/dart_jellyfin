@@ -6,12 +6,11 @@ import 'dart:typed_data';
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
 import 'jellyfin_audio_api.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Audio/.../Lyrics` and `/Providers/Lyrics/{id}` — lyric upload,
 /// removal, and remote (provider) search/download.
@@ -37,17 +36,14 @@ class JellyfinLyricsApi {
   /// answers 404 both for a track without lyrics and for an id that names
   /// no item.
   Future<JellyfinLyrics?> forItem({required String itemId}) async {
-    try {
+    return nullOnNotFound(() async {
       final res = await _http.request<Map<String, Object?>>(
         '/Audio/$itemId/Lyrics',
       );
       final data = res.data;
       if (data == null) return null;
       return JellyfinLyrics.fromJson(data);
-    } on JellyfinException catch (e) {
-      if (e.type == JellyfinErrorType.notFound) return null;
-      rethrow;
-    }
+    });
   }
 
   /// `POST /Audio/{itemId}/Lyrics?fileName={name}` — upload a lyric

@@ -8,6 +8,7 @@ import '../jellyfin_error_type.dart';
 import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
+import 'jellyfin_query_helpers.dart';
 import 'jellyfin_quick_connect_api.dart';
 
 /// `/Users/*` endpoints — authentication + profile.
@@ -106,15 +107,12 @@ class JellyfinUserApi {
   /// `GET /Users/{userId}` — fetch a single user by id (admin only).
   /// Returns null on 404.
   Future<JellyfinUser?> byId({required String userId}) async {
-    try {
+    return nullOnNotFound(() async {
       final res = await _http.request<Map<String, Object?>>('/Users/$userId');
       final data = res.data;
       if (data == null) return null;
       return JellyfinUser.fromJson(data);
-    } on JellyfinException catch (e) {
-      if (e.type == JellyfinErrorType.notFound) return null;
-      rethrow;
-    }
+    });
   }
 
   /// `POST /Users/New?name={name}` — create a new user (admin only).

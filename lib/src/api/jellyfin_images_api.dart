@@ -7,11 +7,10 @@ import 'dart:typed_data';
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_server_models.dart';
 import '../transport/jellyfin_cancel_token.dart';
+import 'jellyfin_query_helpers.dart';
 import 'jellyfin_url_helpers.dart';
 
 /// Image URL builders + bytes fetch.
@@ -233,15 +232,12 @@ class JellyfinImagesApi {
       quality: quality,
       format: format,
     );
-    try {
+    return nullOnNotFound(() async {
       final res = await _http.requestBytes(builtUrl, cancelToken: cancelToken);
       final body = res.data;
       if (body == null || body.isEmpty) return null;
       return body;
-    } on JellyfinException catch (e) {
-      if (e.type == JellyfinErrorType.notFound) return null;
-      rethrow;
-    }
+    });
   }
 
   static String _checkColour(String colour) {

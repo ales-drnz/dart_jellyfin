@@ -4,11 +4,10 @@
 
 import '../jellyfin_client.dart';
 import '../jellyfin_connection.dart';
-import '../jellyfin_error_type.dart';
-import '../jellyfin_exception.dart';
 import '../jellyfin_models.dart';
 import '../jellyfin_parsing.dart';
 import '../jellyfin_vocabulary.dart';
+import 'jellyfin_query_helpers.dart';
 
 /// `/Years*` — release-year browse buckets.
 ///
@@ -78,7 +77,7 @@ class JellyfinYearsApi {
     final qp = <String, Object?>{};
     final userId = _http.userId;
     if (userId != null) qp['userId'] = userId;
-    try {
+    return nullOnNotFound(() async {
       final res = await _http.request<Map<String, Object?>>(
         '/Years/$year',
         queryParameters: qp.isEmpty ? null : qp,
@@ -86,9 +85,6 @@ class JellyfinYearsApi {
       final data = res.data;
       if (data == null) return null;
       return JellyfinItem.fromJson(data);
-    } on JellyfinException catch (e) {
-      if (e.type == JellyfinErrorType.notFound) return null;
-      rethrow;
-    }
+    });
   }
 }
