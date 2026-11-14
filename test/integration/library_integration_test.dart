@@ -330,10 +330,28 @@ void main() {
       });
 
       test('a musicArtists id seeds an instant mix', () async {
-        final artists = await jf.artists.musicArtists(parentId: musicId);
-        final mix = await jf.instantMix.fromArtist(
-          artistId: artists.items.first.id,
+        final artists = await jf.artists.musicArtists(
+          parentId: musicId,
+          fields: const [JellyfinItemField.genres],
         );
+        final artist = artists.items.first;
+        final mix = await jf.instantMix.fromArtist(artistId: artist.id);
+        // A fresh server's metadata providers give the seed artist genres
+        // of their own ("Acid Jazz", from a MusicBrainz match on the
+        // name). When they did, the mix can only be checked if a track
+        // shares one of them.
+        final tracks = await jf.items.list(
+          includeItemTypes: const [JellyfinItemKind.audio],
+          fields: const [JellyfinItemField.genres],
+        );
+        final onTracks = {for (final t in tracks.items) ...t.genres};
+        if (artist.genres.isNotEmpty && !artist.genres.any(onTracks.contains)) {
+          markTestSkipped(
+            'the providers gave the artist the genres ${artist.genres}, '
+            'which no seed track has (${mix.items.length} items in the mix)',
+          );
+          return;
+        }
         expect(mix.items, isNotEmpty);
       });
     });

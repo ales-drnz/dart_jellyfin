@@ -92,13 +92,33 @@ void main() {
       expect(await jf.syncPlay.list(), isA<List<JellyfinSyncPlayGroup>>());
     });
 
+    /// The library's music genres that a seed track carries. A fresh
+    /// server also lists the genres its metadata providers gave the seed
+    /// artist ("Acid Jazz", from a MusicBrainz match on the name), which
+    /// no track has.
+    Future<List<JellyfinItem>> trackGenres() async {
+      final scoped = await jf.genres.list(parentId: musicId);
+      final audio = await jf.items.list(
+        includeItemTypes: const [JellyfinItemKind.audio],
+        fields: JellyfinItemsApi.browseFields,
+      );
+      final onTracks = {for (final t in audio.items) ...t.genres};
+      final seeded = [
+        for (final g in scoped.items)
+          if (onTracks.contains(g.name)) g,
+      ];
+      expect(seeded, isNotEmpty, reason: 'no seed track genre in $onTracks');
+      return seeded;
+    }
+
     test('/Genres scoped to the library answers the MusicGenre ids', () async {
       final genres = await jf.genres.list(parentId: musicId);
       expect(genres.items.map((g) => g.type).toSet(), {'MusicGenre'});
+      final seeded = await trackGenres();
       final all = await jf.items.count(
         includeItemTypes: const [JellyfinItemKind.audio],
       );
-      for (final g in genres.items) {
+      for (final g in seeded) {
         final inGenre = await jf.items.list(
           includeItemTypes: const [JellyfinItemKind.audio],
           genreIds: [g.id],
@@ -150,7 +170,7 @@ void main() {
     test(
       'instant mix from a scoped genre id answers that genre\'s tracks',
       () async {
-        final genre = (await jf.genres.list(parentId: musicId)).items.first;
+        final genre = (await trackGenres()).first;
         expect(genre.type, 'MusicGenre');
         final mix = await jf.instantMix.fromItem(
           itemId: genre.id,
@@ -167,7 +187,7 @@ void main() {
       // Pinned server behaviour (12.2): without parentId, /Genres and
       // /Genres/{name} answer the generic Genre item, not the MusicGenre
       // one. If the mix stops being empty, revisit JellyfinGenresApi.
-      final music = (await jf.genres.list(parentId: musicId)).items.first;
+      final music = (await trackGenres()).first;
       final unscoped = (await jf.genres.list(
         includeItemTypes: const [
           JellyfinItemKind.musicAlbum,
