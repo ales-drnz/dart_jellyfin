@@ -188,13 +188,16 @@ void main() {
       // /Genres/{name} answer the generic Genre item, not the MusicGenre
       // one. If the mix stops being empty, revisit JellyfinGenresApi.
       final music = (await trackGenres()).first;
+      // By name first: on a fresh server the unscoped list has no Genre
+      // item for a music genre until /Genres/{name} was asked for it once
+      // (12.4: the lookup creates the item).
+      final byName = await jf.genres.byName(name: music.name);
       final unscoped = (await jf.genres.list(
         includeItemTypes: const [
           JellyfinItemKind.musicAlbum,
           JellyfinItemKind.audio,
         ],
       )).items.firstWhere((g) => g.name == music.name);
-      final byName = await jf.genres.byName(name: music.name);
       expect(unscoped.type, 'Genre');
       expect(byName!.id, unscoped.id);
       expect(unscoped.id, isNot(music.id));

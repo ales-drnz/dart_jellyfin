@@ -32,9 +32,10 @@
 /// source as root, which would then lock this script out of it.
 ///
 /// The cache file is gitignored (see `.gitignore` at the library
-/// root). Tearing the stack down with `docker compose down` keeps
-/// the volumes; `docker compose down -v` wipes them so the next
-/// bootstrap rebuilds from scratch.
+/// root). Tearing the stack down with `docker compose down`, with or
+/// without `-v`, keeps the server's state: it is a bind mount
+/// (`volumes/`). Delete that directory for the next bootstrap to rebuild
+/// from scratch (see the README).
 library;
 
 import 'dart:async';
@@ -84,6 +85,7 @@ Future<void> main(List<String> args) async {
   // 3. Wait for HTTP
   _step('Waiting for $baseUrl to respond');
   await _waitForHttp('$baseUrl/System/Info/Public');
+  await _waitForStartup(baseUrl);
 
   // 4. First-run wizard
   final client = JellyfinClient(
@@ -309,6 +311,30 @@ Future<void> _waitForHttp(String url, {int maxSeconds = 120}) async {
     await Future<void>.delayed(const Duration(seconds: 2));
   }
   throw StateError('Timed out waiting for $url after ${maxSeconds}s');
+}
+
+/// Waits until the server has finished starting. While it migrates and
+/// loads, it answers `/System/Info/Public` already but every other route
+/// with `503` and its "starting up" page, and the wizard's first POST
+/// would fail.
+Future<void> _waitForStartup(String baseUrl, {int maxSeconds = 120}) async {
+  final deadline = DateTime.now().add(Duration(seconds: maxSeconds));
+  while (DateTime.now().isBefore(deadline)) {
+    try {
+      final res = await http
+          .get(Uri.parse('$baseUrl/Startup/Configuration'))
+          .timeout(const Duration(seconds: 3));
+      // 200 before the wizard, 401 after it: either way it is up.
+      if (res.statusCode < 500) {
+        print('   ✓ Server started');
+        return;
+      }
+    } catch (_) {
+      // not yet — keep polling
+    }
+    await Future<void>.delayed(const Duration(seconds: 2));
+  }
+  throw StateError('The server did not finish starting in ${maxSeconds}s');
 }
 
 Future<void> _runFirstRunWizard(

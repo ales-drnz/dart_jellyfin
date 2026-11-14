@@ -49,7 +49,18 @@ integration suite below is tagged `integration` and skipped by a plain
 
    ```sh
    docker compose down       # keeps volumes (~30s next start)
-   docker compose down -v    # wipes volumes (~5min next start)
+   docker compose down -v    # removes the containers and the network
+   ```
+
+   The server's state lives in `volumes/`, a bind mount that
+   `down -v` leaves in place. To start from a fresh server, stop the
+   stack and delete it (it belongs to root when the Docker daemon
+   created it):
+
+   ```sh
+   docker compose down
+   docker run --rm -v "$PWD/volumes:/v" alpine rm -rf /v/jellyfin
+   rm -f .bootstrap-cache.json
    ```
 
 ## What's tested

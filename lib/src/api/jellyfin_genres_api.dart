@@ -40,7 +40,9 @@ class JellyfinGenresApi {
   /// * without [parentId], the `Genre` items, even with
   ///   `includeItemTypes` set to albums and tracks. Their ids filter
   ///   `items.list(genreIds:)` just as well, but an instant mix seeded by
-  ///   one is empty.
+  ///   one is empty. This list can miss a music genre: a fresh 12.4
+  ///   server had no `Genre` item for one until [byName] was called
+  ///   with its name.
   ///
   /// So for music, pass the music library's id as [parentId].
   Future<JellyfinQueryResult<JellyfinItem>> list({

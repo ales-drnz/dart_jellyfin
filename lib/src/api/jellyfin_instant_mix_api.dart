@@ -42,7 +42,10 @@ class JellyfinInstantMixApi {
   /// An artist seeds a mix by its `MusicArtist` id — from a track's
   /// `artistItems` or `albumArtistItems`, or `items.list(includeItemTypes:
   /// [JellyfinItemKind.musicArtist])`. The `Person` id that
-  /// `artists.list()` answers gets an empty mix (12.4).
+  /// `artists.list()` answers gets an empty mix (12.4). The server
+  /// builds the mix from the artist's genres: an artist whose genres no
+  /// track shares — genres its metadata providers gave it, say — gets an
+  /// empty mix too.
   Future<JellyfinQueryResult<JellyfinItem>> fromItem({
     required String itemId,
     int? limit,
