@@ -1,6 +1,6 @@
 name: dart_jellyfin
 description: Dart client for Jellyfin 12.4 (12.0 or later). Authentication, library browsing, playlists, streaming, search, live events and more, on every Dart platform including the web.
-version: 0.4.1
+version: 0.4.2
 homepage: https://github.com/ales-drnz/dart_jellyfin
 repository: https://github.com/ales-drnz/dart_jellyfin
 issue_tracker: https://github.com/ales-drnz/dart_jellyfin/issues

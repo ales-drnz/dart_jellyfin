@@ -10,7 +10,7 @@ import 'dart:io';
 /// fails the suite, flagging that a typed wrapper may have been removed.
 /// Raise it when a wrapper is added.
 ///
-/// Measured on 12.4 with 0.4.1: 331 of 346 operations (0.957). The 15
+/// Measured on 12.4 with 0.4.2: 331 of 346 operations (0.957). The 15
 /// left, as [jellyfinUncoveredOperations] lists them:
 ///
 /// * the obsolete routes the package dropped: `GET /Artists/{name}`,
