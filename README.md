@@ -19,19 +19,6 @@
 
 ---
 
-## Installation
-
-It needs Dart 3.10 or later, and a Jellyfin server from 12.0 on.
-
-Add `dart_jellyfin` to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  dart_jellyfin: ^0.4.2
-```
-
----
-
 ## Features
 
 <table>
@@ -81,7 +68,16 @@ dependencies:
 
 ---
 
-## Quick start
+## Getting started
+
+```yaml
+dependencies:
+  dart_jellyfin: ^0.4.2
+```
+
+The package needs Dart 3.10 or later, and a Jellyfin server from 12.0 on.
+
+### Stream a track
 
 ```dart
 import 'package:dart_jellyfin/dart_jellyfin.dart';
@@ -270,10 +266,8 @@ See [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/to
   - [Errors and paging](https://pub.dev/documentation/dart_jellyfin/latest/topics/Errors%20and%20paging-topic.html): exceptions, classifying a failure, cancellation, retries and paging
   - [Events and downloads](https://pub.dev/documentation/dart_jellyfin/latest/topics/Events%20and%20downloads-topic.html): notifications, typed events and downloads to a file
   - [Raw requests](https://pub.dev/documentation/dart_jellyfin/latest/topics/Raw%20requests-topic.html): `request()`, `requestBytes()` and `requestStream()`
-- [Example](example/dart_jellyfin_example.dart)
+- [Example](example/)
 - [CHANGELOG](CHANGELOG.md) and [MIGRATION](MIGRATION.md)
-
----
 
 ## Project background
 
