@@ -354,6 +354,10 @@ class JellyfinLiveTvApi {
 
   /// `GET /LiveTv/Tuners/Discvover` — typo-variant of [discoverTuners]
   /// preserved upstream. Behaves identically.
+  @Deprecated(
+    'Use discoverTuners(), which asks the route without the typo and '
+    'answers the same. To be removed in a later release.',
+  )
   Future<List<JellyfinTunerHost>> discoverTunersAlt({
     bool newDevicesOnly = false,
   }) => _http.requestJson(

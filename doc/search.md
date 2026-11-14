@@ -87,7 +87,7 @@ if (lyrics == null) {
 }
 ```
 
-`jellyfin.lyrics.forItem(itemId:)` is the same call. `JellyfinLyrics`
+`jellyfin.lyrics.forItem(itemId:)` is the same call, deprecated in 0.4.2. `JellyfinLyrics`
 holds the `lines`, each with `startTicks` (in 100-nanosecond units),
 `start` as a `Duration`, `text` and `cues`: word-level
 `JellyfinLyricCue`s with their own start and end. `metadata` holds the

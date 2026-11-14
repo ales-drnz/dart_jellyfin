@@ -341,7 +341,7 @@ void main() {
         // lyric already.
         JellyfinLyrics? read;
         for (var i = 0; i < 20 && read == null; i++) {
-          read = await jf.lyrics.forItem(itemId: track.id);
+          read = await jf.audio.lyrics(itemId: track.id);
           if (read == null) {
             await Future<void>.delayed(const Duration(milliseconds: 500));
           }

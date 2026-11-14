@@ -89,7 +89,7 @@ void main() {
         expect(bytes, isNotNull);
       }
       if (track.hasLyrics) {
-        expect(await jf.lyrics.forItem(itemId: track.id), isNotNull);
+        expect(await jf.audio.lyrics(itemId: track.id), isNotNull);
       }
     });
 

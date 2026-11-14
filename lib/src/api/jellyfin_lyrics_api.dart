@@ -35,6 +35,10 @@ class JellyfinLyricsApi {
   /// Returns `null` on 404, matching [JellyfinAudioApi.lyrics]: Jellyfin
   /// answers 404 both for a track without lyrics and for an id that names
   /// no item.
+  @Deprecated(
+    'Use audio.lyrics(itemId:), the same request. '
+    'To be removed in a later release.',
+  )
   Future<JellyfinLyrics?> forItem({required String itemId}) async {
     return _http.requestJsonOrNull(
       '/Audio/$itemId/Lyrics',

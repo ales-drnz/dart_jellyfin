@@ -57,7 +57,7 @@ void main() {
 
     test('forItem keeps cues and metadata', () async {
       adapter.respond = (_) => CannedResponse.json(payload);
-      final lyrics = (await client.lyrics.forItem(itemId: 't1'))!;
+      final lyrics = (await client.audio.lyrics(itemId: 't1'))!;
       expect(adapter.path, '/Audio/t1/Lyrics');
       expect(lyrics.hasCues, isTrue);
       expect(lyrics.isSynced, isTrue);

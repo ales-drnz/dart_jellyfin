@@ -131,7 +131,7 @@ void main() {
       () async {
         // Our seed uses ffmpeg-generated silence with no lyrics; the API
         // should return null (or an empty payload) rather than throw.
-        final ly = await jf.lyrics.forItem(itemId: trackId);
+        final ly = await jf.audio.lyrics(itemId: trackId);
         expect(ly, anyOf(isNull, isA<JellyfinLyrics>()));
       },
     );
