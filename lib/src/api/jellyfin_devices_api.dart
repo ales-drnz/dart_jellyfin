@@ -24,11 +24,10 @@ class JellyfinDevicesApi {
   /// `GET /Devices` — list registered devices, optionally scoped to
   /// one user.
   Future<List<JellyfinDevice>> list({String? userId}) {
-    final qp = <String, Object?>{};
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?userId};
     return _http.requestJson(
       '/Devices',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       (json) => queryResultOf(JellyfinDevice.fromJson)(json).items,
     );
   }

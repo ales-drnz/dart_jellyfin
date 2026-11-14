@@ -31,11 +31,11 @@ class JellyfinChannelsApi {
     bool? supportsMediaDeletion,
     bool? isFavorite,
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+    };
     if (supportsLatestItems != null) {
       qp['supportsLatestItems'] = supportsLatestItems;
     }
@@ -46,7 +46,7 @@ class JellyfinChannelsApi {
 
     return _http.requestJson(
       '/Channels',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -63,12 +63,12 @@ class JellyfinChannelsApi {
     List<JellyfinItemFilter> filters = const [],
     List<JellyfinItemField> fields = const [],
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (folderId != null) qp['folderId'] = folderId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'folderId': ?folderId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+    };
     if (sortBy.isNotEmpty) {
       qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
@@ -78,7 +78,7 @@ class JellyfinChannelsApi {
 
     return _http.requestJson(
       '/Channels/$channelId/Items',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -91,18 +91,18 @@ class JellyfinChannelsApi {
     List<JellyfinItemFilter> filters = const [],
     List<JellyfinItemField> fields = const [],
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds;
-    if (filters.isNotEmpty) qp['filters'] = filters;
-    if (fields.isNotEmpty) qp['fields'] = fields;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      if (channelIds.isNotEmpty) 'channelIds': channelIds,
+      if (filters.isNotEmpty) 'filters': filters,
+      if (fields.isNotEmpty) 'fields': fields,
+    };
 
     return _http.requestJson(
       '/Channels/Items/Latest',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }

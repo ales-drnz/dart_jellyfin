@@ -50,19 +50,18 @@ class JellyfinTvShowsApi {
     final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
+      'userId': ?_http.userId,
+      'season': ?season,
+      'seasonId': ?seasonId,
+      'isMissing': ?isMissing,
+      'adjacentTo': ?adjacentTo,
+      'startItemId': ?startItemId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      if (fields.isNotEmpty) 'fields': fields,
+      'sortBy': ?sortBy,
+      'imageTypeLimit': ?imageTypeLimit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (season != null) qp['season'] = season;
-    if (seasonId != null) qp['seasonId'] = seasonId;
-    if (isMissing != null) qp['isMissing'] = isMissing;
-    if (adjacentTo != null) qp['adjacentTo'] = adjacentTo;
-    if (startItemId != null) qp['startItemId'] = startItemId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (sortBy != null) qp['sortBy'] = sortBy;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
       qp['enableImageTypes'] = enableImageTypes;
     }
@@ -89,14 +88,13 @@ class JellyfinTvShowsApi {
     final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
+      'userId': ?_http.userId,
+      'isSpecialSeason': ?isSpecialSeason,
+      'isMissing': ?isMissing,
+      'adjacentTo': ?adjacentTo,
+      if (fields.isNotEmpty) 'fields': fields,
+      'imageTypeLimit': ?imageTypeLimit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (isSpecialSeason != null) qp['isSpecialSeason'] = isSpecialSeason;
-    if (isMissing != null) qp['isMissing'] = isMissing;
-    if (adjacentTo != null) qp['adjacentTo'] = adjacentTo;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
       qp['enableImageTypes'] = enableImageTypes;
     }
@@ -130,16 +128,15 @@ class JellyfinTvShowsApi {
       'enableTotalRecordCount': enableTotalRecordCount,
       'enableResumable': enableResumable,
       'enableRewatching': enableRewatching,
+      'userId': ?_http.userId,
+      'seriesId': ?seriesId,
+      'parentId': ?parentId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      if (fields.isNotEmpty) 'fields': fields,
+      'nextUpDateCutoff': ?nextUpDateCutoff,
+      'imageTypeLimit': ?imageTypeLimit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (seriesId != null) qp['seriesId'] = seriesId;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (nextUpDateCutoff != null) qp['nextUpDateCutoff'] = nextUpDateCutoff;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
       qp['enableImageTypes'] = enableImageTypes;
     }
@@ -165,14 +162,13 @@ class JellyfinTvShowsApi {
     final qp = <String, Object?>{
       'enableImages': enableImages,
       'enableUserData': enableUserData,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      if (fields.isNotEmpty) 'fields': fields,
+      'imageTypeLimit': ?imageTypeLimit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
     if (enableImageTypes.isNotEmpty) {
       qp['enableImageTypes'] = enableImageTypes;
     }

@@ -52,8 +52,8 @@ class JellyfinSearchApi {
       'includeGenres': includeGenres,
       'includeStudios': includeStudios,
       'includePeople': includePeople,
+      'limit': ?limit,
     };
-    if (limit != null) qp['limit'] = limit;
     final user = userId ?? _http.userId;
     if (user != null) qp['userId'] = user;
     if (parentId != null) qp['parentId'] = parentId;

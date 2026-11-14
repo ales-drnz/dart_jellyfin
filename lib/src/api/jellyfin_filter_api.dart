@@ -35,10 +35,11 @@ class JellyfinFilterApi {
     bool? isSeries,
     bool recursive = true,
   }) async {
-    final qp = <String, Object?>{'recursive': recursive};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
+    final qp = <String, Object?>{
+      'recursive': recursive,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+    };
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;
     }
@@ -63,10 +64,10 @@ class JellyfinFilterApi {
     List<JellyfinItemKind> includeItemTypes = const [],
     List<JellyfinMediaType> mediaTypes = const [],
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+    };
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;
     }

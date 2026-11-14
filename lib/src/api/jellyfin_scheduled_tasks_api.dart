@@ -23,12 +23,13 @@ class JellyfinScheduledTasksApi {
   /// `GET /ScheduledTasks` — list every task, with current state
   /// (last run, current progress, triggers).
   Future<List<JellyfinScheduledTask>> list({bool? isHidden, bool? isEnabled}) {
-    final qp = <String, Object?>{};
-    if (isHidden != null) qp['isHidden'] = isHidden;
-    if (isEnabled != null) qp['isEnabled'] = isEnabled;
+    final qp = <String, Object?>{
+      'isHidden': ?isHidden,
+      'isEnabled': ?isEnabled,
+    };
     return _http.requestJson(
       '/ScheduledTasks',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinScheduledTask.fromJson),
     );
   }

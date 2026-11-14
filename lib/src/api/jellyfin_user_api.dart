@@ -160,12 +160,11 @@ class JellyfinUserApi {
     required Map<String, Object?> configuration,
   }) async {
     final uid = userId ?? _http.userId;
-    final qp = <String, Object?>{};
-    if (uid != null) qp['userId'] = uid;
+    final qp = <String, Object?>{'userId': ?uid};
     await _http.request<void>(
       '/Users/Configuration',
       method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       data: configuration,
     );
   }
@@ -182,12 +181,11 @@ class JellyfinUserApi {
     String? newPassword,
     bool resetPassword = false,
   }) async {
-    final qp = <String, Object?>{};
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?userId};
     await _http.request<void>(
       '/Users/Password',
       method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       data: {
         'CurrentPw': ?currentPassword,
         'NewPw': ?newPassword,

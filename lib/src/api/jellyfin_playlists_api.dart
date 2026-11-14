@@ -135,8 +135,8 @@ class JellyfinPlaylistsApi {
       'userId': ?userId,
       'startIndex': startIndex,
       if (fields.isNotEmpty) 'fields': fields,
+      'limit': ?limit,
     };
-    if (limit != null) qp['limit'] = limit;
     return _http.requestJson(
       '/Playlists/$playlistId/Items',
       queryParameters: qp,

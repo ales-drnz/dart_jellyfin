@@ -62,10 +62,11 @@ class JellyfinGenresApi {
     List<JellyfinSortField> sortBy = const [],
     bool descending = false,
   }) async {
-    final qp = <String, Object?>{'startIndex': startIndex};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
+    final qp = <String, Object?>{
+      'startIndex': startIndex,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+    };
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }

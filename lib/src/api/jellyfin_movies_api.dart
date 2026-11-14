@@ -32,13 +32,13 @@ class JellyfinMoviesApi {
     int? itemLimit,
     List<JellyfinItemField> fields = const [],
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (categoryLimit != null) qp['categoryLimit'] = categoryLimit;
-    if (itemLimit != null) qp['itemLimit'] = itemLimit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+      'categoryLimit': ?categoryLimit,
+      'itemLimit': ?itemLimit,
+      if (fields.isNotEmpty) 'fields': fields,
+    };
 
     return _http.requestJson(
       '/Movies/Recommendations',

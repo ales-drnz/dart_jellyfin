@@ -149,10 +149,10 @@ class JellyfinInstantMixApi {
       'userId': ?_http.userId,
       'enableImages': enableImages,
       'enableUserData': enableUserData,
+      'limit': ?limit,
+      if (fields.isNotEmpty) 'fields': fields,
+      'imageTypeLimit': ?imageTypeLimit,
     };
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
-    if (imageTypeLimit != null) qp['imageTypeLimit'] = imageTypeLimit;
 
     return _http.requestJson(
       path,

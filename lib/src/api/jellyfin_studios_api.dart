@@ -41,10 +41,9 @@ class JellyfinStudiosApi {
     final qp = <String, Object?>{
       'startIndex': startIndex,
       'enableUserData': enableUserData,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }

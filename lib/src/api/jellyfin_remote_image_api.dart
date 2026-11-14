@@ -32,11 +32,13 @@ class JellyfinRemoteImageApi {
     String? providerName,
     bool includeAllLanguages = false,
   }) {
-    final qp = <String, Object?>{'includeAllLanguages': includeAllLanguages};
-    if (type != null) qp['type'] = type;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (providerName != null) qp['providerName'] = providerName;
+    final qp = <String, Object?>{
+      'includeAllLanguages': includeAllLanguages,
+      'type': ?type,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      'providerName': ?providerName,
+    };
     return _http.requestJson(
       '/Items/$itemId/RemoteImages',
       queryParameters: qp,

@@ -26,14 +26,12 @@ class JellyfinActivityLogApi {
     DateTime? minDate,
     bool? hasUserId,
   }) {
-    final qp = <String, Object?>{};
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
+    final qp = <String, Object?>{'startIndex': ?startIndex, 'limit': ?limit};
     if (minDate != null) qp['minDate'] = minDate.toUtc().toIso8601String();
     if (hasUserId != null) qp['hasUserId'] = hasUserId;
     return _http.requestJson(
       '/System/ActivityLog/Entries',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinActivityLogEntry.fromJson),
     );
   }

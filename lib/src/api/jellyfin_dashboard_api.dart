@@ -35,11 +35,10 @@ class JellyfinDashboardApi {
   Future<List<JellyfinConfigurationPage>> configurationPages({
     bool? enableInMainMenu,
   }) {
-    final qp = <String, Object?>{};
-    if (enableInMainMenu != null) qp['enableInMainMenu'] = enableInMainMenu;
+    final qp = <String, Object?>{'enableInMainMenu': ?enableInMainMenu};
     return _http.requestJson(
       '/web/ConfigurationPages',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinConfigurationPage.fromJson),
     );
   }

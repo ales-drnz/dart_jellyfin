@@ -242,10 +242,9 @@ class JellyfinArtistsApi {
       'startIndex': startIndex,
       'enableUserData': enableUserData,
       'enableImages': enableImages,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }

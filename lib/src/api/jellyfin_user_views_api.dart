@@ -29,9 +29,7 @@ class JellyfinUserViewsApi {
     List<String> presetViews = const [],
     bool? includeHidden,
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?_http.userId};
     if (includeExternalContent != null) {
       qp['includeExternalContent'] = includeExternalContent;
     }
@@ -40,7 +38,7 @@ class JellyfinUserViewsApi {
 
     return _http.requestJson(
       '/UserViews',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinView.fromJson),
     );
   }
@@ -49,13 +47,11 @@ class JellyfinUserViewsApi {
   /// for how to group views in the UI (e.g. "by media type", "by
   /// folder"), as `{Name, Id}` pairs (`SpecialViewOptionDto`).
   Future<List<JellyfinNameIdPair>> groupingOptions() {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?_http.userId};
 
     return _http.requestJson(
       '/UserViews/GroupingOptions',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinNameIdPair.fromJson),
     );
   }

@@ -46,7 +46,7 @@ class JellyfinSessionsApi {
     if (deviceId != null) qp['deviceId'] = deviceId;
     return _http.requestJson(
       '/Sessions',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinSession.fromJson),
     );
   }
@@ -163,7 +163,7 @@ class JellyfinSessionsApi {
     await _http.request<void>(
       '/Sessions/$sessionId/Playing/${seg(command)}',
       method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
     );
   }
 

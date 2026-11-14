@@ -36,13 +36,12 @@ class JellyfinSuggestionsApi {
   }) async {
     final qp = <String, Object?>{
       'enableTotalRecordCount': enableTotalRecordCount,
+      'userId': ?_http.userId,
+      if (mediaType.isNotEmpty) 'mediaType': mediaType,
+      if (type.isNotEmpty) 'type': type,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (mediaType.isNotEmpty) qp['mediaType'] = mediaType;
-    if (type.isNotEmpty) qp['type'] = type;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
 
     return _http.requestJson(
       '/Items/Suggestions',

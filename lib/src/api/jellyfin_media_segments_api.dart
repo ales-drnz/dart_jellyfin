@@ -35,7 +35,7 @@ class JellyfinMediaSegmentsApi {
     }
     return _http.requestJson(
       '/MediaSegments/$itemId',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinMediaSegment.fromJson),
     );
   }

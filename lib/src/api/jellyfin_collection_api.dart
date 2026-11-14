@@ -32,16 +32,17 @@ class JellyfinCollectionApi {
     String? parentId,
     bool? isLocked,
   }) {
-    final qp = <String, Object?>{};
-    if (name != null) qp['name'] = name;
-    if (ids.isNotEmpty) qp['ids'] = ids;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (isLocked != null) qp['isLocked'] = isLocked;
+    final qp = <String, Object?>{
+      'name': ?name,
+      if (ids.isNotEmpty) 'ids': ids,
+      'parentId': ?parentId,
+      'isLocked': ?isLocked,
+    };
 
     return _http.requestJson(
       '/Collections',
       method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       requiredObjectOf(JellyfinCollectionCreationResult.fromJson, keys: ['Id']),
     );
   }

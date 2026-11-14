@@ -35,10 +35,12 @@ class JellyfinLibraryStructureApi {
     Map<String, Object?>? libraryOptions,
     bool refreshLibrary = false,
   }) async {
-    final qp = <String, Object?>{'refreshLibrary': refreshLibrary};
-    if (name != null) qp['name'] = name;
-    if (collectionType != null) qp['collectionType'] = collectionType;
-    if (paths.isNotEmpty) qp['paths'] = paths;
+    final qp = <String, Object?>{
+      'refreshLibrary': refreshLibrary,
+      'name': ?name,
+      'collectionType': ?collectionType,
+      if (paths.isNotEmpty) 'paths': paths,
+    };
     await _http.request<void>(
       '/Library/VirtualFolders',
       method: 'POST',

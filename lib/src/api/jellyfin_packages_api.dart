@@ -33,11 +33,10 @@ class JellyfinPackagesApi {
     required String name,
     String? assemblyGuid,
   }) {
-    final qp = <String, Object?>{};
-    if (assemblyGuid != null) qp['assemblyGuid'] = assemblyGuid;
+    final qp = <String, Object?>{'assemblyGuid': ?assemblyGuid};
     return _http.requestJson(
       '/Packages/${Uri.encodeComponent(name)}',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       objectOrEmptyOf(JellyfinPackageInfo.fromJson),
     );
   }
@@ -49,14 +48,15 @@ class JellyfinPackagesApi {
     String? version,
     String? repositoryUrl,
   }) async {
-    final qp = <String, Object?>{};
-    if (assemblyGuid != null) qp['assemblyGuid'] = assemblyGuid;
-    if (version != null) qp['version'] = version;
-    if (repositoryUrl != null) qp['repositoryUrl'] = repositoryUrl;
+    final qp = <String, Object?>{
+      'assemblyGuid': ?assemblyGuid,
+      'version': ?version,
+      'repositoryUrl': ?repositoryUrl,
+    };
     await _http.request<void>(
       '/Packages/Installed/${Uri.encodeComponent(name)}',
       method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
     );
   }
 

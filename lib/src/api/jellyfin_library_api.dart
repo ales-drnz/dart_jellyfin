@@ -97,12 +97,10 @@ class JellyfinLibraryApi {
   /// `GET /Items/{itemId}/Ancestors` — every parent above this item,
   /// from grandparent up to the root library.
   Future<List<JellyfinItem>> ancestors({required String itemId}) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?_http.userId};
     return _http.requestJson(
       '/Items/$itemId/Ancestors',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinItem.fromJson),
     );
   }
@@ -120,15 +118,15 @@ class JellyfinLibraryApi {
     int? limit,
     List<JellyfinItemField> fields = const [],
   }) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
-    if (fields.isNotEmpty) qp['fields'] = fields;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
+      if (fields.isNotEmpty) 'fields': fields,
+    };
     return _http.requestJson(
       '/Items/$itemId/Collections',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -139,9 +137,10 @@ class JellyfinLibraryApi {
     required String itemId,
     bool inheritFromParent = false,
   }) {
-    final qp = <String, Object?>{'inheritFromParent': inheritFromParent};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{
+      'inheritFromParent': inheritFromParent,
+      'userId': ?_http.userId,
+    };
     return _http.requestJson(
       '/Items/$itemId/ThemeMedia',
       queryParameters: qp,
@@ -173,7 +172,7 @@ class JellyfinLibraryApi {
     if (isFavorite != null) qp['isFavorite'] = isFavorite;
     return _http.requestJson(
       '/Items/Counts',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       objectOrEmptyOf(JellyfinItemCounts.fromJson),
     );
   }
@@ -184,11 +183,10 @@ class JellyfinLibraryApi {
   Future<JellyfinQueryResult<JellyfinItem>> mediaFolders({
     bool? isHidden,
   }) async {
-    final qp = <String, Object?>{};
-    if (isHidden != null) qp['isHidden'] = isHidden;
+    final qp = <String, Object?>{'isHidden': ?isHidden};
     return _http.requestJson(
       '/Library/MediaFolders',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -216,7 +214,7 @@ class JellyfinLibraryApi {
     }
     return _http.requestJson(
       '/Libraries/AvailableOptions',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       objectOrEmptyOf(JellyfinLibraryAvailableOptions.fromJson),
     );
   }
@@ -297,7 +295,7 @@ class JellyfinLibraryApi {
     if (fields.isNotEmpty) qp['fields'] = fields;
     return _http.requestJson(
       path,
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -306,9 +304,10 @@ class JellyfinLibraryApi {
     String path,
     bool inheritFromParent,
   ) async {
-    final qp = <String, Object?>{'inheritFromParent': inheritFromParent};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{
+      'inheritFromParent': inheritFromParent,
+      'userId': ?_http.userId,
+    };
     return _http.requestJson(
       path,
       queryParameters: qp,
@@ -322,14 +321,11 @@ class JellyfinLibraryApi {
     String? imdbId,
     String? tvdbId,
   }) async {
-    final qp = <String, Object?>{};
-    if (tmdbId != null) qp['tmdbId'] = tmdbId;
-    if (imdbId != null) qp['imdbId'] = imdbId;
-    if (tvdbId != null) qp['tvdbId'] = tvdbId;
-    await _http.request<void>(
-      path,
-      method: 'POST',
-      queryParameters: qp.isEmpty ? null : qp,
-    );
+    final qp = <String, Object?>{
+      'tmdbId': ?tmdbId,
+      'imdbId': ?imdbId,
+      'tvdbId': ?tvdbId,
+    };
+    await _http.request<void>(path, method: 'POST', queryParameters: qp);
   }
 }

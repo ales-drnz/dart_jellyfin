@@ -49,10 +49,10 @@ class JellyfinLiveTvApi {
       'enableUserData': enableUserData,
       if (sortBy.isNotEmpty) 'sortBy': sortBy,
       'sortOrder': descending ? 'Descending' : 'Ascending',
+      'limit': ?limit,
+      'isFavorite': ?isFavorite,
+      'type': ?type,
     };
-    if (limit != null) qp['limit'] = limit;
-    if (isFavorite != null) qp['isFavorite'] = isFavorite;
-    if (type != null) qp['type'] = type;
     return _http.requestJson(
       '/LiveTv/Channels',
       queryParameters: qp,
@@ -104,19 +104,19 @@ class JellyfinLiveTvApi {
       'startIndex': startIndex,
       'sortOrder': descending ? 'Descending' : 'Ascending',
       if (sortBy.isNotEmpty) 'sortBy': sortBy,
+      if (channelIds.isNotEmpty) 'channelIds': channelIds,
+      'minStartDate': ?minStartDate,
+      'maxStartDate': ?maxStartDate,
+      'minEndDate': ?minEndDate,
+      'maxEndDate': ?maxEndDate,
+      'isMovie': ?isMovie,
+      'isSeries': ?isSeries,
+      'isNews': ?isNews,
+      'isKids': ?isKids,
+      'isSports': ?isSports,
+      'hasAired': ?hasAired,
+      'limit': ?limit,
     };
-    if (channelIds.isNotEmpty) qp['channelIds'] = channelIds;
-    if (minStartDate != null) qp['minStartDate'] = minStartDate;
-    if (maxStartDate != null) qp['maxStartDate'] = maxStartDate;
-    if (minEndDate != null) qp['minEndDate'] = minEndDate;
-    if (maxEndDate != null) qp['maxEndDate'] = maxEndDate;
-    if (isMovie != null) qp['isMovie'] = isMovie;
-    if (isSeries != null) qp['isSeries'] = isSeries;
-    if (isNews != null) qp['isNews'] = isNews;
-    if (isKids != null) qp['isKids'] = isKids;
-    if (isSports != null) qp['isSports'] = isSports;
-    if (hasAired != null) qp['hasAired'] = hasAired;
-    if (limit != null) qp['limit'] = limit;
     return _http.requestJson(
       '/LiveTv/Programs',
       queryParameters: qp,
@@ -135,14 +135,17 @@ class JellyfinLiveTvApi {
     bool? isNews,
     bool? isKids,
   }) async {
-    final qp = <String, Object?>{'userId': ?_http.userId, 'isAiring': isAiring};
-    if (limit != null) qp['limit'] = limit;
-    if (hasAired != null) qp['hasAired'] = hasAired;
-    if (isSeries != null) qp['isSeries'] = isSeries;
-    if (isMovie != null) qp['isMovie'] = isMovie;
-    if (isSports != null) qp['isSports'] = isSports;
-    if (isNews != null) qp['isNews'] = isNews;
-    if (isKids != null) qp['isKids'] = isKids;
+    final qp = <String, Object?>{
+      'userId': ?_http.userId,
+      'isAiring': isAiring,
+      'limit': ?limit,
+      'hasAired': ?hasAired,
+      'isSeries': ?isSeries,
+      'isMovie': ?isMovie,
+      'isSports': ?isSports,
+      'isNews': ?isNews,
+      'isKids': ?isKids,
+    };
     return _http.requestJson(
       '/LiveTv/Programs/Recommended',
       queryParameters: qp,
@@ -169,11 +172,11 @@ class JellyfinLiveTvApi {
       'userId': ?_http.userId,
       'startIndex': startIndex,
       'enableUserData': enableUserData,
+      'channelId': ?channelId,
+      'seriesTimerId': ?seriesTimerId,
+      'isInProgress': ?isInProgress,
+      'limit': ?limit,
     };
-    if (channelId != null) qp['channelId'] = channelId;
-    if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
-    if (isInProgress != null) qp['isInProgress'] = isInProgress;
-    if (limit != null) qp['limit'] = limit;
     return _http.requestJson(
       '/LiveTv/Recordings',
       queryParameters: qp,
@@ -207,14 +210,15 @@ class JellyfinLiveTvApi {
     bool? isActive,
     bool? isScheduled,
   }) async {
-    final qp = <String, Object?>{};
-    if (channelId != null) qp['channelId'] = channelId;
-    if (seriesTimerId != null) qp['seriesTimerId'] = seriesTimerId;
-    if (isActive != null) qp['isActive'] = isActive;
-    if (isScheduled != null) qp['isScheduled'] = isScheduled;
+    final qp = <String, Object?>{
+      'channelId': ?channelId,
+      'seriesTimerId': ?seriesTimerId,
+      'isActive': ?isActive,
+      'isScheduled': ?isScheduled,
+    };
     return _http.requestJson(
       '/LiveTv/Timers',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinTimer.fromJson),
     );
   }
@@ -238,8 +242,8 @@ class JellyfinLiveTvApi {
   }) async {
     final qp = <String, Object?>{
       'sortOrder': descending ? 'Descending' : 'Ascending',
+      'sortBy': ?sortBy,
     };
-    if (sortBy != null) qp['sortBy'] = sortBy;
     return _http.requestJson(
       '/LiveTv/SeriesTimers',
       queryParameters: qp,
@@ -286,11 +290,10 @@ class JellyfinLiveTvApi {
   Future<JellyfinChannelMappingOptions> channelMappingOptions({
     String? providerId,
   }) {
-    final qp = <String, Object?>{};
-    if (providerId != null) qp['providerId'] = providerId;
+    final qp = <String, Object?>{'providerId': ?providerId};
     return _http.requestJson(
       '/LiveTv/ChannelMappingOptions',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       objectOrEmptyOf(JellyfinChannelMappingOptions.fromJson),
     );
   }
@@ -406,14 +409,15 @@ class JellyfinLiveTvApi {
     String? location,
     String? country,
   }) {
-    final qp = <String, Object?>{};
-    if (id != null) qp['id'] = id;
-    if (type != null) qp['type'] = type;
-    if (location != null) qp['location'] = location;
-    if (country != null) qp['country'] = country;
+    final qp = <String, Object?>{
+      'id': ?id,
+      'type': ?type,
+      'location': ?location,
+      'country': ?country,
+    };
     return _http.requestJson(
       '/LiveTv/ListingProviders/Lineups',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       listOf(JellyfinNameIdPair.fromJson),
     );
   }
@@ -460,7 +464,7 @@ class JellyfinLiveTvApi {
     if (u != null) qp['userId'] = u;
     return _http.requestJson(
       '/LiveTv/Recordings/Folders',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       queryResultOf(JellyfinItem.fromJson),
     );
   }
@@ -478,11 +482,10 @@ class JellyfinLiveTvApi {
   /// (`SeriesTimerInfoDto`). Edit a copy of its `raw` and send it to
   /// [createTimer] or [createSeriesTimer].
   Future<JellyfinSeriesTimer> defaultTimer({String? programId}) {
-    final qp = <String, Object?>{};
-    if (programId != null) qp['programId'] = programId;
+    final qp = <String, Object?>{'programId': ?programId};
     return _http.requestJson(
       '/LiveTv/Timers/Defaults',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
       objectOrEmptyOf(JellyfinSeriesTimer.fromJson),
     );
   }

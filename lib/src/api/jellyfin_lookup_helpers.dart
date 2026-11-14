@@ -26,7 +26,7 @@ Future<JellyfinItem?> lookupItemByName(
   return nullOnNotFound(() async {
     final res = await http.request<Map<String, Object?>>(
       '$basePath/${Uri.encodeComponent(name)}',
-      queryParameters: qp.isEmpty ? null : qp,
+      queryParameters: qp,
     );
     final data = res.data;
     if (data == null) return null;

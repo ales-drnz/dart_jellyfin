@@ -43,11 +43,10 @@ class JellyfinYearsApi {
       'recursive': recursive,
       'enableUserData': enableUserData,
       'enableImages': enableImages,
+      'userId': ?_http.userId,
+      'parentId': ?parentId,
+      'limit': ?limit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (limit != null) qp['limit'] = limit;
     if (sortBy.isNotEmpty) {
       qp['sortBy'] = sortBy;
       qp['sortOrder'] = descending ? 'Descending' : 'Ascending';
@@ -74,13 +73,11 @@ class JellyfinYearsApi {
 
   /// `GET /Years/{year}` — lookup a single year. Returns null on 404.
   Future<JellyfinItem?> byYear({required int year}) async {
-    final qp = <String, Object?>{};
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
+    final qp = <String, Object?>{'userId': ?_http.userId};
     return nullOnNotFound(() async {
       final res = await _http.request<Map<String, Object?>>(
         '/Years/$year',
-        queryParameters: qp.isEmpty ? null : qp,
+        queryParameters: qp,
       );
       final data = res.data;
       if (data == null) return null;

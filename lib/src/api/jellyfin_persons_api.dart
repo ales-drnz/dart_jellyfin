@@ -51,11 +51,10 @@ class JellyfinPersonsApi {
     final qp = <String, Object?>{
       'enableUserData': enableUserData,
       'enableImages': enableImages,
+      'userId': ?_http.userId,
+      'startIndex': ?startIndex,
+      'limit': ?limit,
     };
-    final userId = _http.userId;
-    if (userId != null) qp['userId'] = userId;
-    if (startIndex != null) qp['startIndex'] = startIndex;
-    if (limit != null) qp['limit'] = limit;
     if (searchTerm != null && searchTerm.isNotEmpty) {
       qp['searchTerm'] = searchTerm;
     }

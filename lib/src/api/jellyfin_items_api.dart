@@ -312,8 +312,8 @@ class JellyfinItemsApi {
       'userId': ?_http.userId,
       'recursive': recursive,
       'enableTotalRecordCount': enableTotalRecordCount,
+      'parentId': ?parentId,
     };
-    if (parentId != null) qp['parentId'] = parentId;
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;
     }
@@ -380,10 +380,10 @@ class JellyfinItemsApi {
       'startIndex': startIndex,
       'enableImages': true,
       'enableUserData': true,
+      'limit': ?limit,
+      'parentId': ?parentId,
+      if (mediaTypes.isNotEmpty) 'mediaTypes': mediaTypes,
     };
-    if (limit != null) qp['limit'] = limit;
-    if (parentId != null) qp['parentId'] = parentId;
-    if (mediaTypes.isNotEmpty) qp['mediaTypes'] = mediaTypes;
     return _http.requestJson(
       '/UserItems/Resume',
       queryParameters: qp,
@@ -524,8 +524,11 @@ class JellyfinItemsApi {
     bool? isPlayed,
   }) async {
     final userId = _http.userId;
-    final qp = <String, Object?>{'userId': ?userId, 'limit': limit};
-    if (parentId != null) qp['parentId'] = parentId;
+    final qp = <String, Object?>{
+      'userId': ?userId,
+      'limit': limit,
+      'parentId': ?parentId,
+    };
     if (includeItemTypes.isNotEmpty) {
       qp['includeItemTypes'] = includeItemTypes;
     }
