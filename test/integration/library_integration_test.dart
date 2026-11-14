@@ -290,18 +290,26 @@ void main() {
           name: name,
           collectionType: 'music',
           paths: const ['/media/Music2'],
-          refreshLibrary: true,
         );
         try {
           String? secondId;
           JellyfinQueryResult<JellyfinItem>? second;
-          final deadline = DateTime.now().add(const Duration(seconds: 90));
-          while (DateTime.now().isBefore(deadline)) {
+          // The scan is asked for here, and again while the library is
+          // empty: the one `refreshLibrary` starts can run before the
+          // server knows the new folder, and find nothing.
+          final clock = Stopwatch()..start();
+          Duration? asked;
+          while (clock.elapsed < const Duration(seconds: 90)) {
             final views = await jf.library.userViews();
             secondId = views.where((v) => v.name == name).firstOrNull?.id;
             if (secondId != null) {
               second = await jf.artists.musicArtists(parentId: secondId);
               if (second.items.isNotEmpty) break;
+            }
+            if (asked == null ||
+                clock.elapsed - asked >= const Duration(seconds: 15)) {
+              await jf.library.refresh();
+              asked = clock.elapsed;
             }
             await Future<void>.delayed(const Duration(seconds: 2));
           }
@@ -327,7 +335,7 @@ void main() {
             'test/integration/seed/jellyfin/Music2',
           ).delete(recursive: true);
         }
-      });
+      }, timeout: const Timeout(Duration(minutes: 3)));
 
       test('a musicArtists id seeds an instant mix', () async {
         final artists = await jf.artists.musicArtists(

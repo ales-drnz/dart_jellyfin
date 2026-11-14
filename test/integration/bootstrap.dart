@@ -125,7 +125,6 @@ Future<void> main(List<String> args) async {
       name: 'Music',
       collectionType: 'music',
       paths: const ['/media/Music'],
-      refreshLibrary: true,
     );
     _step('Scanning library');
     await _waitForScan(client);
@@ -375,14 +374,33 @@ Future<void> _runFirstRunWizard(
   print('   ✓ Wizard complete');
 }
 
-Future<void> _waitForScan(JellyfinClient client, {int maxSeconds = 60}) async {
-  final deadline = DateTime.now().add(Duration(seconds: maxSeconds));
+/// Scans the library and waits until its tracks are there.
+///
+/// The scan is asked for here, not with `refreshLibrary` when the
+/// library is added: that scan can start before the server has
+/// registered the new folder, find nothing and end at once (seen on CI:
+/// "Scan Media Library Completed after 0 seconds", then an empty
+/// library until something else scanned it). So the scan is asked for
+/// again every 15 seconds while the library is still empty.
+///
+/// Fails the bootstrap when no track shows up: every suite needs them,
+/// and running on would only bury the cause under their failures.
+Future<void> _waitForScan(JellyfinClient client, {int maxSeconds = 120}) async {
+  final clock = Stopwatch()..start();
+  Duration? asked;
   var lastCount = -1;
   var stableTicks = 0;
-  while (DateTime.now().isBefore(deadline)) {
+  while (clock.elapsed < Duration(seconds: maxSeconds)) {
     final count = await client.items.count(
       includeItemTypes: const [JellyfinItemKind.audio],
     );
+    if (count == 0 &&
+        (asked == null ||
+            clock.elapsed - asked >= const Duration(seconds: 15))) {
+      print('   ▶ Asking for a library scan');
+      await client.library.refresh();
+      asked = clock.elapsed;
+    }
     if (count != lastCount) {
       lastCount = count;
       stableTicks = 0;
@@ -396,10 +414,11 @@ Future<void> _waitForScan(JellyfinClient client, {int maxSeconds = 60}) async {
     }
     await Future<void>.delayed(const Duration(seconds: 2));
   }
-  print(
-    '   ⚠ Scan didn\'t settle within ${maxSeconds}s — '
-    'final count: $lastCount audio items',
+  stderr.writeln(
+    '\n✗ The library scan found $lastCount audio items in ${maxSeconds}s. '
+    'The suites need the seeded tracks: not saving the cache.',
   );
+  exit(1);
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
