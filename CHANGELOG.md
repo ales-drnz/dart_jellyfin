@@ -1,3 +1,51 @@
+## [0.4.2]
+
+### All platforms
+**Fixed**
+- `mediaInfo.bitrateTestBytesLength()` returns the length: it threw a `parse` error on every call.
+- `userData.update(itemId:)` without `userData` or `raw` sends an empty document: it cleared the favourite and the played flag.
+- Without a session user, `liveTv`, `instantMix`, `videos.additionalParts()`, `mediaInfo.info()` and `postedInfo()` leave `userId` out: they sent it without a value.
+- `search.hints()` sends the session user when `userId` is not passed.
+- A `withCancelToken()` view waits out a playlist entry write made through its client before `rename()`, `update()` and `delete()`, and the other way round. Cancelling the view's token ends the wait.
+- Jellyfin 12.4 still loses a rename sent at once after an entry write, as 12.2 did.
+- `JellyfinClient.close()` closes the notifications socket and its keep-alive timer.
+- `notifications.connect()` while another `connect()` is still opening throws a `state` error: both opened a socket and the first one leaked.
+- A handshake that fails closes its socket. A `close()` still in flight no longer tears down a connection opened meanwhile. A socket error carries its `cause`.
+- The session token goes in the `Authorization` header to the connected server only, its host and port: `request()`, `requestBytes()` and `requestStream()` sent it to any host of a full URL.
+- `JellyfinException.path` and `message` read `REDACTED` for the value of `ApiKey` and `api_key`, so a failed download of a signed URL no longer puts the token in a log. `body` and `cause` are kept as they came.
+- `items.downloadUrl()` and `fileUrl()`, `plugins.imageUrl()` and `videos.attachmentUrl()` throw a `state` error without a base URL or a token: they answered `null/…?ApiKey=`.
+- The token is percent-encoded in every signed URL and in the socket URL.
+- A font name, a subtitle language, a session command, an API key, a plugin version and a live stream container are percent-encoded as one path segment.
+- A date the server never set, `0001-01-01`, is `null`: `JellyfinSession.lastPlaybackCheckIn` read year 1.
+- A JSON object or array where a text is expected is `null`, not its `toString()`.
+
+**Changed**
+- `user.authenticateWithQuickConnect()` throws an `auth` error for an answer without an `AccessToken`, as `authenticateByName()` does.
+- `playlists.create()`, `user.create()`, `user.currentUser()` and `quickConnect.initiate()` throw a `parse` error for an answer without the id; `quickConnect.state()` throws for an empty answer.
+- `connect()` and the `baseUrl` of the constructor throw a `state` error for a URL that is not `http://` or `https://` with a host.
+- Transport errors are classified by their type, not by their text.
+- `JellyfinClient` builds each sub-API on first use, and a `withCancelToken()` view builds only those it uses. The sub-API fields have no setter.
+
+**Added**
+- `notifications.connect(connectTimeout:)`, 15 seconds by default: a handshake that takes longer throws a `timeout` error. A fake that implements `JellyfinNotificationsApi` must add the parameter.
+- `JellyfinUserData.rating`, and `JellyfinTaskResult.key`, `id` and `name`.
+- `JellyfinUnknownEvent.isMalformed`: whether the frame is of a known type with `Data` of the wrong shape, or of a type the package does not know.
+- `JellyfinDisplayPreferences.copyWith()`.
+- `toString()` on `JellyfinItem`, `JellyfinUser`, `JellyfinSession` and `JellyfinQueryResult`.
+
+### Docs
+- The Events topic says when the notifications stream ends, and that nothing reconnects it.
+- One library's artists come from `artists.musicArtists()`: `items.list()` and the migration guide pointed to lists that answer `Person` items or ignore `parentId`.
+- `genres.list()` without `parentId` can miss a music genre on a fresh server, and `instantMix.fromArtist()` is empty for an artist whose genres no track shares.
+- `401` and `403` are both `auth`: `statusCode` tells them apart.
+
+### Tests and CI
+- CI runs the tests compiled to JavaScript on Node, the lowest dependency versions, and each week the integration suite and the upstream API document check.
+- A plain `dart test` no longer reaches the network: the upstream check is tagged `network`.
+- The notifications socket, the JSON readers and twenty sub-APIs that had none have unit tests.
+- The integration suite passes on a server built from nothing.
+- The floor of the coverage check is the measured value, 331 of 346 operations.
+
 ## [0.4.1] - 8-11-2026
 
 ### All platforms
