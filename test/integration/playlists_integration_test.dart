@@ -103,17 +103,9 @@ void main() {
         await jf.playlists.delete(playlistId: created.id);
       }
 
-      // A deleted playlist is a 404 on 12.2.
-      await expectLater(
-        jf.playlists.byId(playlistId: created.id),
-        throwsA(
-          isA<JellyfinException>().having(
-            (e) => e.type,
-            'type',
-            JellyfinErrorType.notFound,
-          ),
-        ),
-      );
+      // A deleted playlist is a 404 on 12.2 and 12.4, which byId answers
+      // as null.
+      expect(await jf.playlists.byId(playlistId: created.id), isNull);
     });
 
     test('a second delete fails with notFound', () async {
