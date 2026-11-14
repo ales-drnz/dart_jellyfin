@@ -22,9 +22,15 @@
 **Changed**
 - `user.authenticateWithQuickConnect()` throws an `auth` error for an answer without an `AccessToken`, as `authenticateByName()` does.
 - `playlists.create()`, `user.create()`, `user.currentUser()` and `quickConnect.initiate()` throw a `parse` error for an answer without the id; `quickConnect.state()` throws for an empty answer.
+- A read of one thing by id answers `null` on a `404`: `playlists.byId()`, `liveTv.channel()`, `recording()` and `program()`, `scheduledTasks.byId()`, `devices.info()`, `syncPlay.group()` and `lyrics.previewRemote()` threw a `notFound` error, where `items.byId()` and `user.byId()` answered `null`.
+- One rule for `userId`: it is sent when the session has one and left out otherwise, and the server then acts for the token's user. `items` (`list()`, `count()`, `byId()`, `resume()`, `root()`, `intros()`, `localTrailers()`, `specialFeatures()`, `latest()`), `library.userViews()`, `playlists` (`create()`, `items()`, `addItems()`) and `audio.universalStreamUrl()` threw a `state` error without a session user.
 - `connect()` and the `baseUrl` of the constructor throw a `state` error for a URL that is not `http://` or `https://` with a host.
 - Transport errors are classified by their type, not by their text.
 - `JellyfinClient` builds each sub-API on first use, and a `withCancelToken()` view builds only those it uses. The sub-API fields have no setter.
+
+**Deprecated**
+- `lyrics.forItem()`: `audio.lyrics()` is the same request.
+- `liveTv.discoverTunersAlt()`: `discoverTuners()` asks the route without the typo and answers the same.
 
 **Added**
 - `notifications.connect(connectTimeout:)`, 15 seconds by default: a handshake that takes longer throws a `timeout` error. A fake that implements `JellyfinNotificationsApi` must add the parameter.
@@ -32,6 +38,10 @@
 - `JellyfinUnknownEvent.isMalformed`: whether the frame is of a known type with `Data` of the wrong shape, or of a type the package does not know.
 - `JellyfinDisplayPreferences.copyWith()`.
 - `toString()` on `JellyfinItem`, `JellyfinUser`, `JellyfinSession` and `JellyfinQueryResult`.
+
+### Internal
+- The sub-APIs share their query entries, their `404` handling and their URL signing instead of repeating them.
+- The models are libraries by domain, exported by `jellyfin_models.dart`; `jellyfin_server_models.dart` is gone. The command and playback vocabularies live in `jellyfin_vocabulary.dart`. The public library exports the same names.
 
 ### Docs
 - The Events topic says when the notifications stream ends, and that nothing reconnects it.

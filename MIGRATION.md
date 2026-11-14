@@ -15,6 +15,28 @@ the ones below against your code.
 | `user.authenticateWithQuickConnect()` answered without an `AccessToken` | returned an empty token | throws an `auth` error |
 | `playlists.create()`, `user.create()`, `user.currentUser()`, `quickConnect.initiate()` answered without the id | returned a model with an empty id | throw a `parse` error |
 
+## Calls that no longer throw
+
+| Call | 0.4.1 | 0.4.2 |
+| --- | --- | --- |
+| `playlists.byId()`, `liveTv.channel()`, `recording()`, `program()`, `scheduledTasks.byId()`, `devices.info()`, `syncPlay.group()`, `lyrics.previewRemote()` for an id the server does not know | threw a `notFound` error | answer `null`, as `items.byId()` does |
+| `items.list()`, `count()`, `byId()`, `resume()`, `root()`, `intros()`, `localTrailers()`, `specialFeatures()`, `latest()`, `library.userViews()`, `playlists.create()`, `items()`, `addItems()`, `audio.universalStreamUrl()` without a session user | threw a `state` error | leave `userId` out: the server acts for the token's user |
+
+Code that caught `isNotFound` around one of the first group now gets
+`null` instead; a `try`/`catch` kept around it still compiles and no
+longer runs. Code that relied on the `state` error to notice a missing
+sign-in should check `jf.isAuthenticated` itself: without a token the
+server answers `401`, an `auth` error.
+
+## Deprecated
+
+| 0.4.1 | 0.4.2 |
+| --- | --- |
+| `jf.lyrics.forItem(itemId: id)` | `jf.audio.lyrics(itemId: id)`: the same request |
+| `jf.liveTv.discoverTunersAlt()` | `jf.liveTv.discoverTuners()` |
+
+Both still work.
+
 ## The token and other hosts
 
 `request()`, `requestBytes()`, `requestStream()` and `downloadToFile()`
