@@ -2,7 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-part of '../jellyfin_models.dart';
+library;
+
+import '../jellyfin_json.dart';
+import 'jellyfin_config_models.dart';
+import 'jellyfin_item_models.dart';
+import 'jellyfin_query_result.dart';
 
 // ---------------------------------------------------------------------------
 // Metadata lookup and editing
